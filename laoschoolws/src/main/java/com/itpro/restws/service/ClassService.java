@@ -6,10 +6,10 @@ import com.itpro.restws.model.EClass;
 
 public interface ClassService {
 	
-	EClass findById(int id);
-	int countBySchoolID(int school_id);
-	ArrayList<EClass> findBySchool(int school_id,int from_num, int max_result);
-	ArrayList<EClass> findByUser(int user_id,int from_num, int max_result);
+	EClass findById(Integer id);
+	int countBySchoolID(Integer school_id);
+	ArrayList<EClass> findBySchool(Integer school_id,int from_num, int max_result);
+	ArrayList<EClass> findByUser(Integer user_id,int from_num, int max_result);
 	
 	
 	

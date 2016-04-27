@@ -7,7 +7,10 @@ import java.lang.reflect.ParameterizedType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.itpro.restws.model.AbstractModel;
 
 public abstract class AbstractDao<PK extends Serializable, T> {
 	
@@ -27,7 +30,18 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 
 	@SuppressWarnings("unchecked")
 	public T getByKey(PK key) {
-		return (T) getSession().get(persistentClass, key);
+		//return (T) getSession().get(persistentClass, key);
+		T model = (T)getSession().get(persistentClass, key);
+		if (model instanceof AbstractModel){
+			if (((AbstractModel) model).getActflg().equals("A")){
+				return model;
+			}else{
+				return null;
+			}
+		}else{
+			return model;
+		}
+		//AbstractModel model = (AbstractModel) getSession().get(persistentClass, key);
 	}
 
 	public void persist(T entity) {
@@ -54,7 +68,11 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 	}
 	
 	protected Criteria createEntityCriteria(){
-		return getSession().createCriteria(persistentClass);
+		//return getSession().createCriteria(persistentClass);
+		Criteria criteria=  getSession().createCriteria(persistentClass);
+		criteria.add(Restrictions.eq("actflg", "A"));
+		return criteria;
+		
 	}
 	
 

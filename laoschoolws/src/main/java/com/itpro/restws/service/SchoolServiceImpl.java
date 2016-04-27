@@ -22,7 +22,7 @@ public class SchoolServiceImpl implements SchoolService{
 	
 
 	@Override
-	public School findById(int id) {
+	public School findById(Integer id) {
 		
 		return schoolDao.findById(id);
 	}

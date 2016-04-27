@@ -17,26 +17,26 @@ public class ClassServiceImpl implements ClassService{
 	private ClassDao classDao;
 
 	@Override
-	public EClass findById(int id) {
+	public EClass findById(Integer id) {
 		return classDao.findById(id);
 		
 	}
 
 	@Override
-	public int countBySchoolID(int school_id) {
+	public int countBySchoolID(Integer school_id) {
 		return classDao.countClassBySchool(school_id);
 		
 	}
 
 
 	@Override
-	public ArrayList<EClass> findByUser(int user_id, int from_num, int max_result) {
+	public ArrayList<EClass> findByUser(Integer user_id, int from_num, int max_result) {
 		return (ArrayList<EClass>) classDao.findByUser(user_id, from_num, max_result);
 		
 	}
 
 	@Override
-	public ArrayList<EClass> findBySchool(int school_id, int from_num, int max_result) {
+	public ArrayList<EClass> findBySchool(Integer school_id, int from_num, int max_result) {
 		return (ArrayList<EClass>) classDao.findBySchool(school_id, from_num, max_result);
 	}
 	@Override

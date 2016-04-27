@@ -22,7 +22,7 @@ public class AuthenKey extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
 	@Column(name="auth_key")
@@ -35,7 +35,7 @@ public class AuthenKey extends AbstractModel{
 	@Column(name="expired_dt")
 	private String expired_dt;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
@@ -51,7 +51,7 @@ public class AuthenKey extends AbstractModel{
 		return expired_dt;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

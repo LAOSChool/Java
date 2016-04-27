@@ -16,26 +16,26 @@ import com.itpro.restws.model.Attendance;
 public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implements AttendanceDao {
 
 	@Override
-	public int countAttendanceBySchool(int school_id) {
+	public int countAttendanceBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public int countAttendanceByClass(int class_id) {
+	public int countAttendanceByClass(Integer class_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public Attendance findById(int id) {
-		return getByKey(id);
+	public Attendance findById(Integer id) {
+		return getByKey(id.intValue());
 	}
 
 	@Override
-	public List<Attendance> findBySchool(int school_id, int from_row, int max_result) {
+	public List<Attendance> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
@@ -46,7 +46,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 
 	@Override
-	public List<Attendance> findByUser(int user_id, int from_row, int max_result) {
+	public List<Attendance> findByUser(Integer user_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("user_id", user_id));
 		crit_list.setMaxResults(max_result);
@@ -57,14 +57,14 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 
 	@Override
-	public int countAttendanceByUser(int user_id) {
+	public int countAttendanceByUser(Integer user_id) {
 		// Get row count
-				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE user_id= '" + user_id+ "'").uniqueResult()).intValue();
+				int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE user_id= '" + user_id+ "'").uniqueResult()).intValue();
 				return count;
 	}
 
 	@Override
-	public List<Attendance> findByClass(int class_id, int from_row, int max_result) {
+	public List<Attendance> findByClass(Integer class_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);

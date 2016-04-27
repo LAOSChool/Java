@@ -1,5 +1,6 @@
 package com.itpro.restws.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -7,11 +8,12 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,11 +28,11 @@ public class EClass extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
 	@Column(name="school_id")
-	private int school_id;
+	private Integer school_id;
 
 	@Column(name="title")
 	private String title;
@@ -39,7 +41,7 @@ public class EClass extends AbstractModel{
 	private String location;
 	
 	@Column(name="term")
-	private int term;
+	private Integer term;
 	
 	@Column(name="years")
 	private String years;
@@ -51,16 +53,16 @@ public class EClass extends AbstractModel{
 	private String end_dt;
 	
 	@Column(name="class_type")
-	private int class_type;
+	private Integer class_type;
 	
 	@Column(name="grade_type")
-	private int grade_type;
+	private Integer grade_type;
 	
 	@Column(name="fee")
-	private int fee;
+	private Integer fee;
 	
 	@Column(name="sts")
-	private int sts;
+	private Integer sts;
 
 	@Column(name="head_teacher_id")
 	private long head_teacher_id;
@@ -70,35 +72,31 @@ public class EClass extends AbstractModel{
 //	 private Set<User> users;	
 	
 
-//	public Set<User> getUsers() {
-//		return users;
-//	}
-//
-//	public void setUsers(Set<User> users) {
-//		this.users = users;
-//	}
+	@JsonIgnore
+	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "classes")
+	private Set<User> users;
+	public Set<User> getUsers() {
+		return users;
+	}
+	public void setUsers(Set<User> users) {
+		this.users = users;
+	}
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
-//	public Set<User> getUsers() {
-//		return users;
-//	}
+	
 
-//	public void setUsers(Set<User> users) {
-//		this.users = users;
-//	}
-
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 
@@ -118,11 +116,11 @@ public class EClass extends AbstractModel{
 		this.location = location;
 	}
 
-	public int getTerm() {
+	public Integer getTerm() {
 		return term;
 	}
 
-	public void setTerm(int term) {
+	public void setTerm(Integer term) {
 		this.term = term;
 	}
 
@@ -150,35 +148,35 @@ public class EClass extends AbstractModel{
 		this.end_dt = end_dt;
 	}
 
-	public int getClass_type() {
+	public Integer getClass_type() {
 		return class_type;
 	}
 
-	public void setClass_type(int class_type) {
+	public void setClass_type(Integer class_type) {
 		this.class_type = class_type;
 	}
 
-	public int getGrade_type() {
+	public Integer getGrade_type() {
 		return grade_type;
 	}
 
-	public void setGrade_type(int grade_type) {
+	public void setGrade_type(Integer grade_type) {
 		this.grade_type = grade_type;
 	}
 
-	public int getFee() {
+	public Integer getFee() {
 		return fee;
 	}
 
-	public void setFee(int fee) {
+	public void setFee(Integer fee) {
 		this.fee = fee;
 	}
 
-	public int getSts() {
+	public Integer getSts() {
 		return sts;
 	}
 
-	public void setSts(int sts) {
+	public void setSts(Integer sts) {
 		this.sts = sts;
 	}
 
@@ -189,5 +187,26 @@ public class EClass extends AbstractModel{
 	public void setHead_teacher_id(long head_teacher_id) {
 		this.head_teacher_id = head_teacher_id;
 	}
+	
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = head_teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String headTeacherName;	
+	public String getHeadTeacherName() {
+		return headTeacherName;
+	}
+	
+	public  Set<User>  getUserByRoles(String fileter_roles) {
+		HashSet<User> ret = new HashSet<>();
+		for (User user: this.users){
+			for (String role:fileter_roles.split(",")){
+				if (user.hasRole(role)){
+					ret.add(user);
+					break;
+				}
+			}
+			
+		}
+		return ret;
+	}
+
 
 }

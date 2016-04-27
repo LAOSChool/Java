@@ -44,7 +44,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 	
 
 	@Override
-	public MTemplate findById(String tbl_name, int id) {
+	public MTemplate findById(String tbl_name, Integer id) {
 		if (MasterTblName.TBLNAME_M_EXAM.equalsName(tbl_name) ){
 			return mexamDao.findById(id).convertToTemp();
 		}
@@ -71,7 +71,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 	}
 
 	@Override
-	public int countBySchool(String tbl_name, int school_id) {
+	public int countBySchool(String tbl_name, Integer school_id) {
 		if (MasterTblName.TBLNAME_M_EXAM.equalsName(tbl_name) ){
 			return mexamDao.countBySchool(school_id);
 		}
@@ -124,7 +124,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 //	}
 	
 	@Override
-	public ArrayList<MTemplate> findBySchool(String tbl_name, int school_id, int from_num, int max_result) {
+	public ArrayList<MTemplate> findBySchool(String tbl_name, Integer school_id, int from_num, int max_result) {
 		ArrayList<MTemplate> list_ret = new ArrayList<>(); 
 		if (MasterTblName.TBLNAME_M_EXAM.equalsName(tbl_name) ){
 			ArrayList<MExam> list =  (ArrayList<MExam>) mexamDao.findBySchool(school_id, from_num, max_result);

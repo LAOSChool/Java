@@ -17,37 +17,37 @@ public class AttendanceServiceImpl implements AttendanceService{
 	private AttendanceDao attendanceDao;
 
 	@Override
-	public Attendance findById(int id) {
+	public Attendance findById(Integer id) {
 		return attendanceDao.findById(id);
 	}
 
 	@Override
-	public int countBySchoolID(int school_id) {
+	public int countBySchoolID(Integer school_id) {
 		return attendanceDao.countAttendanceBySchool(school_id);
 	}
 
 	@Override
-	public int countByClassID(int class_id) {
+	public int countByClassID(Integer class_id) {
 		return attendanceDao.countAttendanceByClass(class_id);
 	}
 
 	@Override
-	public int countByUserID(int user_id) {
+	public int countByUserID(Integer user_id) {
 		return attendanceDao.countAttendanceByUser(user_id);
 	}
 
 	@Override
-	public ArrayList<Attendance> findBySchool(int school_id, int from_num, int max_result) {
+	public ArrayList<Attendance> findBySchool(Integer school_id, int from_num, int max_result) {
 		return (ArrayList<Attendance>) attendanceDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<Attendance> findByClass(int class_id, int from_num, int max_result) {
+	public ArrayList<Attendance> findByClass(Integer class_id, int from_num, int max_result) {
 		return (ArrayList<Attendance>) attendanceDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<Attendance> findByUser(int user_id, int from_num, int max_result) {
+	public ArrayList<Attendance> findByUser(Integer user_id, int from_num, int max_result) {
 		return (ArrayList<Attendance>) attendanceDao.findByClass(user_id, from_num, max_result);
 	}
 

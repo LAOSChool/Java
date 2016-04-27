@@ -22,16 +22,14 @@ public class Permit extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
-
-	
+	private Integer id;
 
 	@Column(name="entity")
 	private String entity;
 	
 	
 	@Column(name="rights")
-	private String rights;
+	private int rights;
 
 	@JsonIgnore
 	@Column(name="roles")
@@ -42,9 +40,9 @@ public class Permit extends AbstractModel{
 	private int scope;
 	
 	@Column(name="school_id")
-	private int school_id;
+	private Integer school_id;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
@@ -52,7 +50,7 @@ public class Permit extends AbstractModel{
 		return entity;
 	}
 
-	public String getRights() {
+	public int getRights() {
 		return rights;
 	}
 
@@ -64,11 +62,11 @@ public class Permit extends AbstractModel{
 		return scope;
 	}
 
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -76,7 +74,7 @@ public class Permit extends AbstractModel{
 		this.entity = entity;
 	}
 
-	public void setRights(String rights) {
+	public void setRights(int rights) {
 		this.rights = rights;
 	}
 
@@ -88,10 +86,24 @@ public class Permit extends AbstractModel{
 		this.scope = scope;
 	}
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 	
+	public String toString(){
+		return "Permit: {entity="+entity+";roles="+roles+";school="+school_id+";rights="+rights+";scope="+scope+"}";
+	}
 
-
+	public boolean hasRole(String role){
+		String roles = this.roles;
+		if (roles == null || "".equalsIgnoreCase(roles)){
+			return false;
+		}
+		for (String txt : roles.split(",")){
+			if (role.equalsIgnoreCase(txt)){
+				return true;
+			}	
+		}
+		return false;
+	}
 }

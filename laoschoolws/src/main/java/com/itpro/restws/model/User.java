@@ -1,14 +1,18 @@
 package com.itpro.restws.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -21,6 +25,7 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.itpro.restws.helper.Utils;
 
 @Entity
 @Table(name="user")
@@ -32,7 +37,7 @@ public class User extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	Integer  id;
 
 	
 	@Column(name="sso_id", unique = true)
@@ -50,7 +55,7 @@ public class User extends AbstractModel{
 
 	//0:Pending;1:Active;2:Suspense;3:Closed
 	@Column(name="state")
-	private int state;
+	private Integer state;
 
 	@Column(name="school_id")
 	private Integer school_id;
@@ -102,24 +107,43 @@ public class User extends AbstractModel{
 	@Column(name="std_parent_name", nullable=true)
 	private String std_parent_name;
 	
+//	@NotFound(action=NotFoundAction.IGNORE)
+//	@ManyToOne (optional=true)
+//	@JoinColumns({ @JoinColumn(name="class_id", referencedColumnName="id")	})
+//	private EClass eclass;
+//	public EClass getEclass() {
+//		return eclass;
+//	}
+//	public void setEclass(EClass eclass) {
+//		this.eclass = eclass;
+//	}
+
+//	@JsonIgnore
 	@NotFound(action=NotFoundAction.IGNORE)
-	@ManyToOne (optional=true)
-	@JoinColumns({ @JoinColumn(name="class_id", referencedColumnName="id")	})
-	private EClass eclass;
-	public EClass getEclass() {
-		return eclass;
-	}
-	public void setEclass(EClass eclass) {
-		this.eclass = eclass;
+	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
+	
+	@JoinTable(name = "user2class", 
+             joinColumns        = { @JoinColumn(name = "user_id") }, 
+             inverseJoinColumns = { @JoinColumn(name = "class_id") })
+	private Set<EClass> classes = new HashSet<EClass>();
+	
+
+	public Set<EClass> getClasses() {
+		return classes;
 	}
 
 
-	public int getId() {
+	public void setClasses(Set<EClass> classes) {
+		this.classes = classes;
+	}
+
+
+	public Integer getId() {
 		return id;
 	}
 
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -175,8 +199,8 @@ public class User extends AbstractModel{
 	}
 
 
-	public int getSchool_id() {
-		return Integer.valueOf(school_id);
+	public Integer getSchool_id() {
+		return school_id;
 	}
 
 
@@ -364,6 +388,59 @@ public class User extends AbstractModel{
 
 	public void setPermisions(ArrayList<Permit> permisions) {
 		this.permisions = permisions;
+	}
+	
+	@Transient
+	private String default_pass;
+
+
+	public String getDefault_pass() {
+		return default_pass;
+	}
+
+
+	public void setDefault_pass(String default_pass) {
+		this.default_pass = default_pass;
+	}
+	
+	public String eClassesToString() {
+		if (classes == null ){
+			return "";
+		}
+		String ret = "";
+		for (EClass e: classes){
+			ret = ret + e.getId() +",";
+		}
+		ret = Utils.removeTxtLastComma(ret);
+		return ret;
+	}
+	public List<Integer> eClassesListID() {
+		if (this.classes == null ){
+			return null;
+		}
+		ArrayList<Integer>  list = new ArrayList<>();
+    	for (EClass e : classes){
+    		list.add(e.getId());
+    	}
+    	return list;
+	}
+	public boolean hasRole(String filter_roles){
+		if (this.roles==null || roles.equals("")){
+			return false;
+		}
+		if (filter_roles==null || filter_roles.equals("")){
+			return false;
+		}
+		for (String txt : roles.split(",")){
+			
+			for (String filter : filter_roles.split(",")){
+				if (filter.equalsIgnoreCase(txt)){
+					return true;
+				}	
+			}
+				
+		}
+		return false;
 	}
 	
 }

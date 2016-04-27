@@ -7,7 +7,7 @@ import com.itpro.restws.model.School;
 
 public interface SchoolDao {
 
-	School findById(int id);
+	School findById(Integer id);
 	List<School> findAll() ;
 //	School create(School sh);
 	void saveSchool(School school);

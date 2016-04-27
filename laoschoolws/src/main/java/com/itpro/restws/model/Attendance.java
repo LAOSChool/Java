@@ -21,73 +21,73 @@ public class Attendance extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
 	@Column(name="school_id")
-	private int school_id;
+	private Integer school_id;
 
 	@Column(name="class_id")
-	private int class_id;
+	private Integer class_id;
 	
 	@Column(name="att_dt")
 	private String att_dt;
 	
 	@Column(name="subject_id")
-	private int subject_id;
+	private Integer subject_id;
 	
 	@Column(name="session_id")
-	private int session_id;
+	private Integer session_id;
 
 	@Column(name="user_id")
-	private int user_id;
+	private Integer user_id;
 	
 	@Column(name="user_name")
 	private String user_name;
 	
 	@Column(name="absent")
-	private int absent;
+	private Integer absent;
 	
 	@Column(name="excused")
-	private int excused;
+	private Integer excused;
 	
 	@Column(name="late")
-	private int late;
+	private Integer late;
 	
 	@Column(name="notice")
 	private String notice;
 	
 
 	@Column(name="chk_user_id")
-	private int chk_user_id;
+	private Integer chk_user_id;
 
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
 
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 
 
-	public int getClass_id() {
+	public Integer getClass_id() {
 		return class_id;
 	}
 
 
-	public void setClass_id(int class_id) {
+	public void setClass_id(Integer class_id) {
 		this.class_id = class_id;
 	}
 
@@ -102,44 +102,44 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public int getSubject_id() {
+	public Integer getSubject_id() {
 		return subject_id;
 	}
 
 
-	public void setSubject_id(int subject_id) {
+	public void setSubject_id(Integer subject_id) {
 		this.subject_id = subject_id;
 	}
 
 
 	
 
-	public int getAbsent() {
+	public Integer getAbsent() {
 		return absent;
 	}
 
 
-	public void setAbsent(int absent) {
+	public void setAbsent(Integer absent) {
 		this.absent = absent;
 	}
 
 
-	public int getExcused() {
+	public Integer getExcused() {
 		return excused;
 	}
 
 
-	public void setExcused(int excused) {
+	public void setExcused(Integer excused) {
 		this.excused = excused;
 	}
 
 
-	public int getLate() {
+	public Integer getLate() {
 		return late;
 	}
 
 
-	public void setLate(int late) {
+	public void setLate(Integer late) {
 		this.late = late;
 	}
 
@@ -154,22 +154,22 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public int getChk_user_id() {
+	public Integer getChk_user_id() {
 		return chk_user_id;
 	}
 
 
-	public void setChk_user_id(int chk_user_id) {
+	public void setChk_user_id(Integer chk_user_id) {
 		this.chk_user_id = chk_user_id;
 	}
 
 
-	public int getUser_id() {
+	public Integer getUser_id() {
 		return user_id;
 	}
 
 
-	public void setUser_id(int user_id) {
+	public void setUser_id(Integer user_id) {
 		this.user_id = user_id;
 	}
 

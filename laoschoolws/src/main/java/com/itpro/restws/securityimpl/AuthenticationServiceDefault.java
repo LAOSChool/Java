@@ -13,10 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.itpro.restws.helper.Password;
+import com.itpro.restws.model.User;
 import com.itpro.restws.security.AuthenticationService;
 import com.itpro.restws.security.TokenInfo;
 import com.itpro.restws.security.TokenManager;
+import com.itpro.restws.service.UserService;
 
 /**
  * Service responsible for all around authentication, token checks, etc.
@@ -26,7 +27,9 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	private static final Logger logger = Logger.getLogger(AuthenticationServiceDefault.class);
 	@Autowired
 	private ApplicationContext applicationContext;
-
+	@Autowired
+	private UserService userService;
+	
 	private final AuthenticationManager authenticationManager;
 	private final TokenManager tokenManager;
 	//private final ApiKeyManager apiKeyManager;
@@ -84,9 +87,21 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	@Override
 	public void logout(String token) {
 		UserDetails logoutUser = tokenManager.removeToken(token);
-//		System.out.println(" *** AuthenticationServiceImpl.logout: " + logoutUser);
 		logger.info(" *** AuthenticationServiceImpl.logout: " + logoutUser);
 		SecurityContextHolder.clearContext();
+		
+//		try {
+//	        HttpSession session = request.getSession(false);
+//	        if (session != null) {
+//	            session.invalidate();
+//	        }
+//
+//	        SecurityContextHolder.clearContext();
+//
+//	    } catch (Exception e) {
+//	        logger.log(LogLevel.INFO, "Problem logging out.");
+//	    }
+	    
 	}
 
 	@Override
@@ -95,13 +110,19 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 		if (authentication == null) {
 			return null;
 		}
-		return (UserDetails) authentication.getPrincipal();
+		User user = userService.findBySso(authentication.getPrincipal().toString());
+		if (user != null ){
+			return new UserContext(user);
+		}else {
+			return null;
+		}
 	}
 
 	@Override
 	public boolean checkApiKey(String api_key) {
 		logger.info(" *** AuthenticationServiceImpl.checkApiKey");
-		if ("TEST_API_KEY".equalsIgnoreCase(api_key)){
+		//if (Constant.API_KEY.equalsIgnoreCase(api_key)){
+		if (api_key != null && api_key.length() > 0 && api_key.length() < 500){
 			return true;
 		}
 		//TODO: define later

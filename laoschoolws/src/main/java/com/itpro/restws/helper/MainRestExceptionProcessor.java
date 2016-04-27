@@ -19,25 +19,25 @@ public class MainRestExceptionProcessor {
 
 	// Hand all UnknownMatchException
 	@ExceptionHandler(ESchoolException.class)
-	public ResponseEntity<ErrorInfo> handleUnknowException(HttpServletRequest req, ESchoolException ex) {
+	public ResponseEntity<RespInfo> handleUnknowException(HttpServletRequest req, ESchoolException ex) {
 
 		String url = req.getRequestURL().toString();
 		HttpStatus httpSts = ex.getHttpSts();
-		ErrorInfo errorInfo = new ErrorInfo(httpSts.value(), httpSts.getReasonPhrase(), url,ex.getError_msg());
-		ResponseEntity<ErrorInfo> response = new ResponseEntity<ErrorInfo>(errorInfo, httpSts);
+		RespInfo errorInfo = new RespInfo(httpSts.value(), httpSts.getReasonPhrase(), url,ex.getError_msg());
+		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, httpSts);
 
 		return response;
 	}
 
 	// // Hand all UnknownMatchException
 	 @ExceptionHandler(RuntimeException.class)
-		public ResponseEntity<ErrorInfo> unknownErrorHandle(HttpServletRequest req, RuntimeException ex) {
+		public ResponseEntity<RespInfo> unknownErrorHandle(HttpServletRequest req, RuntimeException ex) {
 		 //String devMsg =  messageSource.getMessage("error.unknow.error", null, msgLocate);
 		String url = req.getRequestURL().toString();
 		HttpStatus httpSts = HttpStatus.INTERNAL_SERVER_ERROR;
-		ErrorInfo errorInfo = new ErrorInfo(httpSts.value(), httpSts.getReasonPhrase(), url,ex.getMessage());
+		RespInfo errorInfo = new RespInfo(httpSts.value(), httpSts.getReasonPhrase(), url,ex.getMessage());
 		
-		ResponseEntity<ErrorInfo> response = new ResponseEntity<ErrorInfo>(errorInfo, httpSts);
+		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, httpSts);
 
 		return response;
 	 }

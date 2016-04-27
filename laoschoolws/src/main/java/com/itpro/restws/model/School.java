@@ -21,7 +21,7 @@ public class School extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
 	@Column(name="title")
@@ -75,11 +75,11 @@ public class School extends AbstractModel{
 	@Column(name="state")
 	private String state;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

@@ -1,6 +1,7 @@
 package com.itpro.restws.security;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -12,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
+
+import com.itpro.restws.helper.Constant;
 
 /**
  * Takes care of HTTP request/response pre-processing for login/logout and token check.
@@ -60,6 +63,8 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+		Map<String, String[]> parameters = request.getParameterMap();
+		String data = parameters.toString();
 		// Check API_KEY Start
 		// To disable check API_KEY, just comment this code block
 		checkApiKey(httpRequest, httpResponse);
@@ -72,10 +77,10 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			// Logout does not work in the same request with login - this does not make sense,
 			// because logout works with token and login returns it.
 			if (authenticated ) {
-				checkLogout(httpRequest);
+				checkLogout(httpRequest,httpResponse);
+			}else{
+				checkLogin(httpRequest, httpResponse);
 			}
-			
-			checkLogin(httpRequest, httpResponse);
 		}
 
 		if (canRequestProcessingContinue(httpRequest)) {
@@ -89,18 +94,24 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		
 		String username = httpRequest.getHeader(HEADER_USERNAME);
 		String password = httpRequest.getHeader(HEADER_PASSWORD);
-
+		
 		
 		if (username != null && password != null) {
-			checkUsernameAndPassword(username, password, httpResponse);
 			doNotContinueWithRequestProcessing(httpRequest);
+			checkUsernameAndPassword(username, password, httpResponse);
 		}
+//		else{
+//			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+//		}
+		
 	}
 
 	private void checkUsernameAndPassword(String username, String password, HttpServletResponse httpResponse) throws IOException {
 		TokenInfo tokenInfo = authenticationService.authenticate(username, password);
 		if (tokenInfo != null) {
 			httpResponse.setHeader(HEADER_AUTH_KEY, tokenInfo.getToken());
+			httpResponse.getOutputStream().println("OK");
+			httpResponse.getOutputStream().flush();
 		} else {
 			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		}
@@ -113,7 +124,21 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		String token = httpRequest.getHeader(HEADER_AUTH_KEY);
 		if (token == null) {
 			// OK, continue to check_login
-			return false;
+			//return false;
+			
+			if (currentLink(httpRequest).equals(Constant.LOGIN_LINK) || 
+					currentLink(httpRequest).equals(Constant.FORGOT_PASS)){
+				//OK, continue to check_login
+				return false;
+			}
+//			else{
+//				SecurityContextHolder.clearContext();
+//		        HttpSession session = httpRequest.getSession(false);
+//		        if (session != null) {
+//		            session.invalidate();
+//		        }
+//				httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+//			}
 		}
 
 		if (authenticationService.checkToken(token)) {
@@ -122,21 +147,26 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			return true;
 		} else {
 			logger.info(" *** Invalid " + HEADER_AUTH_KEY + ' ' + token);
-			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);
 			doNotContinueWithRequestProcessing(httpRequest);
 		}
 		return false;
 	}
 
-	private void checkLogout(HttpServletRequest httpRequest) {
+	private void checkLogout(HttpServletRequest httpRequest,HttpServletResponse httpResponse) throws IOException {
 		if (currentLink(httpRequest).equals(logoutLink)) {
 			String token = httpRequest.getHeader(HEADER_AUTH_KEY);
 			// we go here only authenticated, token must not be null
 			authenticationService.logout(token);
+			httpResponse.getOutputStream().println("Request was successfully");
+			httpResponse.getOutputStream().flush();
+			httpResponse.flushBuffer();
 			doNotContinueWithRequestProcessing(httpRequest);
 		}
 	}
 
+	
+	
 	// or use Springs util instead: new UrlPathHelper().getPathWithinApplication(httpRequest)
 	// shame on Servlet API for not providing this without any hassle :-(
 	private String currentLink(HttpServletRequest httpRequest) {
@@ -167,7 +197,7 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			logger.info(" *** api_key: " + HEADER_API_KEY + " : is valid ");
 		} else {
 			logger.info(" *** Invalid api_key:" + HEADER_API_KEY );
-			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);
 			doNotContinueWithRequestProcessing(httpRequest);
 		}
 	}

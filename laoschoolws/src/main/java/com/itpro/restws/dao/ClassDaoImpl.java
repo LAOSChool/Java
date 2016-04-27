@@ -16,18 +16,18 @@ import com.itpro.restws.model.EClass;
 public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassDao {
 
 	@Override
-	public EClass findById(int id) {
-		return getByKey(id);
+	public EClass findById(Integer id) {
+		return getByKey(id.intValue());
 	}
 
 	@Override
-	public int countClassBySchool(int school_id) {
-		int count = ((Long)getSession().createQuery("select count(*) from EClass WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+	public int countClassBySchool(Integer school_id) {
+		int count = ((Integer)getSession().createQuery("select count(*) from EClass WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public List<EClass> findBySchool(int school_id, int from_row, int max_result) {
+	public List<EClass> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
@@ -39,7 +39,7 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 	}
 
 	@Override
-	public List<EClass> findByUser(int user_id, int from_row, int max_result) {
+	public List<EClass> findByUser(Integer user_id, int from_row, int max_result) {
 		
 		Criteria crit_list = createEntityCriteria();
 		crit_list.createAlias("users", "usersAlias");

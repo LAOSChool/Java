@@ -16,19 +16,19 @@ public class MSessionDaoImpl extends AbstractDao<Integer, MSession> implements M
 	
 	
 	final String ModelName = "MSession";
-	public MSession findById(int id) {
-		return getByKey(id);
+	public MSession findById(Integer id) {
+		return getByKey(id.intValue());
 	}
 
 	@Override
-	public int countBySchool(int school_id) {
+	public int countBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from " + ModelName+  " WHERE school_id = '" + school_id + "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from " + ModelName+  " WHERE school_id = '" + school_id + "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public List<MSession> findBySchool(int school_id, int from_row, int max_result) {
+	public List<MSession> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);

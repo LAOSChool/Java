@@ -20,10 +20,10 @@ public class ApiKey extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
@@ -39,7 +39,7 @@ public class ApiKey extends AbstractModel{
 		return first_request_dt;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

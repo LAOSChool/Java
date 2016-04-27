@@ -17,42 +17,42 @@ public class ExamResultServiceImpl implements ExamResultService{
 	private ExamResultDao examResultDao;
 
 	@Override
-	public ExamResult findById(int id) {
+	public ExamResult findById(Integer id) {
 		
 		return examResultDao.findById(id);
 	}
 
 	@Override
-	public int countBySchoolID(int school_id) {
+	public int countBySchoolID(Integer school_id) {
 		
 		return examResultDao.countExamBySchool(school_id);
 	}
 
 	@Override
-	public int countByClassID(int class_id) {
+	public int countByClassID(Integer class_id) {
 		
 		return examResultDao.countExamBySclass(class_id);
 	}
 
 	@Override
-	public int countByStudentID(int user_id) {
+	public int countByStudentID(Integer user_id) {
 		
 		return examResultDao.countExamByUser(user_id);
 	}
 
 	@Override
-	public ArrayList<ExamResult> findBySchool(int school_id, int from_num, int max_result) {
+	public ArrayList<ExamResult> findBySchool(Integer school_id, int from_num, int max_result) {
 		
 		return (ArrayList<ExamResult>) examResultDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<ExamResult> findByClass(int class_id, int from_num, int max_result) {
+	public ArrayList<ExamResult> findByClass(Integer class_id, int from_num, int max_result) {
 		return (ArrayList<ExamResult>) examResultDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<ExamResult> findByStudent(int user_id, int from_num, int max_result) {
+	public ArrayList<ExamResult> findByStudent(Integer user_id, int from_num, int max_result) {
 		return (ArrayList<ExamResult>) examResultDao.findByStudent(user_id, from_num, max_result);
 	}
 

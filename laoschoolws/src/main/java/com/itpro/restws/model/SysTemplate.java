@@ -1,13 +1,13 @@
 package com.itpro.restws.model;
 
 public class SysTemplate extends SysBase{
-	private int id;
+	private Integer id;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	

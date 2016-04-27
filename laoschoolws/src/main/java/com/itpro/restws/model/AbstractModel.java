@@ -12,7 +12,7 @@ public class AbstractModel {
 //	@Id
 //	  @GeneratedValue(strategy = GenerationType.AUTO)
 //	  @Column(name = "ID", updatable = false, nullable = false)
-//	  private Long id;
+//	  private Integer id;
 //	
 	// DEFAULT FIELDS Start
 	// Active Flag ('A': Active///'D':Deleted

@@ -1,6 +1,7 @@
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -12,7 +13,6 @@ import javax.ws.rs.core.Context;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,11 +27,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.Password;
+import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.ExamResult;
@@ -39,18 +42,20 @@ import com.itpro.restws.model.FinalResult;
 import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.MasterBase;
 import com.itpro.restws.model.Message;
-import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.Timetable;
 import com.itpro.restws.model.User;
+import com.itpro.restws.security.AuthenticationService;
+import com.itpro.restws.security.TokenInfo;
+import com.itpro.restws.security.TokenManager;
+import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.AttendanceService;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
 import com.itpro.restws.service.FinalResultService;
 import com.itpro.restws.service.MasterTblService;
 import com.itpro.restws.service.MessageService;
-import com.itpro.restws.service.NotifyService;
 import com.itpro.restws.service.PermitService;
 import com.itpro.restws.service.SchoolService;
 import com.itpro.restws.service.SysTblService;
@@ -94,8 +99,6 @@ public class MainRestController {
 
 	@Autowired
 	private MessageService messageService;
-	@Autowired
-	private NotifyService notifyService;
 	
 	@Autowired
 	private MasterTblService masterTblService;
@@ -103,7 +106,11 @@ public class MainRestController {
 	@Autowired
 	private SysTblService sysTblService;
 
-	
+	@Autowired
+	private AuthenticationService authenticationService;
+
+	@Autowired
+	private TokenManager tokenManager;
 	@Autowired
 	private PermitService permitService;
 
@@ -114,33 +121,17 @@ public class MainRestController {
 	}
 	
 
-//	@RequestMapping(value="/api/login",method = RequestMethod.POST)
-//	@ResponseStatus(value=HttpStatus.OK)
-//	public LoginResp login (
-//			@RequestHeader("api_key") String api_key,
-//			@RequestParam(value="sso_id", defaultValue="default_name",required=true) String sso_id,
-//			@RequestParam(value="password", defaultValue="default_pass",required=true) String password
-//			) 
-//	{
-//		// logger.info(" *** MainRestController.login//////////"+ messageSource.getMessage("login_api_key_missing",new Object[]{}, Locale.US));
-//		logger.info(" *** MainRestController.login");
-//		
-//		LoginResp loginResp = new LoginResp();
-//		String user_info = sso_id +"=>"+ password;
-//		loginResp.setAuth_key("api_key:"+api_key+"@@@user_infor="+user_info);
-//		return loginResp;
-//		 
-//	}
 
-	@RequestMapping(value = "/api/logout", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	public String logout() {
-		
-		logger.info(" *** MainRestController.logout");
-		return "Logout invalidates token on server-side. It must come as a POST request with valid X-Auth-Token, URL is configured for MyAuthenticationFilter.";
+	@RequestMapping("/test")
+	public String test() {
+		System.out.println(" *** MainRestController.test");
+		// Spring Security dependency is unwanted in controller, typically some @Component (UserContext) hides it.
+		// Not that we don't use Spring Security annotations anyway...
+		return "SecurityContext: " + SecurityContextHolder.getContext();
 	}
 
-	
+
+		
 	// standard JSR 250 annotation
 	@RolesAllowed("ADMIN")
 	@RequestMapping("/admin")
@@ -204,32 +195,8 @@ public class MainRestController {
 	    return result;
 	}
 	
-	private String getPrincipal(){
-		logger.info(" *** MainRestController.getPrincipal");
-		String userName = null;
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		
 
-		if (principal instanceof UserDetails) {
-			userName = ((UserDetails)principal).getUsername();
-		} else {
-			userName = principal.toString();
-		}
-		return userName;
-	}
-	private String getCurrentLink(){
-		logger.info(" *** MainRestController.getCurrentLink");
-		String userName = null;
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		
 
-		if (principal instanceof UserDetails) {
-			userName = ((UserDetails)principal).getUsername();
-		} else {
-			userName = principal.toString();
-		}
-		return userName;
-	}
 	
 	@RequestMapping("/Access_Denied")
 	public String Access_Denied() {
@@ -241,145 +208,7 @@ public class MainRestController {
 		return "Access_Denied://SecurityContext: " + SecurityContextHolder.getContext();
 	}
 
-	@RequestMapping(value="/api/users",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	public ListEnt getUsers(
-			@RequestHeader(value="auth_key",required =true) String auth_key,
-			
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_user_role",required =false) String filter_user_role,			
-			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts,
-			
-			@Context final HttpServletResponse response,
-			@Context final HttpServletRequest request
-			) {
-		logger.info(" *** MainRestController.getUsers");
-		
-		List<User> users = null;
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1; // Test Number
-		
-		logger.info(" *** MainRestController.getUsers-filter_class_id: "+filter_class_id);
-		logger.info(" *** MainRestController.getUsers-filter_user_role: "+filter_user_role);
-		logger.info(" *** MainRestController.getUsers-filter_sts: "+filter_sts);
-
-		ListEnt rspEnt = new ListEnt();
-	    try {
-	    	// Count user
-	    	total_row = userService.countBySchoolID(school_id);
-	    	if (total_row > 1000){
-	    		max_result = 1000;
-	    	}else{
-	    		max_result = total_row;
-	    	}
-	    		
-			logger.info("user count: total_row : "+total_row);
-			// Query user
-			users = userService.findBySchool(school_id, from_row, max_result);
-			
-			
-		    rspEnt.setList(users);
-		    rspEnt.setFrom_row(from_row);
-		    rspEnt.setTo_row(from_row + max_result);
-		    rspEnt.setTotal_count(total_row);
-		    
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.getUsers() Message:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    
-	    return rspEnt;
-	}
 	
-	@RequestMapping(value = "/api/users/{id}", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	 public User getUser(@PathVariable int  id,@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getUser/{id}:"+id);
-		User user = null;
-	    try {
-	    	
-		    user = userService.findById(id);
-		    
-			logger.info("User : "+user.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.Exception Message:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    return user;
-	 }
-
-	@RequestMapping(value="/api/users/myprofile",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	public User myprofile(@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.myprofile ***");
-		User user = loadCurrentUser();
-	    
-	    return user;
-	}
-	
-	
-	@RequestMapping(value="/api/users/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)
-	public User createUser(
-			@RequestBody User user,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.users.create");
-		String default_pass = "1234567890";
-		try {
-			user.setPassword(Password.getSaltedHash(default_pass));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 return userService.insertUser(user);
-		 
-	}
-	
-	@RequestMapping(value="/api/users/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)
-	public User updateUser(
-			@RequestBody User user,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.users.update");
-		
-		 if (userService.isValidState(user.getState())){
-			 return userService.updateUser(user);
-		 }else{
-			 throw new ESchoolException("Invalid State="+user.getState(), HttpStatus.BAD_REQUEST);
-		 }
-	}
-	
-	@RequestMapping(value = "/api/users/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)
-	 public String delUser(
-			 @PathVariable int  id,
-			@Context final HttpServletResponse response
-			 
-			 ) {
-		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
-	    return "Request was successfully, deleted user of id:"+id;
-	 }
-	
-	
-		
 	
 	@RequestMapping(value="/api/classes",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -388,16 +217,17 @@ public class MainRestController {
 		List<EClass> classes = null;
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
+		int max_result = Constant.MAX_RESP_ROW;;
 		
+		User user = getCurrentUser();
+		Integer school_id = user.getSchool_id();
 		
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
 	    	total_row = classService.countBySchoolID(school_id);
-	    	if (total_row > 1000){
-	    		max_result = 1000;
+	    	if (total_row > Constant.MAX_RESP_ROW){
+	    		max_result = Constant.MAX_RESP_ROW;;
 	    	}else{
 	    		max_result = total_row;
 	    	}
@@ -433,7 +263,12 @@ public class MainRestController {
 		logger.info(" *** MainRestController.getClass/{id}:"+id);
 		EClass eclass = null;
 	    try {
-	    	eclass = classService.findById(id);
+	    	User user = getCurrentUser();
+	    	eclass = classService.findById(Integer.valueOf(id));
+	    	if (eclass != null && user.getSchool_id() != eclass.getSchool_id()){
+	    		logger.info("Eclass is not in same school with current user");
+	    		eclass = null;
+	    	}
 			logger.info("eclass: "+eclass.toString());
 	    }catch(Exception e){
 	    	for ( StackTraceElement ste: e.getStackTrace()){
@@ -497,16 +332,17 @@ public class MainRestController {
 		List<Attendance> attendances = null;
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
+		int max_result = Constant.MAX_RESP_ROW;;
 		
-		
+		User user = getCurrentUser();
+		Integer school_id = user.getSchool_id();
+				
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
 	    	total_row = attendanceService.countBySchoolID(school_id);
-	    	if (total_row > 1000){
-	    		max_result = 1000;
+	    	if (total_row > Constant.MAX_RESP_ROW){
+	    		max_result = Constant.MAX_RESP_ROW;
 	    	}else{
 	    		max_result = total_row;
 	    	}
@@ -538,11 +374,13 @@ public class MainRestController {
 	
 	@RequestMapping(value = "/api/attendances/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	 public Attendance getAttendance(@PathVariable int  id,@Context final HttpServletResponse response) {
+	 public Attendance getAttendance(
+			 @PathVariable int  id,
+			 @Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.getAttendance/{id}:"+id);
 		Attendance attendance = null;
 	    try {
-	    	attendance = attendanceService.findById(id);
+	    	attendance = attendanceService.findById(Integer.valueOf(id));
 			logger.info("attendance: "+attendance.toString());
 	    }catch(Exception e){
 	    	for ( StackTraceElement ste: e.getStackTrace()){
@@ -620,7 +458,7 @@ public class MainRestController {
 
 	    response.setStatus(HttpServletResponse.SC_OK);
 	    try {
-	    	school = schoolService.findById(id);
+	    	school = schoolService.findById(Integer.valueOf(id));
 			logger.info("Schoo : "+school.toString());
 	    }catch(Exception e){
 	    	for ( StackTraceElement ste: e.getStackTrace()){
@@ -657,7 +495,7 @@ public class MainRestController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.schools.update");
-			 school = schoolService.findById(1);
+			 school = schoolService.findById(Integer.valueOf(1));
 		 return schoolService.updateSchool(school);
 	}
 	
@@ -687,14 +525,14 @@ public class MainRestController {
 		
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
+		int max_result = Constant.MAX_RESP_ROW;;
 		ListEnt listResp = new ListEnt();
-		
+		User user = getCurrentUser();
+		Integer school_id = user.getSchool_id();
     	// Count user
     	total_row = examResultService.countBySchoolID(school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
     	}else{
     		max_result = total_row;
     	}
@@ -715,8 +553,9 @@ public class MainRestController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult getExamResult(@PathVariable int  id) 
 	{
+		
 		logger.info(" *** MainRestController.getExamResult/{id}:"+id);
-		return examResultService.findById(id);
+		return examResultService.findById(Integer.valueOf(id));
 	 }
 	
 	
@@ -764,21 +603,22 @@ public class MainRestController {
 		
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
+		int max_result = Constant.MAX_RESP_ROW;;
+
 		ListEnt listResp = new ListEnt();
+		User user = getCurrentUser();
 		
     	// Count user
-    	total_row = finalResultService.countBySchoolID(school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
+    	total_row = finalResultService.countBySchoolID(user.getSchool_id());
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
     	}else{
     		max_result = total_row;
     	}
     		
 		logger.info("FinalResult count: total_row : "+total_row);
 		// Query class by school id
-		ArrayList<FinalResult> finalResults = finalResultService.findBySchool(school_id, from_row, max_result);
+		ArrayList<FinalResult> finalResults = finalResultService.findBySchool(user.getSchool_id(), from_row, max_result);
 		
 		listResp.setList(finalResults);
 		listResp.setFrom_row(from_row);
@@ -793,7 +633,7 @@ public class MainRestController {
 	public FinalResult getFinalResult(@PathVariable int  id) 
 	{
 		logger.info(" *** MainRestController.getFinalResult/{id}:"+id);
-		return finalResultService.findById(id);
+		return finalResultService.findById(Integer.valueOf(id));
 	 }
 	
 	
@@ -843,14 +683,14 @@ public class MainRestController {
 		
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
+		int max_result = Constant.MAX_RESP_ROW;;
 		int school_id = 1;//TODO: get from token => user info
 		ListEnt listResp = new ListEnt();
 		
     	// Count user
     	total_row = timetableService.countBySchoolID(school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
     	}else{
     		max_result = total_row;
     	}
@@ -913,211 +753,7 @@ public class MainRestController {
 	
 	
 
-	@RequestMapping(value="/api/messages",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getMessages(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_from_user_id",required =false) String filter_from_user_id,			
-			@RequestParam(value="filter_to_user_id",required =false) String filter_to_user_id,
-			@RequestParam(value="filter_channel",required =false) String filter_channel,
-			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts,
-			
-			@RequestParam(value="filter_from_dt",required =false) String filter_from_dt,			
-			@RequestParam(value="filter_to_dt",required =false) String filter_to_dt			
-			) {
-		logger.info(" *** MainRestController.getMessages");
-		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
-		ListEnt listResp = new ListEnt();
-		
-    	// Count user
-    	total_row = messageService.countMsgBySchool(school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
-    	}else{
-    		max_result = total_row;
-    	}
-    		
-		logger.info("Notify count: total_row : "+total_row);
-		// Query class by school id
-		ArrayList<com.itpro.restws.model.Message> messages = messageService.findMsgBySchool(school_id, from_row, max_result);
-		
-		listResp.setList(messages);
-		listResp.setFrom_row(from_row);
-		listResp.setTo_row(from_row + max_result);
-		listResp.setTotal_count(total_row);
-	    return listResp;
 
-	}
-	
-	@RequestMapping(value="/api/messages/{id}",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Message getMessage(@PathVariable int  id) 
-	{
-		logger.info(" *** MainRestController.getMessage/{id}:"+id);
-		return messageService.findById(id);
-	 }
-	
-	
-	
-	
-	@RequestMapping(value="/api/messages/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Message createMessage(
-			@RequestBody Message message
-			) {
-		logger.info(" *** MainRestController.createMessage.create");
-		//message.setId(100);//TODO:Test
-		 //return message;
-		return messageService.insertMessage(message);
-		 
-	}
-	
-	@RequestMapping(value="/api/messages/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Message updateMessage(
-			@RequestBody Message message
-			) {
-		logger.info(" *** MainRestController.updateMessage.update");
-		 //return message;
-		return messageService.updateMessage(message);
-		 
-	}
-
-	@RequestMapping(value = "/api/messages/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delMessage(
-			 @PathVariable int  id
-			 ) {
-		logger.info(" *** MainRestController.delMessage/{id}:"+id);
-
-	    return "Request was successfully, delete delMessage of id: "+id;
-	 }
-	
-	
-	
-	
-	
-	@RequestMapping(value="/api/notifies",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getNotifies(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_from_user_id",required =false) String filter_from_user_id,			
-			@RequestParam(value="filter_to_user_id",required =false) String filter_to_user_id,
-			@RequestParam(value="filter_channel",required =false) String filter_channel,
-			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts,
-			
-			@RequestParam(value="filter_from_dt",required =false) String filter_from_dt,			
-			@RequestParam(value="filter_to_dt",required =false) String filter_to_dt			
-			) {
-		logger.info(" *** MainRestController.getNotifies");
-		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
-		ListEnt listResp = new ListEnt();
-		
-    	// Count user
-    	total_row = notifyService.countBySchool(school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
-    	}else{
-    		max_result = total_row;
-    	}
-    		
-		logger.info("Notify count: total_row : "+total_row);
-		// Query class by school id
-		ArrayList<com.itpro.restws.model.Notify> notifies = notifyService.findBySchool(school_id, from_row, max_result);
-		
-		listResp.setList(notifies);
-		listResp.setFrom_row(from_row);
-		listResp.setTo_row(from_row + max_result);
-		listResp.setTotal_count(total_row);
-	    return listResp;
-
-	}
-	
-	@RequestMapping(value="/api/notifies/{id}",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Notify getNotify(@PathVariable int  id) 
-	{
-		logger.info(" *** MainRestController.getNotify/{id}:"+id);
-		return notifyService.findById(id);
-	 }
-	
-	@RequestMapping(value="/api/notifies/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Notify createNotify(
-			@RequestBody Notify notify
-			) {
-		logger.info(" *** MainRestController.createNotify");
-	//	notify.setId(100);//TODO:Test
-		 //return notify;
-		return notifyService.insertNotify(notify);
-		 
-	}
-	
-	@RequestMapping(value="/api/notifies/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Notify updateNotify(
-			@RequestBody Notify notify
-			) {
-		logger.info(" *** MainRestController.updateNotify.update");
-		// return notify;
-		return notifyService.updateNotify(notify);
-		 
-	}
-
-	@RequestMapping(value = "/api/notifies/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delNotify(
-			 @PathVariable int  id
-			 ) {
-		logger.info(" *** MainRestController.delNotify/{id}:"+id);
-
-	    return "Request was successfully, delNotify of id: "+id;
-	 }
-	
-	
-	
-	@RequestMapping(value = "/api/notify/files/{file_name}", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	public FileSystemResource getFile(
-			@PathVariable("file_name") String fileName
-			) {
-	    return notifyService.getFile(fileName); 
-	}
-	
-	@RequestMapping(value="/api/notify/files/upload", method=RequestMethod.POST)
-    public String handleFileUpload(
-    		@RequestParam("name") String name,
-            @RequestParam("file") MultipartFile mulitpartFile){
-		
-		return notifyService.productFile(name, mulitpartFile);
-           
-    }
-//	
-//	@RequestMapping(value = "/files/{file_name}", method = RequestMethod.GET)
-//	public void getFile(
-//	    @PathVariable("file_name") String fileName, 
-//	    @Context final HttpServletResponse response) {
-//	    try {
-//	      // get your file as InputStream
-//	      InputStream is = ...;
-//	      // copy it to response's OutputStream
-//	      org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
-//	      response.setContentType("application/pdf");
-//	      response.flushBuffer();
-//	    } catch (IOException ex) {
-//	      log.info("Error writing file to output stream. Filename was '{}'", fileName, ex);
-//	      throw new RuntimeException("IOError writing file to output stream");
-//	    }
-//
-//	}
 	
 	
 	@RequestMapping(value="/api/masters/{tbl_name}",method = RequestMethod.GET)
@@ -1129,20 +765,20 @@ public class MainRestController {
 		
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
-		int school_id = 1;//TODO: get from token => user info
-		ListEnt listResp = new ListEnt();
+		int max_result = Constant.MAX_RESP_ROW;;
 		
+		ListEnt listResp = new ListEnt();
+		User user = getCurrentUser();
     	// Count user
-    	total_row = masterTblService.countBySchool(tbl_name, school_id);
-    	if (total_row > 1000){
-    		max_result = 1000;
+    	total_row = masterTblService.countBySchool(tbl_name,  user.getSchool_id());
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
     	}else{
     		max_result = total_row;
     	}
 		logger.info("Master:"+ tbl_name+ " count: total_row : "+total_row);
 		// Query class by school id
-		ArrayList<MTemplate> masters = (ArrayList<MTemplate>) masterTblService.findBySchool(tbl_name, school_id, from_row, max_result);
+		ArrayList<MTemplate> masters = (ArrayList<MTemplate>) masterTblService.findBySchool(tbl_name, user.getSchool_id(), from_row, max_result);
 		
 		listResp.setList(masters);
 		listResp.setFrom_row(from_row);
@@ -1193,13 +829,14 @@ public class MainRestController {
 		
 		int total_row = 0;
 		int from_row = 0;
-		int max_result = 1000;
+		int max_result = Constant.MAX_RESP_ROW;
 		ListEnt listResp = new ListEnt();
+		
 		
     	// Count user
     	total_row = sysTblService.countAll(tbl_name);
-    	if (total_row > 1000){
-    		max_result = 1000;
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
     	}else{
     		max_result = total_row;
     	}
@@ -1238,5 +875,20 @@ public class MainRestController {
 		}
 		return user;
 	}
+	protected User getCurrentUser(){
+		logger.info(" *** MainRestController.getCurrentUser");
+		User user  = null;
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+
+		if (principal instanceof UserContext) {
+			return ((UserContext)principal).getUser();
+		} else {
+			String sso = principal.toString();
+			user = userService.findBySso(sso);
+		}
+		return user;
+	}
+
 
 }

@@ -14,8 +14,8 @@ import com.itpro.restws.model.User;
 @Transactional
 public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 
-	public User findById(int id) {
-		return getByKey(id);
+	public User findById(Integer id) {
+		return getByKey(id.intValue());
 	}
 
 	public User findBySSO(String sso) {
@@ -24,14 +24,14 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		return (User) crit.uniqueResult();
 	}
 	
-	public int countUserBySchool(int school_id){
+	public int countUserBySchool(Integer school_id){
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<User> findBySchool(int school_id,int from_row,int max_result) {
+	public List<User> findBySchool(Integer school_id,int from_row,int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
@@ -43,7 +43,7 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 	}
 
 	@Override
-	public List<User> findByClass(int class_id, int from_row, int max_result) {
+	public List<User> findByClass(Integer class_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.createAlias("classes", "classesAlias");
 		crit_list.add(Restrictions.eq("classesAlias.id", class_id));
@@ -72,6 +72,8 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		user.setMdfpgm("RestWS");
 		update(user);
 	}
+
+
 	
 //	 public void setUser(User a) throws HibernateException {
 //		    try {

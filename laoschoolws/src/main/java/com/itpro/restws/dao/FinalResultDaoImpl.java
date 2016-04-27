@@ -16,33 +16,33 @@ import com.itpro.restws.model.FinalResult;
 public class FinalResultDaoImpl extends AbstractDao<Integer, FinalResult> implements FinalResultDao {
 
 	@Override
-	public int countBySchool(int school_id) {
+	public int countBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 
 	}
 
 	@Override
-	public int countByClass(int class_id) {
+	public int countByClass(Integer class_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public int countByUser(int student_user_id) {
-		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE student_id= '" + student_user_id+ "'").uniqueResult()).intValue();
+	public int countByUser(Integer student_user_id) {
+		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE student_id= '" + student_user_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public FinalResult findById(int id) {
-		return this.getByKey(id);
+	public FinalResult findById(Integer id) {
+		return this.getByKey(id.intValue());
 	}
 
 	@Override
-	public List<FinalResult> findBySchool(int school_id, int from_row, int max_result) {
+	public List<FinalResult> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
@@ -53,7 +53,7 @@ public class FinalResultDaoImpl extends AbstractDao<Integer, FinalResult> implem
 	}
 
 	@Override
-	public List<FinalResult> findByClass(int class_id, int from_row, int max_result) {
+	public List<FinalResult> findByClass(Integer class_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
@@ -64,7 +64,7 @@ public class FinalResultDaoImpl extends AbstractDao<Integer, FinalResult> implem
 	}
 
 	@Override
-	public List<FinalResult> findByStudent(int user_id, int from_row, int max_result) {
+	public List<FinalResult> findByStudent(Integer user_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("student_id", user_id));
 		crit_list.setMaxResults(max_result);

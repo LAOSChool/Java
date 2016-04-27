@@ -6,7 +6,7 @@ import com.itpro.restws.model.School;
 
 public interface SchoolService {
 	
-	School findById(int id);
+	School findById(Integer id);
 	ArrayList<School> findActive();
 	
 	School insertSchool(School school);

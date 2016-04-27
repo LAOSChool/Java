@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,11 +16,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.security.AuthenticationService;
 import com.itpro.restws.security.TokenAuthenticationFilter;
 import com.itpro.restws.security.UnauthorizedEntryPoint;
 import com.itpro.restws.securityimpl.AuthenticationServiceDefault;
-import com.itpro.restws.securityimpl.CustomAuthenticationProvider;
 import com.itpro.restws.securityimpl.TokenManagerSingle;
 
 /***
@@ -70,15 +69,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 //		.and().exceptionHandling().accessDeniedPage("/Access_Denied");
 //	  http.addFilterBefore(myTokenAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
 		
-		http.csrf().disable();//We don’t need CSRF and typical HTTP session. 
-        http.authorizeRequests().antMatchers("/*").permitAll().antMatchers("/api/**").fullyAuthenticated();
-//        http.authorizeRequests().antMatchers("/*").permitAll();
-//		.and().requiresChannel().antMatchers("/api/**").requiresSecure() // REQURE HTTPS access        
+		http.csrf().disable();//We don’t need CSRF and typical HTTP session.
+        //http.anonymous().disable();		
+		http.authorizeRequests()
+		.antMatchers("/non-secure/**").permitAll()
+		.antMatchers("/*").permitAll()
+		.antMatchers("/api/**").fullyAuthenticated()
+		.and().requiresChannel().antMatchers("/api/**").requiresSecure()   // REQURE HTTPS access        
+		.and().exceptionHandling().accessDeniedPage("/Access_Denied");
+		
         http.addFilterBefore(myTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.exceptionHandling().accessDeniedPage("/Access_Denied");
         http.exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
-        
-        http.anonymous().disable();
+
 	  
 	}
 	
@@ -100,7 +102,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 	@Bean
 	public TokenAuthenticationFilter myTokenAuthenticationFilter () throws Exception {
-		TokenAuthenticationFilter  myTokenAuthenticationFilter = new TokenAuthenticationFilter(authenticationService(), "/logout");
+		TokenAuthenticationFilter  myTokenAuthenticationFilter = new TokenAuthenticationFilter(authenticationService(), Constant.LOGOUT_LINK);
 		return myTokenAuthenticationFilter;
 	}
 	

@@ -1,16 +1,18 @@
 package com.itpro.restws.helper;
 
+import java.security.SecureRandom;
+
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.security.SecureRandom;
+
 import org.apache.commons.codec.binary.Base64;
 
 public class Password {
 	 // The higher the number of iterations the more 
     // expensive computing the hash is for us and
     // also for an attacker.
-    private static final int iterations = 20*1000;
+    private static final int iterations = 1000;//20*1000
     private static final int saltLen = 32;
     private static final int desiredKeyLen = 256;
 
@@ -45,5 +47,9 @@ public class Password {
             password.toCharArray(), salt, iterations, desiredKeyLen)
         );
         return Base64.encodeBase64String(key.getEncoded());
+    }
+    public static String getRandomPass(){
+    		int randomNum = 1111 + (int)(Math.random() * 8889);// >= 1111 <10000 
+    		return randomNum+"";
     }
 }

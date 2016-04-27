@@ -7,13 +7,13 @@ import com.itpro.restws.model.Attendance;
 
 public interface AttendanceDao {
 
-	int countAttendanceBySchool(int school_id);
-	int countAttendanceByClass(int class_id);
-	int countAttendanceByUser(int user_id);
-	Attendance findById(int id);
-	List<Attendance> findBySchool(int school_id,int from_row,int max_result) ;
-	List<Attendance> findByClass(int class_id,int from_row,int max_result) ;
-	List<Attendance> findByUser(int user_id,int from_row,int max_result) ;
+	int countAttendanceBySchool(Integer school_id);
+	int countAttendanceByClass(Integer class_id);
+	int countAttendanceByUser(Integer user_id);
+	Attendance findById(Integer id);
+	List<Attendance> findBySchool(Integer school_id,int from_row,int max_result) ;
+	List<Attendance> findByClass(Integer class_id,int from_row,int max_result) ;
+	List<Attendance> findByUser(Integer user_id,int from_row,int max_result) ;
 	void saveAttendance(Attendance attendance);
 	void updateAttendance(Attendance attendance);
 }

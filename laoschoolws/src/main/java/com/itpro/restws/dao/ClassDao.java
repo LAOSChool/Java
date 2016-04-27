@@ -7,10 +7,10 @@ import com.itpro.restws.model.EClass;
 
 public interface ClassDao {
 
-	int countClassBySchool(int school_id);
-	EClass findById(int id);
-	List<EClass> findBySchool(int school_id,int from_row,int max_result) ;
-	List<EClass> findByUser(int user_id,int from_row,int max_result) ;
+	int countClassBySchool(Integer school_id);
+	EClass findById(Integer id);
+	List<EClass> findBySchool(Integer school_id,int from_row,int max_result) ;
+	List<EClass> findByUser(Integer user_id,int from_row,int max_result) ;
 	void saveClass(EClass eClass);
 	void updateClass(EClass eClass);
 

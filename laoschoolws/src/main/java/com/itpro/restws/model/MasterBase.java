@@ -6,24 +6,24 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public class MasterBase extends AbstractModel{
 	@Column(name="school_id")
-	protected int school_id;
+	protected Integer school_id;
 
 	@Column(name="sval")
 	protected String sval;
 	
 	
 	@Column(name="fval1")
-	protected float fval1;
+	protected Float fval1;
 	
 	@Column(name="fval2")
-	protected float fval2;
+	protected Float fval2;
 	
 	@Column(name="notice")
 	protected String notice;
 	
 	
 
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
@@ -31,11 +31,11 @@ public class MasterBase extends AbstractModel{
 		return sval;
 	}
 
-	public float getFval1() {
+	public Float getFval1() {
 		return fval1;
 	}
 
-	public float getFval2() {
+	public Float getFval2() {
 		return fval2;
 	}
 
@@ -43,7 +43,7 @@ public class MasterBase extends AbstractModel{
 		return notice;
 	}
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 
@@ -51,11 +51,11 @@ public class MasterBase extends AbstractModel{
 		this.sval = sval;
 	}
 
-	public void setFval1(float fval1) {
+	public void setFval1(Float fval1) {
 		this.fval1 = fval1;
 	}
 
-	public void setFval2(float fval2) {
+	public void setFval2(Float fval2) {
 		this.fval2 = fval2;
 	}
 

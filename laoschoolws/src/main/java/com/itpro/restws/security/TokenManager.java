@@ -31,4 +31,5 @@ public interface TokenManager {
 
 	/** Returns a map from valid tokens to users. */
 	Map<String, UserDetails> getValidUsers();
+	
 }

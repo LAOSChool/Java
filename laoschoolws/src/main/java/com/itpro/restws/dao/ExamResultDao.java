@@ -7,13 +7,13 @@ import com.itpro.restws.model.ExamResult;
 
 public interface ExamResultDao {
 
-	int countExamBySchool(int school_id);
-	int countExamBySclass(int class_id);
-	int countExamByUser(int user_id);
-	ExamResult findById(int id);
-	List<ExamResult> findBySchool(int school_id,int from_row,int max_result) ;
-	List<ExamResult> findByClass(int class_id,int from_row,int max_result) ;
-	List<ExamResult> findByStudent(int user_id,int from_row,int max_result) ;
+	int countExamBySchool(Integer school_id);
+	int countExamBySclass(Integer class_id);
+	int countExamByUser(Integer user_id);
+	ExamResult findById(Integer id);
+	List<ExamResult> findBySchool(Integer school_id,int from_row,int max_result) ;
+	List<ExamResult> findByClass(Integer class_id,int from_row,int max_result) ;
+	List<ExamResult> findByStudent(Integer user_id,int from_row,int max_result) ;
 	
 	void saveExamResult(ExamResult examResult);
 	void updateExamResult(ExamResult examResult);

@@ -6,14 +6,14 @@ import com.itpro.restws.model.MTemplate;
 
 public interface MasterTblService {
 	
-	MTemplate findById(String tbl_name,int id);
-	int countBySchool(String tbl_name,int school_id);
+	MTemplate findById(String tbl_name,Integer id);
+	int countBySchool(String tbl_name,Integer school_id);
 	
 	//ArrayList<? extends MasterBase> findBySchool(String tbl_name,int school_id,int from_num, int max_result);
 	// int createSaveMasterData(String tbl_name,int school_id,int from_num, int max_result);
 	
 	
-	ArrayList<MTemplate> findBySchool(String tbl_name,int school_id,int from_num, int max_result);
+	ArrayList<MTemplate> findBySchool(String tbl_name,Integer school_id,int from_num, int max_result);
 	MTemplate insertMTemplate(String tbl_name,MTemplate template);
 	MTemplate updateMTemplate(String tbl_name,MTemplate template);
 	 

@@ -17,42 +17,42 @@ public class FinalResultServiceImpl implements FinalResultService{
 	private FinalResultDao finalResultDao;
 
 	@Override
-	public FinalResult findById(int id) {
+	public FinalResult findById(Integer id) {
 		
 		return finalResultDao.findById(id);
 	}
 
 	@Override
-	public int countBySchoolID(int school_id) {
+	public int countBySchoolID(Integer school_id) {
 		
 		return finalResultDao.countBySchool(school_id);
 	}
 
 	@Override
-	public int countByClassID(int class_id) {
+	public int countByClassID(Integer class_id) {
 		
 		return finalResultDao.countByClass(class_id);
 	}
 
 	@Override
-	public int countByStudentID(int user_id) {
+	public int countByStudentID(Integer user_id) {
 		
 		return finalResultDao.countByUser(user_id);
 	}
 
 	@Override
-	public ArrayList<FinalResult> findBySchool(int school_id, int from_num, int max_result) {
+	public ArrayList<FinalResult> findBySchool(Integer school_id, int from_num, int max_result) {
 		
 		return (ArrayList<FinalResult>) finalResultDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<FinalResult> findByClass(int class_id, int from_num, int max_result) {
+	public ArrayList<FinalResult> findByClass(Integer class_id, int from_num, int max_result) {
 		return (ArrayList<FinalResult>) finalResultDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<FinalResult> findByStudent(int user_id, int from_num, int max_result) {
+	public ArrayList<FinalResult> findByStudent(Integer user_id, int from_num, int max_result) {
 		return (ArrayList<FinalResult>) finalResultDao.findByStudent(user_id, from_num, max_result);
 	}
 

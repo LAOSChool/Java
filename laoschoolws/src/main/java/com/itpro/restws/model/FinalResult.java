@@ -24,24 +24,24 @@ public class FinalResult extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
 	@Column(name="school_id")
-	private int school_id;
+	private Integer school_id;
 
 	@Column(name="class_id")
-	private int class_id;
+	private Integer class_id;
 	
 	@Column(name="subject_id")
-	private int subject_id;
+	private Integer subject_id;
 		
 
 	@Column(name="teacher_id")
-	private int teacher_id;
+	private Integer teacher_id;
 	
 	@Column(name="student_id")
-	private int student_id;
+	private Integer student_id;
 	
 	@Column(name="student_name")
 	private String student_name;
@@ -50,7 +50,7 @@ public class FinalResult extends AbstractModel{
 	private String notice;
 	
 	@Column(name="term_id")
-	private int term_id;
+	private Integer term_id;
 
 	
 	@Column(name="start_dt")
@@ -61,65 +61,65 @@ public class FinalResult extends AbstractModel{
 	
 	
 	@Column(name="average_score")
-	private float average_score;
+	private Float average_score;
 	
 
 
 	@Column(name="bonus_score")
-	private float bonus_score;
+	private Float bonus_score;
 
 	
 	
 	@Column(name="final_result")
-	private float final_result;
+	private Float final_result;
 	
 	
 	
 
 	@Column(name="pass")
-	private int pass;
+	private Integer pass;
 
 	@Column(name="rank_id")
-	private int rank_id;
+	private Integer rank_id;
 	
 	@Column(name="absent")
-	private float absent;
+	private Float absent;
 	
 
 	@Column(name="excused")
-	private float excused;
+	private Float excused;
 	
 
 	@Column(name="late")
-	private float late;
+	private Float late;
 
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
 
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
 
-	public int getClass_id() {
+	public Integer getClass_id() {
 		return class_id;
 	}
 
 
-	public int getSubject_id() {
+	public Integer getSubject_id() {
 		return subject_id;
 	}
 
 
-	public int getTeacher_id() {
+	public Integer getTeacher_id() {
 		return teacher_id;
 	}
 
 
-	public int getStudent_id() {
+	public Integer getStudent_id() {
 		return student_id;
 	}
 
@@ -134,7 +134,7 @@ public class FinalResult extends AbstractModel{
 	}
 
 
-	public int getTerm_id() {
+	public Integer getTerm_id() {
 		return term_id;
 	}
 
@@ -149,72 +149,72 @@ public class FinalResult extends AbstractModel{
 	}
 
 
-	public float getAverage_score() {
+	public Float getAverage_score() {
 		return average_score;
 	}
 
 
-	public float getBonus_score() {
+	public Float getBonus_score() {
 		return bonus_score;
 	}
 
 
-	public float getFinal_result() {
+	public Float getFinal_result() {
 		return final_result;
 	}
 
 
-	public int getPass() {
+	public Integer getPass() {
 		return pass;
 	}
 
 
-	public int getRank_id() {
+	public Integer getRank_id() {
 		return rank_id;
 	}
 
 
-	public float getAbsent() {
+	public Float getAbsent() {
 		return absent;
 	}
 
 
-	public float getExcused() {
+	public Float getExcused() {
 		return excused;
 	}
 
 
-	public float getLate() {
+	public Float getLate() {
 		return late;
 	}
 
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 
 
-	public void setClass_id(int class_id) {
+	public void setClass_id(Integer class_id) {
 		this.class_id = class_id;
 	}
 
 
-	public void setSubject_id(int subject_id) {
+	public void setSubject_id(Integer subject_id) {
 		this.subject_id = subject_id;
 	}
 
 
-	public void setTeacher_id(int teacher_id) {
+	public void setTeacher_id(Integer teacher_id) {
 		this.teacher_id = teacher_id;
 	}
 
 
-	public void setStudent_id(int student_id) {
+	public void setStudent_id(Integer student_id) {
 		this.student_id = student_id;
 	}
 
@@ -229,7 +229,7 @@ public class FinalResult extends AbstractModel{
 	}
 
 
-	public void setTerm_id(int term_id) {
+	public void setTerm_id(Integer term_id) {
 		this.term_id = term_id;
 	}
 
@@ -244,48 +244,48 @@ public class FinalResult extends AbstractModel{
 	}
 
 
-	public void setAverage_score(float average_score) {
+	public void setAverage_score(Float average_score) {
 		this.average_score = average_score;
 	}
 
 
-	public void setBonus_score(float bonus_score) {
+	public void setBonus_score(Float bonus_score) {
 		this.bonus_score = bonus_score;
 	}
 
 
-	public void setFinal_result(float final_result) {
+	public void setFinal_result(Float final_result) {
 		this.final_result = final_result;
 	}
 
 
-	public void setPass(int pass) {
+	public void setPass(Integer pass) {
 		this.pass = pass;
 	}
 
 
-	public void setRank_id(int rank_id) {
+	public void setRank_id(Integer rank_id) {
 		this.rank_id = rank_id;
 	}
 
 
-	public void setAbsent(float absent) {
+	public void setAbsent(Float absent) {
 		this.absent = absent;
 	}
 
 
-	public void setExcused(float excused) {
+	public void setExcused(Float excused) {
 		this.excused = excused;
 	}
 
 
-	public void setLate(float late) {
+	public void setLate(Float late) {
 		this.late = late;
 	}
 	
 	
 //	@Column(name="term_id")
-//	private int term_id;
+//	private Integer term_id;
 //	
 //	@Column(table="m_term")
 //	private String term;

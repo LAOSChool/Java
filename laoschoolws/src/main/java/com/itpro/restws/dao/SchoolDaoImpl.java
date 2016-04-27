@@ -14,8 +14,8 @@ import com.itpro.restws.model.School;
 @Transactional
 public class SchoolDaoImpl extends AbstractDao<Integer, School> implements SchoolDao {
 
-	public School findById(int id) {
-		return getByKey(id);
+	public School findById(Integer id) {
+		return getByKey(id.intValue());
 	}
 
 	
