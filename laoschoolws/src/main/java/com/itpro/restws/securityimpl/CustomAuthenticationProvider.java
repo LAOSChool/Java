@@ -27,19 +27,19 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	    String password = authentication.getCredentials() + "";
 	    
 	    User user  = null;
-	    if (username.equals("itpro") && password.equals("Khongbiet@042016")){
-	    	user = userService.findBySso("itpro");
-	    	if (user == null ){
-		    	user = new User();
-		    	user.setSso_id("itpro");
-		    	user.setPassword("***");
-		    	user.setActflg("A");
-		    	user.setPhone("0989290789");
-		    	user.setState(1);
-		    	user.setRoles("SYS_ADMIN");
-		    	userService.insertUser(user);
-	    	}
-	    }else{
+//	    if (username.equals("itpro") && password.equals("xxxxxxxx")){
+//	    	user = userService.findBySso("itpro");
+//	    	if (user == null ){
+//		    	user = new User();
+//		    	user.setSso_id("itpro");
+//		    	user.setPassword("***");
+//		    	user.setActflg("A");
+//		    	user.setPhone("1234567890");
+//		    	user.setState(1);
+//		    	user.setRoles("SYS_ADMIN");
+//		    	userService.insertUser(user);
+//	    	}
+//	    }else{
 	    	user = userService.findBySso(username);
 	    	if (user == null) {
 		    	 throw new BadCredentialsException("Username not found.");
@@ -55,7 +55,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			} catch (Exception e) {
 				 throw new BadCredentialsException("Wrong password.");
 			}
-	    }
+	    //}
 	    
 	    ArrayList<org.springframework.security.core.GrantedAuthority> grantedAuths = new ArrayList<>();
 	    for (String role:user.getRoles().split(",")){
