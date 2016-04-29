@@ -18,14 +18,14 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	@Override
 	public int countAttendanceBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
 	public int countAttendanceByClass(Integer class_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
@@ -59,7 +59,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	@Override
 	public int countAttendanceByUser(Integer user_id) {
 		// Get row count
-				int count = ((Integer)getSession().createQuery("select count(*) from Attendance WHERE user_id= '" + user_id+ "'").uniqueResult()).intValue();
+				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE user_id= '" + user_id+ "'").uniqueResult()).intValue();
 				return count;
 	}
 

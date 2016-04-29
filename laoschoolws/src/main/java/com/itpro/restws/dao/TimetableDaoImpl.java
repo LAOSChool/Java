@@ -18,7 +18,7 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 	@Override
 	public int countBySchool(int school_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from Timetable WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Timetable WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 
 	}

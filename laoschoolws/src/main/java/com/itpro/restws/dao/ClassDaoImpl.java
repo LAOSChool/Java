@@ -22,7 +22,7 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 
 	@Override
 	public int countClassBySchool(Integer school_id) {
-		int count = ((Integer)getSession().createQuery("select count(*) from EClass WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from EClass WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 

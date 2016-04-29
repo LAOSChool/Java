@@ -24,11 +24,13 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		return (User) crit.uniqueResult();
 	}
 	
+	
 	public int countUserBySchool(Integer school_id){
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id.intValue()+ "'").uniqueResult()).intValue();
 		return count;
 	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<User> findBySchool(Integer school_id,int from_row,int max_result) {

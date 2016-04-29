@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService{
 			 msg.setTitle("Thong bao forgot password");
 			 msg.setContent("You has been reset password due to forgot pass requirement, new pass: "+newpass);
 			 messageService.insertMessageExt(msg);
-			 return "SUCCESS";
+			 return "SUCCESS,new pass="+newpass;
 		}
 		return "FAILED, input phone is not mapped with user's phone";
 	}

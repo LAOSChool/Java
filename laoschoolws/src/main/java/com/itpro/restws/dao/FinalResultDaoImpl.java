@@ -18,7 +18,7 @@ public class FinalResultDaoImpl extends AbstractDao<Integer, FinalResult> implem
 	@Override
 	public int countBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 
 	}
@@ -26,13 +26,13 @@ public class FinalResultDaoImpl extends AbstractDao<Integer, FinalResult> implem
 	@Override
 	public int countByClass(Integer class_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
 	public int countByUser(Integer student_user_id) {
-		int count = ((Integer)getSession().createQuery("select count(*) from FinalResult WHERE student_id= '" + student_user_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from FinalResult WHERE student_id= '" + student_user_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 

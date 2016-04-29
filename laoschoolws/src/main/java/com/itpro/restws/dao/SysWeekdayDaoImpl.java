@@ -27,7 +27,7 @@ public class SysWeekdayDaoImpl extends AbstractDao<Integer, SysWeekday> implemen
 	public int countAll() {
 		
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_WEEKDAY.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_WEEKDAY.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
@@ -22,7 +23,9 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 	public List<Permit> findPermit(String role,Integer school_id) {
 		Criteria crit_list = createEntityCriteria();
 		
-		Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		//Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		Criterion rest1 = Restrictions.like("roles", role.toUpperCase(),MatchMode.ANYWHERE);
+		
 		Criterion rest2= Restrictions.eq("roles", "--ALL--");
 		Criterion rest3 = Restrictions.or(rest1, rest2);
 		
@@ -57,7 +60,8 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 	public List<Permit> findPermit(String role, Integer school_id,String entity) {
 		Criteria crit_list = createEntityCriteria();
 		
-		Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		//Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		Criterion rest1 = Restrictions.like("roles", role.toUpperCase(),MatchMode.ANYWHERE);
 		Criterion rest2= Restrictions.eq("roles", "--ALL--");
 		Criterion rest3 = Restrictions.or(rest1, rest2);
 		
@@ -75,7 +79,8 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 		
 		Criteria crit_list = createEntityCriteria();
 		
-		Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		//Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		Criterion rest1 = Restrictions.like("roles", role.toUpperCase(),MatchMode.ANYWHERE);
 		Criterion rest2= Restrictions.eq("roles", "--ALL--");
 		Criterion rest3 = Restrictions.or(rest1, rest2);
 		
@@ -95,8 +100,8 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 	@Override
 	public List<Permit> findPermit(String role, Integer school_id, String entity,int scope, String right) {
 		Criteria crit_list = createEntityCriteria();
-		
-		Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		//Criterion rest1= Restrictions.sqlRestriction(" roles LIKE '%"+role.toUpperCase()+"%' ");
+		Criterion rest1 = Restrictions.like("roles", role.toUpperCase(),MatchMode.ANYWHERE);
 		Criterion rest2= Restrictions.eq("roles", "--ALL--");
 		Criterion rest3 = Restrictions.or(rest1, rest2);
 		

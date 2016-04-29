@@ -27,7 +27,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	@Override
 	public int countByFromUser(Integer from_user) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from Notify WHERE from_user_id= '" + from_user+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE from_user_id= '" + from_user+ "'").uniqueResult()).intValue();
 		return count;
 
 	}
@@ -36,7 +36,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	@Override
 	public int countByToUser(Integer to_user) {
 		// Get row count
-				int count = ((Integer)getSession().createQuery("select count(*) from Notify WHERE to_user_id= '" + to_user+ "'").uniqueResult()).intValue();
+				int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE to_user_id= '" + to_user+ "'").uniqueResult()).intValue();
 				return count;
 	}
 
@@ -69,7 +69,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	@Override
 	public int countBySchool(Integer school_id) {
 		
-		int count = ((Integer)getSession().createQuery("select count(*) from Notify WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
@@ -78,7 +78,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	@Override
 	public int countByClass(Integer class_id) {
 		
-		int count = ((Integer)getSession().createQuery("select count(*) from Notify WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 

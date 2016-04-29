@@ -301,5 +301,32 @@ public class NotifyController extends BaseController {
 	}
 	
 
+	
+	@RequestMapping(value="/api/notifies/update/{id}",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo updateMessage(
+			@PathVariable int  id,
+			@RequestParam(value="is_read",required =false) String is_read,
+			@RequestParam(value="imp_flg",required =false) String imp_flg,
+			@Context final HttpServletRequest request
+			) {
+		logger.info(" *** MainRestController.updateMessage");
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		Notify notify = notifyService.findById(Integer.valueOf(id));
+		if (notify != null ){
+			if (is_read != null && Utils.parseInteger(is_read) != null ){
+				notify.setIs_read( Utils.parseInteger(is_read));
+			}
+			if (imp_flg != null && Utils.parseInteger(imp_flg) != null ){
+				notify.setImp_flg( Utils.parseInteger(imp_flg));
+			}
+		}
+		notifyService.updateNotify(notify);
+		rsp.setMessageObject(notify);
+		
+		return rsp;
+	}
 	 
 }

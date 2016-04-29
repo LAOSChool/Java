@@ -28,7 +28,7 @@ public class SysRoleDaoImpl extends AbstractDao<Integer, SysRole> implements Sys
 	public int countAll() {
 		
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_ROLE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_ROLE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
 	}

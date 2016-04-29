@@ -142,6 +142,7 @@ public class MessageServiceImpl implements MessageService{
 				new_msg.setTo_user_name(to_user.getFullname());
 				
 				new_msg.setSchool_id(to_user.getSchool_id());
+				new_msg.setSent_dt(Utils.now());
 				//new_msg.setClass_id(to_user.getSchool_id());
 				
 				messageDao.saveMessage(new_msg);
@@ -510,6 +511,8 @@ public class MessageServiceImpl implements MessageService{
 				new_message.setTo_user_name(to_user.getFullname());
 				
 				new_message.setSchool_id(to_user.getSchool_id());
+				
+				new_message.setSent_dt(Utils.now());
 				new_message.setIs_sent(1);// Disable sent			
 				messageDao.saveMessage(new_message);
 				list.add(new_message);
@@ -595,6 +598,7 @@ public class MessageServiceImpl implements MessageService{
 
 	private Message createTaskMsg(User user, Message message) {
 		message.setTo_usr_id(null);
+		message.setSent_dt(Utils.now());
 		message.setIs_sent(99);
 		messageDao.saveMessage(message);
 		message.setTask_id(message.getId());

@@ -28,7 +28,7 @@ public class SysProvinceDaoImpl extends AbstractDao<Integer, SysProvince> implem
 	public int countAll() {
 		
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_PROVINCE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_PROVINCE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
 	}

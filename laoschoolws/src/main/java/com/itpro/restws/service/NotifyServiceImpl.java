@@ -30,7 +30,6 @@ import com.itpro.restws.helper.E_SCOPE;
 import com.itpro.restws.helper.MessageFilter;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.Message;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.NotifyImg;
 import com.itpro.restws.model.Permit;
@@ -327,6 +326,7 @@ public class NotifyServiceImpl implements NotifyService{
 		Notify notify=null;
 		try {
 			notify = mapper.readValue(json_str_notify, Notify.class);
+			notify.setSent_dt(Utils.now());
 			notify.setIs_sent(99);// Will not sent this
 			notifyDao.saveNotify(notify);
 			notify.setTask_id(notify.getId());
@@ -375,6 +375,8 @@ public class NotifyServiceImpl implements NotifyService{
 				notifyImg.setNotify_id(notify.getId());
 				notifyImg.setTask_id(notify.getTask_id());
 				notifyImg.setIdx(order);
+				
+				
 				// Default fields
 				notifyImg.setActflg("A");
 				notifyImg.setCtdusr("HuyNQ-test");
@@ -454,6 +456,7 @@ public class NotifyServiceImpl implements NotifyService{
 				new_notify.setTo_user_name(to_user.getFullname());
 				
 				new_notify.setSchool_id(to_user.getSchool_id());
+				new_notify.setSent_dt(Utils.now());
 				new_notify.setIs_sent(1);// Disable sent			
 				notifyDao.saveNotify(new_notify);
 				list.add(new_notify);
@@ -678,6 +681,13 @@ public class NotifyServiceImpl implements NotifyService{
 		}
 		
 		return secure_filter;
+	}
+
+	@Override
+	public Notify updateNotify(Notify notify) {
+		notifyDao.updateNotify(notify);
+		
+		return notify;
 	}
 
 

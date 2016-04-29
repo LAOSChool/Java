@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -251,16 +252,41 @@ public class UserController extends BaseController {
 	
 	
 	//@Secured({ "ROLE_ADMIN"})
+	 
+//	@RequestMapping(value="/forgot_pass",method = RequestMethod.POST)
+//	@ResponseStatus(value=HttpStatus.OK)
+//	@Async
+//	public RespInfo forgotPass(
+//			@RequestParam(value="sso_id",required=true) String sso_id,
+//			@RequestParam(value="phone",required=true) String phone,
+//			@Context final HttpServletResponse response,
+//			@Context final HttpServletRequest request
+//			) {
+//		
+//		logger.info(" *** MainRestController.users.forgotPass");
+//		User user = userService.findBySso(sso_id);
+//		if (user == null || (user.getState() != E_STATE.ACTIVE.value())){
+//			throw new ESchoolException("sso_id:("+sso_id+") is not exising",HttpStatus.BAD_REQUEST);
+//		}
+//		if (user.getPhone() == null ||  (!user.getPhone().equals(phone))){
+//			throw new ESchoolException("phone:("+phone+") is not mapped with user's phone",HttpStatus.BAD_REQUEST);
+//		}
+//		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+//		userService.forgotPassword(sso_id, phone);
+//		return rsp;
+//	}
+//	
 	@RequestMapping(value="/forgot_pass",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
-	public RespInfo forgotPass(
+	@Async
+	public void forgotPass(
 			@RequestParam(value="sso_id",required=true) String sso_id,
 			@RequestParam(value="phone",required=true) String phone,
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
 		
-		logger.info(" *** MainRestController.users.forgotPass");
+		logger.info(" *** MainRestController.users.forgotPass START");
 		User user = userService.findBySso(sso_id);
 		if (user == null || (user.getState() != E_STATE.ACTIVE.value())){
 			throw new ESchoolException("sso_id:("+sso_id+") is not exising",HttpStatus.BAD_REQUEST);
@@ -268,11 +294,9 @@ public class UserController extends BaseController {
 		if (user.getPhone() == null ||  (!user.getPhone().equals(phone))){
 			throw new ESchoolException("phone:("+phone+") is not mapped with user's phone",HttpStatus.BAD_REQUEST);
 		}
-		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		userService.forgotPassword(sso_id, phone);
-		return rsp;
+		logger.info(" *** MainRestController.users.forgotPass END");
 	}
-	
 	
 	
 	@RequestMapping(value = "/api/users/delete/{id}", method = RequestMethod.POST)

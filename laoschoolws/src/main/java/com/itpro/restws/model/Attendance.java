@@ -62,6 +62,10 @@ public class Attendance extends AbstractModel{
 	private Integer chk_user_id;
 
 
+	@Column(name="term_id")
+	private Integer term_id;
+	
+	
 	public Integer getId() {
 		return id;
 	}
@@ -189,6 +193,12 @@ public class Attendance extends AbstractModel{
 
 	@Formula("(SELECT t.sval FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String session;
+
+	@Formula("(SELECT t.sval FROM m_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String term;
+	public String getTerm() {
+		return term;
+	}
 	
 	public String getSubject() {
 		return subject;
@@ -204,5 +214,29 @@ public class Attendance extends AbstractModel{
 	public void setSession(String session) {
 		this.session = session;
 	}
+
+
+	public Integer getSession_id() {
+		return session_id;
+	}
+
+
+	public Integer getTerm_id() {
+		return term_id;
+	}
+
+
+
+
+	public void setSession_id(Integer session_id) {
+		this.session_id = session_id;
+	}
+
+
+	public void setTerm_id(Integer term_id) {
+		this.term_id = term_id;
+	}
+
+
 
 }

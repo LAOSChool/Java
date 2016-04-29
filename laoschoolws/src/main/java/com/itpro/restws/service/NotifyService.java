@@ -32,7 +32,7 @@ public interface NotifyService {
 	
 	
 //	Notify insertNotify(Notify notify);
-//	Notify updateNotify(Notify notify);
+	Notify updateNotify(Notify notify);
 	//Notify saveUploadData(MultipartFile file,String str_notify);
 	//Notify saveUploadData(User user,MultipartFile[] files,String[] captions, String content, String title,String json_str_notify);
 	Notify saveUploadData(User user,MultipartFile[] files,String[] captions, String[] orders,String json_str_notify);

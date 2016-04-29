@@ -89,9 +89,7 @@ public class Message extends AbstractModel{
 	@Column(name="task_id")
 	private Integer task_id;
 	
-	@Column(name="frm_user_photo")
-	private String frm_user_photo;
-	
+		
 
 	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String SchoolName;	
@@ -104,6 +102,14 @@ public class Message extends AbstractModel{
 	public String getMessageType() {
 		return message_type;
 	}
+	
+	@Formula("(SELECT t.photo FROM user t WHERE t.id = from_user_id)")
+	String frm_user_photo;
+	public String getFrm_user_photo() {
+		return frm_user_photo;
+	}
+
+	
 
 	
 	public Message copy(){
@@ -370,10 +376,7 @@ public class Message extends AbstractModel{
 	}
 
 
-	public String getFrm_user_photo() {
-		return frm_user_photo;
-	}
-
+	
 
 	public void setFrom_user_id(Integer from_user_id) {
 		this.from_user_id = from_user_id;
@@ -385,7 +388,5 @@ public class Message extends AbstractModel{
 	}
 
 
-	public void setFrm_user_photo(String frm_user_photo) {
-		this.frm_user_photo = frm_user_photo;
-	}
+	
 }

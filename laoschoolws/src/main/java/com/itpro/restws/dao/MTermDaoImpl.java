@@ -23,7 +23,7 @@ public class MTermDaoImpl extends AbstractDao<Integer, MTerm> implements MTermDa
 	@Override
 	public int countBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Integer)getSession().createQuery("select count(*) from " + ModelName+  " WHERE school_id = '" + school_id + "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from " + ModelName+  " WHERE school_id = '" + school_id + "'").uniqueResult()).intValue();
 		return count;
 	}
 
