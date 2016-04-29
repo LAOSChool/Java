@@ -7,5 +7,6 @@ public class Constant {
 	public static final String LOGIN_LINK="/login";
 	public static final String FORGOT_PASS="/forgot_pass";
 	public static final String LOGOUT_LINK="/api/logout";
+	public static final String CMD_FOROT_PASS = "FOROT_PASS";
 	
 }

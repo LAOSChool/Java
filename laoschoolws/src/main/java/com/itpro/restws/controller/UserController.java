@@ -1,14 +1,13 @@
 package com.itpro.restws.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,15 +18,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.itpro.restws.dao.CommandDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.ListEnt;
-import com.itpro.restws.helper.MessageFilter;
 import com.itpro.restws.helper.Password;
 import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.Command;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.User;
 /**
@@ -42,6 +42,10 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class UserController extends BaseController {
+	
+	@Autowired
+	protected CommandDao commandDao;
+
 	
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -278,8 +282,8 @@ public class UserController extends BaseController {
 //	
 	@RequestMapping(value="/forgot_pass",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
-	@Async
-	public void forgotPass(
+	//@Async
+	public RespInfo forgotPass(
 			@RequestParam(value="sso_id",required=true) String sso_id,
 			@RequestParam(value="phone",required=true) String phone,
 			@Context final HttpServletResponse response,
@@ -294,8 +298,17 @@ public class UserController extends BaseController {
 		if (user.getPhone() == null ||  (!user.getPhone().equals(phone))){
 			throw new ESchoolException("phone:("+phone+") is not mapped with user's phone",HttpStatus.BAD_REQUEST);
 		}
-		userService.forgotPassword(sso_id, phone);
+		//userService.forgotPassword(sso_id, phone);
+		Command cmd = new Command();
+		cmd.setCommand(Constant.CMD_FOROT_PASS);
+		cmd.setParams("sso_id="+sso_id+"&phone="+phone);
+		cmd.setCmd_dt(Utils.now());
+		cmd.setProcessed(0);
+		cmd.setMessage("Waiting");
+		commandDao.saveCommand(cmd);
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Plz wait, your request is in processing");
 		logger.info(" *** MainRestController.users.forgotPass END");
+		return rsp;
 	}
 	
 	

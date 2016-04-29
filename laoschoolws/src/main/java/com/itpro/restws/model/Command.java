@@ -8,8 +8,26 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.NamedNativeQuery;
+import org.hibernate.annotations.NamedQueries;
+import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
+
+@NamedNativeQuery(
+	    name="getCommandSQL", 
+	    query="call get_unproc_command()", 
+	    callable=true, 
+	    readOnly=true, 
+	    resultClass=Command.class
+)
+
+//@NamedQueries({
+//	@NamedQuery(
+//	name = "getCommand",
+//	query = "call get_unproc_command()"
+//	)
+//})
 @Entity
 @Table(name="command")
 @DynamicInsert(value=true)

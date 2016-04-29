@@ -15,7 +15,7 @@ import org.springframework.web.servlet.view.JstlView;
 ;
 @Configuration
 @EnableWebMvc
-@EnableAsync
+//@EnableAsync
 @ComponentScan(basePackages = "com.itpro.restws")
 public class MainConfiguration extends WebMvcConfigurerAdapter {
 	
@@ -51,7 +51,5 @@ public class MainConfiguration extends WebMvcConfigurerAdapter {
 	        registry.viewResolver(viewResolver);
 	    }
 	  
-	  
-
-	  
+	  	  
 }

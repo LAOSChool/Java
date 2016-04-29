@@ -1,8 +1,6 @@
 package com.itpro.restws.dao;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -11,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.NotifyImg;
-import com.itpro.restws.model.User;
 
 @Repository("notifyImgDao")
 @Transactional

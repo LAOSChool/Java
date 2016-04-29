@@ -3,7 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,9 +50,10 @@ public class CommandDaoImpl extends AbstractDao<Integer, Command> implements Com
 //				System.out.println(stock.getStockCode());
 //			}
 		
-		Query query = getSession().createQuery("CALL get_unproc_command()");
+		
 		@SuppressWarnings("unchecked")
-		List<Command>  result = query.list();
+		List<Command>  result = getSession().getNamedQuery("getCommandSQL").list();
+		getSession().flush();
 		return result;
 		
 	}
