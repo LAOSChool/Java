@@ -3,11 +3,15 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.Message;
 import com.itpro.restws.model.User;
 
 @Repository("userDao")
@@ -75,6 +79,18 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		update(user);
 	}
 
+	@Override
+	public int countUserByClass(Integer class_id) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.createAlias("classes", "classesAlias");
+		crit_list.add(Restrictions.eq("classesAlias.id", class_id));
+		crit_list.setProjection(Projections.rowCount());
+		Long resultCount = (Long)crit_list.uniqueResult();
+		
+	
+	     return resultCount.intValue();
+	}
+
 
 	
 //	 public void setUser(User a) throws HibernateException {
@@ -112,4 +128,74 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 //	    }
 //	    return oDb;
 //	}
+	
+	@Override				
+	public Integer countUserExt(
+			Integer school_id, 
+			// Filter
+			Integer class_id, 
+			String role,
+			Integer state,
+			Integer from_row_id
+			) {
+		
+		//int count = ((Long)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id.intValue()+ "'").uniqueResult()).intValue();
+		String query = 	"select count(*)  from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		if (class_id != null && class_id > 0){
+			query = query +" and cls.id = '"+class_id.intValue()+"'"; 
+		}
+		if (role != null && role.length() > 0){
+			query = query +" and user.roles = '"+role+"'"; 
+		}		
+				
+		if (state != null && state > 0){
+			query = query +" and user.state = '"+state.intValue()+"'"; 
+		}	
+		if (from_row_id != null && from_row_id> 0){
+			query = query +" and user.id > '"+from_row_id.intValue()+"'";
+		}
+		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
+		return count;
+
+	}
+	@Override
+	public List<User> findUserExt(
+			Integer school_id, 
+			int from_row, 
+			int max_result,
+			// Filter
+			Integer class_id, 
+			String role,
+			Integer state,
+			Integer from_row_id
+			) {
+		
+		String str = 	"from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		if (class_id != null && class_id > 0){
+			str = str +" and cls.id = '"+class_id.intValue()+"'"; 
+		}
+		if (role != null && role.length() > 0){
+			str = str +" and user.roles = '"+role+"'"; 
+		}		
+				
+		if (state != null && state > 0){
+			str = str +" and user.state = '"+state.intValue()+"'"; 
+		}
+		
+		if (from_row_id != null && from_row_id> 0){
+			str = str +" and user.id > '"+from_row_id.intValue()+"'";
+		}
+		
+		Query query =  getSession().createQuery(str);
+		query.setMaxResults(max_result);
+		query.setFirstResult(from_row);
+		
+		
+		
+		@SuppressWarnings("unchecked")
+		List<User> users= query.list();
+		return users;
+
+	}
+
 }

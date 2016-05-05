@@ -28,6 +28,7 @@ import com.itpro.restws.service.FinalResultService;
 import com.itpro.restws.service.MasterTblService;
 import com.itpro.restws.service.MessageService;
 import com.itpro.restws.service.NotifyService;
+import com.itpro.restws.service.PermitService;
 import com.itpro.restws.service.SchoolService;
 import com.itpro.restws.service.SysTblService;
 import com.itpro.restws.service.TimetableService;
@@ -85,7 +86,9 @@ public class BaseController {
 	@Autowired
 	protected TokenManager tokenManager;
 
-
+	@Autowired
+	protected PermitService permitService;
+	
 	@PostConstruct
 	public void init() {
 		logger.info(" *** BaseController.init with: " + applicationContext);

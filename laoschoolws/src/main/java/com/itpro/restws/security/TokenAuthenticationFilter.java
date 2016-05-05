@@ -63,8 +63,8 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-		Map<String, String[]> parameters = request.getParameterMap();
-		String data = parameters.toString();
+		
+		
 		// Check API_KEY Start
 		// To disable check API_KEY, just comment this code block
 		checkApiKey(httpRequest, httpResponse);
@@ -147,7 +147,9 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			return true;
 		} else {
 			logger.info(" *** Invalid " + HEADER_AUTH_KEY + ' ' + token);
-			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);
+			//httpResponse.sendError(HttpServletResponse.SC_NON_AUTHORITATIVE_INFORMATION);
+			httpResponse.sendError(HttpServletResponse.SC_CONFLICT);
+			
 			doNotContinueWithRequestProcessing(httpRequest);
 		}
 		return false;

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class AuthenKeyDaoImpl extends AbstractDao<Integer, AuthenKey> implements
 	public List<AuthenKey> findBySsoID(String sso_id) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("sso_id", sso_id));
+		crit_list.addOrder(Order.desc("id") );
 		
 //		crit_list.add(Restrictions.or(
 //		        Restrictions.isNull("expired_dt"),

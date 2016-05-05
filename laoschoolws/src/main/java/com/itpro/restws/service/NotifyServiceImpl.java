@@ -153,20 +153,11 @@ public class NotifyServiceImpl implements NotifyService{
 		return new FileSystemResource(filename);
 	}
 
-//	@Override
-//	public Notify insertNotify(Notify notify) {
-//		notifyDao.saveNotify(notify);
-//		return notify;
-//	}
-//
-//	@Override
-//	public Notify updateNotify(Notify notify) {
-//		Notify notifyDB = notifyDao.findById(notify.getId());
-//		notifyDB = Notify.updateChanges(notifyDB, notify);
-//		notifyDao.updateNotify(notifyDB);
-//		return notifyDB;
-//		
-//	}
+	
+	private Notify insertNotify(Notify notify) {
+		notifyDao.saveNotify(notify);
+		return notify;
+	}
 
 //	@Override
 //	public Notify saveUploadData(MultipartFile file, String jsonInString ) {
@@ -438,9 +429,11 @@ public class NotifyServiceImpl implements NotifyService{
 		
 		
 		
+		
 		if (users == null)	{
 			throw new ESchoolException("There isn't any user in Class id="+eclass.getId(), HttpStatus.BAD_REQUEST);
 		}
+		
 		// Get list of users from class				
 		for (User to_user : users){
 			// Disable sending notify to current user
@@ -522,14 +515,34 @@ public class NotifyServiceImpl implements NotifyService{
 		}else {
 			throw new ESchoolException("Unknow notify.dest_type="+ notify.getDest_type(), HttpStatus.BAD_REQUEST);
 		}
-		
+		// Batch update is_sent flg to 0
 		if (list != null){
+			boolean keep_cc_frm_user = false;
 			for (Notify e : list){
 				if (e.getIs_sent() == 1){
 					e.setIs_sent(0);
 					notifyDao.updateNotify(e);
 				}
+				// check already cc to Current user or not
+				if ((e.getTo_usr_id() != null)   && (e.getTo_usr_id() == user.getId())){
+					keep_cc_frm_user = true;
+				}
 			}
+			// CC to current user 
+			if (!keep_cc_frm_user){
+				Notify new_notify = notify.copy();
+				new_notify.setFrom_usr_id(user.getId());
+				new_notify.setFrom_user_name(user.getFullname());
+				new_notify.setTo_usr_id(user.getId());
+				new_notify.setTo_user_name(user.getFullname());
+
+				new_notify.setSchool_id(user.getSchool_id());
+				new_notify.setSent_dt(Utils.now());
+				new_notify.setIs_sent(0);
+				notifyDao.saveNotify(new_notify);
+				list.add(new_notify);
+			}
+
 		}
 		return list;
 	}

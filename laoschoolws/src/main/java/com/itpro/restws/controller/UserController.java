@@ -46,15 +46,15 @@ public class UserController extends BaseController {
 	@Autowired
 	protected CommandDao commandDao;
 
-	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public ListEnt getUsers(
 			@RequestHeader(value="auth_key",required =true) String auth_key,
-			
 			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
 			@RequestParam(value="filter_user_role",required =false) String filter_user_role,			
 			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts,
+			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
 			
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
@@ -68,30 +68,47 @@ public class UserController extends BaseController {
 		
 		User user = getCurrentUser();
 		Integer school_id = user.getSchool_id();
+		Integer class_id =  Utils.parseInteger(filter_class_id);
 		
 		logger.info(" *** MainRestController.getUsers-filter_class_id: "+filter_class_id);
 		logger.info(" *** MainRestController.getUsers-filter_user_role: "+filter_user_role);
 		logger.info(" *** MainRestController.getUsers-filter_sts: "+filter_sts);
 
 		ListEnt rspEnt = new ListEnt();
+		
 	    try {
+	    	if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
+	    	}else{
+	    		if (class_id == null || class_id == 0 ){
+	    			throw new ESchoolException("User is not Admin, require filter_class_id to get Users ",HttpStatus.BAD_REQUEST);
+	    		}
+	    		if (!userService.isBelongToClass(user.getId(), class_id)){
+	    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
+	    		}
+	    	}
+	    	
+	    	
 	    	// Count user
-	    	total_row = userService.countBySchoolID(school_id);
+	    	total_row = userService.countUserExt(school_id, class_id, filter_user_role, Utils.parseInteger(filter_sts), Utils.parseInteger(filter_from_id));
 	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;;	    	
+	    		max_result = Constant.MAX_RESP_ROW;    	
 	    	}else{
 	    		max_result = total_row;
 	    	}
 	    		
 			logger.info("user count: total_row : "+total_row);
 			// Query user
-			users = userService.findBySchool(school_id, from_row, max_result);
-			
-			
-		    rspEnt.setList(users);
+			users = userService.findUserExt(school_id, 
+					from_row, 
+					max_result, 
+					class_id, 
+					filter_user_role,  
+					Utils.parseInteger(filter_sts), Utils.parseInteger(filter_from_id));
+			rspEnt.setList(users);
 		    rspEnt.setFrom_row(from_row);
 		    rspEnt.setTo_row(from_row + max_result);
 		    rspEnt.setTotal_count(total_row);
+
 		    
 	    }catch(Exception e){
 	    	for ( StackTraceElement ste: e.getStackTrace()){
@@ -108,33 +125,34 @@ public class UserController extends BaseController {
 	    return rspEnt;
 	}
 	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value = "/api/users/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	 public User getUser(@PathVariable int  id,@Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.getUser/{id}:"+id);
 		User user = getCurrentUser();
-		User load_user = null;
-	    try {
+		
+		if (user.getId().intValue() == id){
+			return user;
+		}
+		
+		User load_user = userService.findById(Integer.valueOf(id));
+		
+		if (load_user == null){
+			throw new ESchoolException("Cannot find user of id:"+id, HttpStatus.NOT_FOUND);
+		}
+		if (load_user.getSchool_id() != user.getSchool_id()){
+			throw new ESchoolException("User ID is not in the same School"+id, HttpStatus.BAD_REQUEST);
+		}
+		
+	    if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
 	    	
-		    load_user = userService.findById(Integer.valueOf(id));
-		    if (load_user != null && load_user.getSchool_id() != user.getSchool_id() ){
-		    	load_user = null;
-		    	logger.info("user.id is not in same schoool with current user");
-		    }
-		    
-			logger.info("Load User : "+load_user.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
+	    }else{
+	    	if (!userService.isSameClass(user, load_user)){
+	    		throw new ESchoolException("User ID is not in the same Class"+id, HttpStatus.BAD_REQUEST);
 	    	}
-	    	logger.info(" *** MainRestController.Exception Message:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
+		
 	    return load_user;
 	 }
 
@@ -143,7 +161,10 @@ public class UserController extends BaseController {
 	public User myprofile(@Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.myprofile ***");
 		User user = getCurrentUser();
-	    
+		if (user != null && (user.getPermisions() == null) ){
+			permitService.loadPermit(user);
+		}
+		
 	    return user;
 	}
 	@Secured({"ROLE_SYS_ADMIN"})
@@ -202,6 +223,7 @@ public class UserController extends BaseController {
 		 
 	}
 	
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/update",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public User updateUser(
@@ -209,6 +231,12 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.users.update");
+
+		User curr_user = getCurrentUser();
+		
+		if (!userService.isSameSChool(user, curr_user)){
+			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
+		}
 		
 		 if (userService.isValidState(user.getState())){
 			 return userService.updateUser(user);
@@ -311,7 +339,7 @@ public class UserController extends BaseController {
 		return rsp;
 	}
 	
-	
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value = "/api/users/delete/{id}", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	 public String delUser(
@@ -319,13 +347,19 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
+		User user = getCurrentUser();
+		User del_user = userService.findById(id);
+		if (del_user == null ){
+			throw new ESchoolException("Cannot find user", HttpStatus.NOT_FOUND);
+		}
+		
+		if (!userService.isSameSChool(user, del_user)){
+			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
+		}
+		del_user.setActflg("D");
+		userService.updateUser(del_user);
 		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
 	    return "Request was successfully, deleted user of id:"+id;
 	 }
-	
-	
-	
-	
-
 	
 }

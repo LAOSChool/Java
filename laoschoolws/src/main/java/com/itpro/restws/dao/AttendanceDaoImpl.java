@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +93,52 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		attendance.setMdfpgm("RestWS");
 		update(attendance);
 		
+	}
+
+	@Override
+	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id, Integer from_row_id) {
+		String query = 	"select count(*)  from Attendance att where att.school_id ='"+school_id +"'";
+		if (class_id != null && class_id > 0){
+			query = query +" and att.class_id = '"+class_id.intValue()+"'"; 
+		}
+				
+				
+		if (user_id != null && user_id > 0){
+			query = query +" and att.user_id = '"+user_id.intValue()+"'"; 
+		}	
+		
+		if (from_row_id != null && from_row_id> 0){
+			query = query +" and att.id > '"+from_row_id.intValue()+"'";
+		}
+		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
+		return count;
+	}
+
+	@Override
+	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id, Integer from_row_id,
+			int from_num, int max_result) {
+		String str = 	"from Attendance att where att.school_id ='"+school_id +"'";
+		if (class_id != null && class_id > 0){
+			str = str +" and att.class_id = '"+class_id.intValue()+"'"; 
+		}
+		
+		if (user_id != null && user_id > 0){
+			str = str +" and att.user_id = '"+user_id.intValue()+"'"; 
+		}	
+		
+		if (from_row_id != null && from_row_id> 0){
+			str = str +" and att.id > '"+from_row_id.intValue()+"'";
+		}
+		
+		Query query =  getSession().createQuery(str);
+		query.setMaxResults(max_result);
+		query.setFirstResult(from_num);
+		
+		
+		
+		@SuppressWarnings("unchecked")
+		List<Attendance>  ret= query.list();
+		return ret;
 	}
 
 	

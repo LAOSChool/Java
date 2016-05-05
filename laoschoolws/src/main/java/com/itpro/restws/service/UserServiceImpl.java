@@ -66,6 +66,12 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
+	public int countByClassID(Integer class_id) {
+		return userDao.countUserByClass(class_id);
+	}
+
+	
+	@Override
 	public ArrayList<User> findByClass(Integer class_id, int from_num, int max_result) {
 		ArrayList<User> list = (ArrayList<User>) userDao.findByClass(class_id, from_num, max_result);
 		for (User user : list){
@@ -309,4 +315,74 @@ public class UserServiceImpl implements UserService{
 		return user;
 	}
 
+	/***
+	 * Filter list user by calss_id
+	 * @param list
+	 * @param filter_class_id
+	 * @return
+	 */
+	public  ArrayList<User> filterByClasses(ArrayList<User> list, String filter_classes ){
+		ArrayList<User> new_list = new ArrayList<>();
+		// Filter user by class
+		if (filter_classes != null && filter_classes.length() > 0){
+			for (User user : list){
+				for (String str_id : filter_classes.split(",")){
+					Integer cls_id = Utils.parseInteger(str_id);
+					if (cls_id != null && cls_id > 0){
+						if (isBelongToClass(user.getId(), cls_id)){
+							new_list.add(user);
+							break;
+						}
+					}
+				}
+			}
+		}else{
+			return list;
+		}
+		return new_list;
+	}
+	
+	public  ArrayList<User> filterByRoles(ArrayList<User> list, String filter_roles ){
+		ArrayList<User> new_list = new ArrayList<>();
+		// Filter user by class
+		if (filter_roles != null && filter_roles.length() > 0){
+			for (User user : list){
+				if (user.hasRole(filter_roles)){
+					new_list.add(user);
+				}
+			}
+		}else{
+			return list;
+		}
+		return new_list;
+	}
+	public  ArrayList<User> filterByStatus(ArrayList<User> list, String filter_state ){
+		ArrayList<User> new_list = new ArrayList<>();
+		Integer state = Utils.parseInteger(filter_state);
+		if (state == null || state == 0){
+			return list;
+		}
+		
+		for (User user : list){
+				if (user.getState() == state.intValue()){
+					new_list.add(user);
+				}
+		}
+		return new_list;
+	}
+
+	@Override
+	public int countUserExt(Integer school_id, Integer filter_class_id, String filter_user_role, Integer filter_sts,Integer from_row_id) {
+		
+		return userDao.countUserExt(school_id,filter_class_id, filter_user_role, filter_sts,from_row_id);
+		
+	}
+
+	@Override
+	public ArrayList<User> findUserExt(Integer school_id, int from_num, int max_result, Integer filter_class_id,
+			String filter_user_role, Integer filter_sts,Integer from_row_id) {
+		return (ArrayList<User>) userDao.findUserExt(school_id, from_num, max_result, filter_class_id, filter_user_role, filter_sts, from_row_id);
+	}
+
+	
 }

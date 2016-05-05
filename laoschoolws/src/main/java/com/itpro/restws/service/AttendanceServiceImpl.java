@@ -68,6 +68,20 @@ public class AttendanceServiceImpl implements AttendanceService{
 		return attendanceDB;
 	}
 
+	@Override
+	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
+			Integer from_row_id) {
+		
+		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id);
+	}
+
+	@Override
+	public ArrayList<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
+			Integer from_row_id, int from_num, int max_result) {
+		
+		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result);
+	}
+
 	
 
 

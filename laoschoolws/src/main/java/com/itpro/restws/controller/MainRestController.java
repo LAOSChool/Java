@@ -1,7 +1,6 @@
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -21,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,34 +27,21 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.Constant;
-import com.itpro.restws.helper.ESchoolException;
-import com.itpro.restws.helper.E_ROLE;
-import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.ListEnt;
-import com.itpro.restws.helper.Password;
-import com.itpro.restws.helper.RespInfo;
-import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.FinalResult;
 import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.MasterBase;
-import com.itpro.restws.model.Message;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.Timetable;
 import com.itpro.restws.model.User;
-import com.itpro.restws.security.AuthenticationService;
-import com.itpro.restws.security.TokenInfo;
-import com.itpro.restws.security.TokenManager;
 import com.itpro.restws.securityimpl.UserContext;
-import com.itpro.restws.service.AttendanceService;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
 import com.itpro.restws.service.FinalResultService;
 import com.itpro.restws.service.MasterTblService;
-import com.itpro.restws.service.MessageService;
-import com.itpro.restws.service.PermitService;
 import com.itpro.restws.service.SchoolService;
 import com.itpro.restws.service.SysTblService;
 import com.itpro.restws.service.TimetableService;
@@ -85,8 +70,6 @@ public class MainRestController {
 	@Autowired
 	private ClassService classService;
 	@Autowired
-	private AttendanceService attendanceService;
-	@Autowired
 	private SchoolService schoolService;
 	@Autowired
 	private ExamResultService examResultService;
@@ -97,8 +80,6 @@ public class MainRestController {
 	@Autowired
 	private TimetableService timetableService;
 
-	@Autowired
-	private MessageService messageService;
 	
 	@Autowired
 	private MasterTblService masterTblService;
@@ -106,13 +87,13 @@ public class MainRestController {
 	@Autowired
 	private SysTblService sysTblService;
 
-	@Autowired
-	private AuthenticationService authenticationService;
+//	@Autowired
+//	private AuthenticationService authenticationService;
 
-	@Autowired
-	private TokenManager tokenManager;
-	@Autowired
-	private PermitService permitService;
+//	@Autowired
+//	private TokenManager tokenManager;
+//	@Autowired
+//	private PermitService permitService;
 
 	
 	@PostConstruct
@@ -325,115 +306,6 @@ public class MainRestController {
 	
 		
 	
-	@RequestMapping(value="/api/attendances",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getAttendances(@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getAttendances");
-		List<Attendance> attendances = null;
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
-		
-		User user = getCurrentUser();
-		Integer school_id = user.getSchool_id();
-				
-		ListEnt rspEnt = new ListEnt();
-	    try {
-	    	// Count user
-	    	total_row = attendanceService.countBySchoolID(school_id);
-	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;
-	    	}else{
-	    		max_result = total_row;
-	    	}
-	    		
-			logger.info("Attendance count: total_row : "+total_row);
-			// Query class by school id
-			attendances = attendanceService.findBySchool(school_id, from_row, max_result);
-		    rspEnt.setList(attendances);
-		    rspEnt.setFrom_row(from_row);
-		    rspEnt.setTo_row(from_row + max_result);
-		    rspEnt.setTotal_count(total_row);
-		    
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.getAttendances() ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    
-	    return rspEnt;
-
-	}
-	
-	
-	@RequestMapping(value = "/api/attendances/{id}", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public Attendance getAttendance(
-			 @PathVariable int  id,
-			 @Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getAttendance/{id}:"+id);
-		Attendance attendance = null;
-	    try {
-	    	attendance = attendanceService.findById(Integer.valueOf(id));
-			logger.info("attendance: "+attendance.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController  ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    return attendance;
-	 }
-	
-	
-	@RequestMapping(value="/api/attendances/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Attendance createAttendance(
-			@RequestBody Attendance attendance,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.users.create");
-		
-//		 attendance = attendanceService.findById(1);
-		 return attendanceService.insertAttendance(attendance);
-		 
-	}
-	
-	@RequestMapping(value="/api/attendances/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Attendance updateAttendances(
-			@RequestBody Attendance attendance,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.attendances.update");
-			 //attendance = attendanceService.findById(1);
-			 return attendanceService.updateAttendance(attendance);
-		 
-	}
-	
-	@RequestMapping(value = "/api/attendances/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delAttendance(
-			 @PathVariable int  id,
-			@Context final HttpServletResponse response
-			 
-			 ) {
-		logger.info(" *** MainRestController.delAttendance/{attendance_id}:"+id);
-
-	    return "Request was successfully, delete attendance of id: "+id;
-	 }
 	
 	
 	@RequestMapping(value="/api/schools",method = RequestMethod.GET)

@@ -10,8 +10,14 @@ public interface UserService {
 	User findById(Integer id);
 	User findBySso(String sso);
 	int countBySchoolID(Integer school_id);
+	int countByClassID(Integer class_id);
+	
 	ArrayList<User> findBySchool(Integer school_id,int from_num, int max_result); 
 	ArrayList<User> findByClass(Integer class_id,int from_num, int max_result);
+	
+	int countUserExt(Integer school_id,Integer filter_class_id,String filter_user_role,Integer filter_sts,Integer from_row_id);
+	ArrayList<User> findUserExt(Integer school_id,int from_num, int max_result,Integer filter_class_id,String filter_user_role,Integer filter_sts,Integer from_row_id);
+	
 	
 	User insertUser(User user);
 	User updateUser(User user);
@@ -34,7 +40,9 @@ public interface UserService {
 	
 	boolean isHeadTeacherOf(User user, Integer teacher_id);
 	boolean isBelongToClass(Integer user_id, Integer class_id);
-	
+	ArrayList<User> filterByStatus(ArrayList<User> list, String filter_state );
+	ArrayList<User> filterByRoles(ArrayList<User> list, String filter_roles );
+	ArrayList<User> filterByClasses(ArrayList<User> list, String filter_classes );
 	
 	
 }
