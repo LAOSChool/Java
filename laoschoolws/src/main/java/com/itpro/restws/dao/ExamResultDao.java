@@ -17,5 +17,11 @@ public interface ExamResultDao {
 	
 	void saveExamResult(ExamResult examResult);
 	void updateExamResult(ExamResult examResult);
+	
+	
+	int countExamExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id, String from_dt,String to_dt);
+	List<ExamResult> findExamExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,int from_num, int max_result,String from_dt, String to_dt);
+
+	
 }
 

@@ -195,24 +195,29 @@ public class NotifyController extends BaseController {
 		logger.info(" *** MainRestController.createNotify");
 		logger.info(" *** json_in_string:"+json_in_string);
 		
-		
-
-		
+		String err_msg = "";
 		if (orders == null ){
-			throw new ESchoolException("Orders is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = "order is NULL,";
+//			throw new ESchoolException("Orders is NULL", HttpStatus.BAD_REQUEST);
 		}
 
 		if (captions == null ){
-			throw new ESchoolException("captions is NULL", HttpStatus.BAD_REQUEST);
+//			throw new ESchoolException("captions is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" captions is NULL,";
 		}
 
-		if (files == null ){
-			throw new ESchoolException("files is NULL", HttpStatus.BAD_REQUEST);
+		if (files == null || files.length <= 0){
+//			throw new ESchoolException("file is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" file is empty,";
 		}
 		if (json_in_string == null ){
-			throw new ESchoolException("json_in_string is NULL", HttpStatus.BAD_REQUEST);
+//			throw new ESchoolException("json_in_string is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" json_in_string is NULL,";
 		}
 		
+		if (err_msg.length() > 0){
+			throw new ESchoolException(err_msg, HttpStatus.BAD_REQUEST);
+		}
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
 		User user = getCurrentUser();

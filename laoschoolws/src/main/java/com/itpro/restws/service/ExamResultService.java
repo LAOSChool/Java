@@ -15,6 +15,11 @@ public interface ExamResultService {
 	ArrayList<ExamResult> findByStudent(Integer user_id,int from_num, int max_result);
 	
 	
+	
+	int countExamResultExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,String from_dt, String to_dt);
+	ArrayList<ExamResult> findExamResultExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,int from_num, int max_result, String from_dt, String to_dt);
+	
+	
 	ExamResult insertExamResult(ExamResult examResult);
 	ExamResult updateExamResult(ExamResult examResult);
 	 

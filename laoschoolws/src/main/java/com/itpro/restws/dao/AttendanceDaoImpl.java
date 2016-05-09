@@ -47,9 +47,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 
 	@Override
-	public List<Attendance> findByUser(Integer user_id, int from_row, int max_result) {
+	public List<Attendance> findByStudent(Integer student_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
-		crit_list.add(Restrictions.eq("user_id", user_id));
+		crit_list.add(Restrictions.eq("student_id", student_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
 	     @SuppressWarnings("unchecked")
@@ -58,9 +58,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 
 	@Override
-	public int countAttendanceByUser(Integer user_id) {
+	public int countAttendanceByStudent(Integer student_id) {
 		// Get row count
-				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE user_id= '" + user_id+ "'").uniqueResult()).intValue();
+				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE student_id= '" + student_id+ "'").uniqueResult()).intValue();
 				return count;
 	}
 
@@ -88,48 +88,65 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 
 	@Override
 	public void updateAttendance(Attendance attendance) {
+//		Attendance current_att = getByKey(attendance.getId());
+		
 		attendance.setMdfusr("HuyNQ-test");
 		attendance.setLstmdf(Utils.now());
 		attendance.setMdfpgm("RestWS");
-		update(attendance);
+//		update(attendance);
+		merge(attendance);
 		
 	}
-
+	
 	@Override
-	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id, Integer from_row_id) {
+	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String from_dt, String to_dt) {
 		String query = 	"select count(*)  from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and att.class_id = '"+class_id.intValue()+"'"; 
 		}
 				
 				
-		if (user_id != null && user_id > 0){
-			query = query +" and att.user_id = '"+user_id.intValue()+"'"; 
+		if (student_id != null && student_id > 0){
+			query = query +" and att.student_id = '"+student_id.intValue()+"'"; 
 		}	
 		
 		if (from_row_id != null && from_row_id> 0){
 			query = query +" and att.id > '"+from_row_id.intValue()+"'";
+		}
+		
+		
+		if (from_dt != null ){
+			query = query +" and att.att_dt >= '"+from_dt+"'";
+		}
+		if (to_dt != null ){
+			query = query +" and att.att_dt <= '"+to_dt+"'";
 		}
 		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id, Integer from_row_id,
-			int from_num, int max_result) {
+	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,
+			int from_num, int max_result,String from_dt, String to_dt) {
 		String str = 	"from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			str = str +" and att.class_id = '"+class_id.intValue()+"'"; 
 		}
 		
-		if (user_id != null && user_id > 0){
-			str = str +" and att.user_id = '"+user_id.intValue()+"'"; 
+		if (student_id != null && student_id > 0){
+			str = str +" and att.student_id = '"+student_id.intValue()+"'"; 
 		}	
 		
 		if (from_row_id != null && from_row_id> 0){
 			str = str +" and att.id > '"+from_row_id.intValue()+"'";
 		}
 		
+		if (from_dt != null ){
+			str = str +" and att.att_dt >= '"+from_dt+"'";
+		}
+		if (to_dt != null ){
+			str = str +" and att.att_dt <= '"+to_dt+"'";
+		}
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_num);
@@ -139,6 +156,17 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		@SuppressWarnings("unchecked")
 		List<Attendance>  ret= query.list();
 		return ret;
+	}
+
+	@Override
+	public List<Attendance> findByAuditor(Integer auditor, int from_row, int max_result) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("auditor", auditor));
+		crit_list.setMaxResults(max_result);
+        crit_list.setFirstResult(from_row);
+	     @SuppressWarnings("unchecked")
+		List<Attendance> attendances = crit_list.list();
+	     return attendances;
 	}
 
 	

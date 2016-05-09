@@ -8,6 +8,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 @Entity
@@ -193,4 +194,30 @@ public class ExamResult extends AbstractModel{
 	public void setTerm_id(Integer term_id) {
 		this.term_id = term_id;
 	}
+	
+	
+	
+	
+	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String subject;
+
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String teacher;
+
+	@Formula("(SELECT t.sval FROM m_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String term;
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public String getTeacher() {
+		return teacher;
+	}
+
+	public String getTerm() {
+		return term;
+	}
+
+	
 }

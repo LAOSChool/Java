@@ -1,5 +1,6 @@
 package com.itpro.restws.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -7,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -20,6 +22,7 @@ import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ListEnt;
+import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
@@ -37,12 +40,15 @@ import com.itpro.restws.model.User;
 @RestController 
 public class AttedanceController extends BaseController {
 	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/attendances",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ListEnt getAttendances(
 			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
 			@RequestParam(value="filter_user_id",required =false) String filter_user_id,			
 			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
+			@RequestParam(value="filter_from_dt", required =false) String filter_from_dt,
+			@RequestParam(value="filter_to_dt", required =false) String filter_to_dt,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -53,7 +59,7 @@ public class AttedanceController extends BaseController {
 		User user = getCurrentUser();
 		Integer school_id = user.getSchool_id();
 		Integer class_id =  Utils.parseInteger(filter_class_id);
-		Integer user_id = Utils.parseInteger(filter_user_id);
+		Integer student_id = Utils.parseInteger(filter_user_id);
 		
 		
 		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
@@ -75,7 +81,7 @@ public class AttedanceController extends BaseController {
     		
     	}else{
     		// STUDENT
-    		user_id = user.getId();
+    		student_id = user.getId();
     	}
     	
 		
@@ -88,7 +94,7 @@ public class AttedanceController extends BaseController {
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
-	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, user_id, Utils.parseInteger(filter_from_id));
+	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),filter_from_dt,filter_to_dt);
 	    	if (total_row > Constant.MAX_RESP_ROW){
 	    		max_result = Constant.MAX_RESP_ROW;
 	    	}else{
@@ -97,7 +103,7 @@ public class AttedanceController extends BaseController {
 	    		
 			logger.info("Attendance count: total_row : "+total_row);
 			// Query class by school id
-			attendances = attendanceService.findAttendanceExt(school_id, class_id, user_id, Utils.parseInteger(filter_from_id), from_row, max_result);
+			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,filter_from_dt,filter_to_dt);
 		    rspEnt.setList(attendances);
 		    rspEnt.setFrom_row(from_row);
 		    rspEnt.setTo_row(from_row + max_result);
@@ -119,33 +125,74 @@ public class AttedanceController extends BaseController {
 
 	}
 	
+	@Secured({ "ROLE_STUDENT"})
+	@RequestMapping(value = "/api/attendances/myprofile", method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public ListEnt getAttendanceProfile(
+			 @Context final HttpServletRequest request,
+				@Context final HttpServletResponse response
+			 ) {
+		logger.info(" *** MainRestController.getAttendanceProfile Start");
+		ListEnt rspEnt = new ListEnt();
+		
+		int from_row = 0;
+		int max_result = Constant.MAX_RESP_ROW;;
+		
+		User student = getCurrentUser();
+
+		// Count user
+    	int total_row = attendanceService.countByStudent(student.getId());
+    	if (total_row > Constant.MAX_RESP_ROW){
+    		max_result = Constant.MAX_RESP_ROW;
+    	}else{
+    		max_result = total_row;
+    	}
+    	
+		ArrayList<Attendance> list = attendanceService.findByStudent(student.getId(), from_row, max_result);
+        
+		rspEnt.setList(list);
+	    rspEnt.setFrom_row(from_row);
+	    rspEnt.setTo_row(from_row + max_result);
+	    rspEnt.setTotal_count(total_row);
+	    
+	    return rspEnt;
+	 }
 	
+	// @Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value = "/api/attendances/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public Attendance getAttendance(
 			 @PathVariable int  id,
 			 @Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.getAttendance/{id}:"+id);
-		Attendance attendance = null;
-	    try {
-	    	attendance = attendanceService.findById(Integer.valueOf(id));
-			logger.info("attendance: "+attendance.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController  ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
+		
+    	User cur_user = getCurrentUser();
+    	Attendance attendance  = attendanceService.findById(Integer.valueOf(id));
+    	
+    	if (attendance == null){
+    		throw new ESchoolException("Not found", HttpStatus.NOT_FOUND);
+    	}
+    	
+    	if (cur_user.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
+    		throw new ESchoolException("Current user and attendance_id are not in same School", HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	if ((cur_user.hasRole(E_ROLE.STUDENT.getRole_short())) && 
+    			(attendance.getStudent_id().intValue() != cur_user.getId().intValue())){
+    		throw new ESchoolException("AttendanceID:"+id+" is not belong to current Student, user_id:"+cur_user.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
+			
+    	if ((cur_user.hasRole(E_ROLE.TEACHER.getRole_short())) && 
+    			!userService.isBelongToClass(cur_user.getId(), attendance.getClass_id())){
+    		throw new ESchoolException("AttendanceID:"+id+" is not belong to current Student, user_id:"+cur_user.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	
+    	
 	    return attendance;
 	 }
 	
-	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/attendances/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Attendance createAttendance(
@@ -154,11 +201,25 @@ public class AttedanceController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.users.create");
 		
-//		 attendance = attendanceService.findById(1);
-		 return attendanceService.insertAttendance(attendance);
+		User auditor = getCurrentUser();
+		
+		if (auditor.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
+    		throw new ESchoolException("Current user and attendance_id are not in same School", HttpStatus.BAD_REQUEST);
+    	}
+		
+			
+    	if (	(auditor.hasRole(E_ROLE.TEACHER.getRole_short()) || auditor.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ) && 
+    			(!userService.isBelongToClass(auditor.getId(), attendance.getClass_id()))
+    		){
+    		throw new ESchoolException("Invalid Class_ID:"+attendance.getClass_id()+", is not belong to current user_id:"+auditor.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
+		
+		
+		 return attendanceService.insertAttendance(auditor,attendance);
 		 
 	}
 	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/attendances/update",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Attendance updateAttendances(
@@ -166,11 +227,24 @@ public class AttedanceController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.attendances.update");
-			 //attendance = attendanceService.findById(1);
-			 return attendanceService.updateAttendance(attendance);
+		User teacher = getCurrentUser();
+		
+		if (teacher.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
+    		throw new ESchoolException("Current user and attendance_id are not in same School", HttpStatus.BAD_REQUEST);
+    	}
+		
+			
+    	if (	(teacher.hasRole(E_ROLE.TEACHER.getRole_short()) || teacher.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ) && 
+    			(!userService.isBelongToClass(teacher.getId(), attendance.getClass_id()))
+    		){
+    		throw new ESchoolException("Invalid Class_ID:"+attendance.getClass_id()+", is not belong to current user_id:"+teacher.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	return attendanceService.updateAttendance(teacher,attendance);
 		 
 	}
 	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value = "/api/attendances/delete/{id}", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public String delAttendance(
@@ -180,7 +254,38 @@ public class AttedanceController extends BaseController {
 			 ) {
 		logger.info(" *** MainRestController.delAttendance/{attendance_id}:"+id);
 
+		User auditor = getCurrentUser();
+		Attendance attendance = attendanceService.findById(id);
+		if (attendance == null){
+			throw new ESchoolException("Not found", HttpStatus.NOT_FOUND);
+		}
+		if (auditor.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
+    		throw new ESchoolException("Current user and attendance_id are not in same School", HttpStatus.BAD_REQUEST);
+    	}
+		
+			
+    	if (	(auditor.hasRole(E_ROLE.TEACHER.getRole_short()) || auditor.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ) && 
+    			(!userService.isBelongToClass(auditor.getId(), attendance.getClass_id()))
+    		){
+    		throw new ESchoolException("Invalid Class_ID:"+attendance.getClass_id()+", is not belong to current user_id:"+auditor.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
+    	attendance.setActflg("D");
+    	attendanceService.updateAttendance(auditor,attendance);
 	    return "Request was successfully, delete attendance of id: "+id;
+	 }
+	
+	@Secured({ "ROLE_STUDENT"})
+	@RequestMapping(value = "/api/attendances/request", method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public String requestAttendance(
+				@RequestBody Attendance attendance,
+				@Context final HttpServletResponse response			 
+			 ) {
+		logger.info(" *** MainRestController.requestAttendance Start");
+
+		User student = getCurrentUser();
+    	attendanceService.requestAttendance(student,attendance);
+	    return "Request was successfully";
 	 }
 	
 }

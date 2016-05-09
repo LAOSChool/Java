@@ -295,23 +295,36 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public Notify saveUploadData(User user, MultipartFile[] files, String[] captions,String[]orders, String json_str_notify) {
+		String err_msg = "";
+		
 		// Validation Data
 		if (files == null  || captions== null ||json_str_notify == null){
-			throw new ESchoolException("Input mandatory data is null",HttpStatus.BAD_REQUEST);
+//			throw new ESchoolException("Input mandatory data is null",HttpStatus.BAD_REQUEST);
+			err_msg = "Some mandatory input fields are null, please check file - caption and json_str_notify,";
 		}
 		
 		if (files.length != captions.length){
-			throw new ESchoolException("file.length != captions.leghth",HttpStatus.BAD_REQUEST);
+//			throw new ESchoolException("file.length != captions.leghth",HttpStatus.BAD_REQUEST);
+			err_msg = err_msg + " number of uploaded files <> number of captions,";
 		}
+		
 		if (files.length != orders.length){
-			throw new ESchoolException("file.length != orders.leghth",HttpStatus.BAD_REQUEST);
+//			throw new ESchoolException("file.length != captions.leghth",HttpStatus.BAD_REQUEST);
+			err_msg = err_msg + " number of uploaded files <> number of orders,";
 		}
+
+		
 		for (String order: orders){
 			if (Utils.parseInteger(order) == null || Utils.parseInteger(order) <= 0){
-				throw new ESchoolException("Invalid Order:"+orders,HttpStatus.BAD_REQUEST);
+//				throw new ESchoolException("Invalid Order:"+orders,HttpStatus.BAD_REQUEST);
+				err_msg = err_msg + " Invalid order number, must be integer.";
+				break;
 			}
 		}
 		
+		if (err_msg.length() > 0){
+			throw new ESchoolException(err_msg,HttpStatus.BAD_REQUEST);
+		}
 		//Convert JSON from String to Object
 		ObjectMapper mapper = new ObjectMapper();
 		Notify notify=null;

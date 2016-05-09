@@ -70,6 +70,20 @@ public class ExamResultServiceImpl implements ExamResultService{
 		return examResultDB;
 	
 	}
+
+	@Override
+	public int countExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,
+			String from_dt, String to_dt) {
+		
+		return examResultDao.countExamExt(school_id, class_id, student_id, from_row_id, from_dt, to_dt);
+	}
+
+	@Override
+	public ArrayList<ExamResult> findExamResultExt(Integer school_id, Integer class_id, Integer student_id,
+			Integer from_row_id, int from_num, int max_result, String from_dt, String to_dt) {
+		
+		return (ArrayList<ExamResult>) examResultDao.findExamExt(school_id, class_id, student_id, from_row_id, from_num, max_result, from_dt, to_dt);
+	}
 	
 
 	

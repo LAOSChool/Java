@@ -30,6 +30,7 @@ public class Attendance extends AbstractModel{
 	@Column(name="class_id")
 	private Integer class_id;
 	
+	
 	@Column(name="att_dt")
 	private String att_dt;
 	
@@ -39,33 +40,64 @@ public class Attendance extends AbstractModel{
 	@Column(name="session_id")
 	private Integer session_id;
 
-	@Column(name="user_id")
-	private Integer user_id;
+//	@Column(name="user_id")
+//	private Integer user_id;
+//	
+//	@Column(name="user_name")
+//	private String user_name;
 	
-	@Column(name="user_name")
-	private String user_name;
-	
-	@Column(name="absent")
-	private Integer absent;
+//	@Column(name="absent")
+//	private Integer absent;
 	
 	@Column(name="excused")
 	private Integer excused;
 	
-	@Column(name="late")
-	private Integer late;
+//	@Column(name="late")
+//	private Integer late;
 	
 	@Column(name="notice")
 	private String notice;
 	
 
-	@Column(name="chk_user_id")
-	private Integer chk_user_id;
-
-
+	
 	@Column(name="term_id")
 	private Integer term_id;
 	
+
+	@Column(name="is_requested")
+	private Integer is_requested;
+
+	@Column(name="requested_dt")
+	private String requested_dt;
 	
+	@Column(name="state")
+	private Integer state;
+	
+	@Column(name="auditor")
+	private Integer auditor;
+	
+
+	@Column(name="auditor_name")
+	private String auditor_name;	
+	
+	@Column(name="student_id")
+	private Integer student_id;
+	
+	@Column(name="student_name")
+	private String student_name;	
+	
+	
+	
+	public Integer getState() {
+		return state;
+	}
+
+
+	public void setState(Integer state) {
+		this.state = state;
+	}
+
+
 	public Integer getId() {
 		return id;
 	}
@@ -117,15 +149,15 @@ public class Attendance extends AbstractModel{
 
 
 	
-
-	public Integer getAbsent() {
-		return absent;
-	}
-
-
-	public void setAbsent(Integer absent) {
-		this.absent = absent;
-	}
+//
+//	public Integer getAbsent() {
+//		return absent;
+//	}
+//
+//
+//	public void setAbsent(Integer absent) {
+//		this.absent = absent;
+//	}
 
 
 	public Integer getExcused() {
@@ -138,14 +170,14 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public Integer getLate() {
-		return late;
-	}
-
-
-	public void setLate(Integer late) {
-		this.late = late;
-	}
+//	public Integer getLate() {
+//		return late;
+//	}
+//
+//
+//	public void setLate(Integer late) {
+//		this.late = late;
+//	}
 
 
 	public String getNotice() {
@@ -158,34 +190,25 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public Integer getChk_user_id() {
-		return chk_user_id;
-	}
-
-
-	public void setChk_user_id(Integer chk_user_id) {
-		this.chk_user_id = chk_user_id;
-	}
-
-
-	public Integer getUser_id() {
-		return user_id;
-	}
-
-
-	public void setUser_id(Integer user_id) {
-		this.user_id = user_id;
-	}
-
-
-	public String getUser_name() {
-		return user_name;
-	}
-
-
-	public void setUser_name(String user_name) {
-		this.user_name = user_name;
-	}
+	
+//	public Integer getUser_id() {
+//		return user_id;
+//	}
+//
+//
+//	public void setUser_id(Integer user_id) {
+//		this.user_id = user_id;
+//	}
+//
+//
+//	public String getUser_name() {
+//		return user_name;
+//	}
+//
+//
+//	public void setUser_name(String user_name) {
+//		this.user_name = user_name;
+//	}
 
 	
 	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
@@ -238,5 +261,61 @@ public class Attendance extends AbstractModel{
 	}
 
 
+	public Integer getIs_requested() {
+		return is_requested;
+	}
+
+
+	public String getRequested_dt() {
+		return requested_dt;
+	}
+
+
+	public void setIs_requested(Integer is_requested) {
+		this.is_requested = is_requested;
+	}
+
+
+	public void setRequested_dt(String requested_dt) {
+		this.requested_dt = requested_dt;
+	}
+	public Integer getAuditor() {
+		return auditor;
+	}
+
+
+	public String getAuditor_name() {
+		return auditor_name;
+	}
+
+
+	public Integer getStudent_id() {
+		return student_id;
+	}
+
+
+	public String getStudent_name() {
+		return student_name;
+	}
+
+
+	public void setAuditor(Integer auditor) {
+		this.auditor = auditor;
+	}
+
+
+	public void setAuditor_name(String auditor_name) {
+		this.auditor_name = auditor_name;
+	}
+
+
+	public void setStudent_id(Integer student_id) {
+		this.student_id = student_id;
+	}
+
+
+	public void setStudent_name(String student_name) {
+		this.student_name = student_name;
+	}
 
 }
