@@ -1,12 +1,7 @@
 package com.itpro.restws.service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -90,12 +85,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 			ExamResult existing_db = list.get(0); // latest one
 			existing_db = ExamResult.updateChanges(existing_db, exam);
 			examResultDao.updateExamResult(existing_db);
+			return existing_db;
 		}else{
 			examResultDao.saveExamResult(exam);
+			return exam;
 		}
-		
-		return exam;
-	
 	}
 
 	
@@ -193,6 +187,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 			Integer user_id, Integer subject_id, Integer term_id, Integer exam_year, Integer exam_month,
 			String exam_dt, String dateFrom, String dateTo, Integer from_row_id) {
 		return examResultDao.findExamResultExt(school_id, from_row, max_result, class_id, user_id, subject_id, term_id, exam_year, exam_month, exam_dt, dateFrom, dateTo, from_row_id);
+	}
+
+	@Override
+	public void deleteExamResult(ExamResult exam) {
+		examResultDao.deleteExamResult(exam);
+		
 	}
 
 	

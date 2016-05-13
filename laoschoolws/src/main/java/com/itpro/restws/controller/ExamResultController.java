@@ -80,8 +80,9 @@ public class ExamResultController extends BaseController {
 	 }
 	
 	
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
-	@RequestMapping(value="/api/exam_results/create",method = RequestMethod.POST)
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	//@RequestMapping(value="/api/exam_results/create",method = RequestMethod.POST)
+	@RequestMapping(value="/api/exam_results/input",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult createExamResult(
 			@RequestBody ExamResult examResult,
@@ -143,7 +144,7 @@ public class ExamResultController extends BaseController {
 		
 		}
 		examresult.setActflg("D");
-		examResultService.updateExamResult(examresult);
+		examResultService.deleteExamResult(examresult);
 	    return "Request was successfully, delete exam result of id: "+id;
 	 }
 	

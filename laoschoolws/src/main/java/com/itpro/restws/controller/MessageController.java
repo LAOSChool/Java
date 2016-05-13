@@ -119,9 +119,7 @@ public class MessageController extends BaseController {
     		return listResp;
     	}
     	
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
+    	if (total_row < max_result){
     		max_result = total_row;
     	}
     		

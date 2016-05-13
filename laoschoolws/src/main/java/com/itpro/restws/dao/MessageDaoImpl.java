@@ -241,8 +241,8 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		// Filter by school
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		// Limit data return
-		crit_list.setMaxResults(max_result);
-		crit_list.setFirstResult(from_row);
+//		crit_list.setMaxResults(max_result);
+//		crit_list.setFirstResult(from_row);
 
 		// Filter by class
 		if (classes != null && !classes.isEmpty()) {

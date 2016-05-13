@@ -21,6 +21,7 @@ public interface ExamResultDao {
 	
 	void saveExamResult(ExamResult examResult);
 	void updateExamResult(ExamResult examResult);
+	void deleteExamResult(ExamResult examResult);
 	
 	
 	

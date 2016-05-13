@@ -319,6 +319,13 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 		ArrayList<ExamResult> list = (ArrayList<ExamResult>) crit_list.list();
 		return list;
 	}
+
+	@Override
+	public void deleteExamResult(ExamResult examResult) {
+		examResult.setActflg("D");
+		update(examResult);
+		
+	}
 	
 
 

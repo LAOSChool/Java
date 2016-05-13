@@ -19,6 +19,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @SelectBeforeUpdate(value=true) 
 
 public class Permit extends AbstractModel{
+//	public Permit(int p_school_id,String p_entity,int p_rights,String p_roles, int p_scope){
+//		this.school_id = p_school_id;
+//		this.entity = p_entity;
+//		this.rights = p_rights;
+//		this.scope = p_scope;
+//	}
 	@Id
 	@GeneratedValue
 	@Column(name="id")
@@ -106,4 +112,5 @@ public class Permit extends AbstractModel{
 		}
 		return false;
 	}
+	
 }

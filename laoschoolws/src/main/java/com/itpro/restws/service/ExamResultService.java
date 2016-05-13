@@ -16,6 +16,7 @@ public interface ExamResultService {
 	ArrayList<ExamResult> findByClass(Integer class_id,int from_num, int max_result);
 	ArrayList<ExamResult> findByStudent(Integer user_id,int from_num, int max_result);
 	
+	void deleteExamResult(ExamResult exam);
 	
 	void validUpdateExam(User teacher,ExamResult examResult,boolean is_update);
 	ExamResult updateExamResult(ExamResult examResult); 

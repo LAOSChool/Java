@@ -158,7 +158,7 @@ public class ActionLogServiceImpl implements ActionLogService{
 		
 		 Map<String, String> requestMap = this.getTypesafeRequestMap(request);
 		 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(request);
-	        final StringBuilder logMessage = new StringBuilder("--- REST Request] ---\n")
+	        final StringBuilder logMessage = new StringBuilder("--- REST Request ---\n")
 	                   .append("[HTTP METHOD:")
                        .append(request.getMethod())                                        
 	                   .append("]\n[PATH INFO:")
