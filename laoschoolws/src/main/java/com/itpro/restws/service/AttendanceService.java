@@ -16,8 +16,8 @@ public interface AttendanceService {
 	ArrayList<Attendance> findByClass(Integer class_id,int from_num, int max_result);
 	ArrayList<Attendance> findByStudent(Integer user_id,int from_num, int max_result);
 	
-	int countAttendanceExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,String from_dt, String to_dt);
-	ArrayList<Attendance> findAttendanceExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,int from_num, int max_result, String from_dt, String to_dt);
+	int countAttendanceExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,String att_dt,String from_dt, String to_dt);
+	ArrayList<Attendance> findAttendanceExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,int from_num, int max_result, String att_dt,String from_dt, String to_dt);
 	
 	
 	Attendance insertAttendance(User teacher,Attendance attendance);

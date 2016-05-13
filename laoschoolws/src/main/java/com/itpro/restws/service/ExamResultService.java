@@ -1,8 +1,10 @@
 package com.itpro.restws.service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.itpro.restws.model.ExamResult;
+import com.itpro.restws.model.User;
 
 public interface ExamResultService {
 	
@@ -15,12 +17,30 @@ public interface ExamResultService {
 	ArrayList<ExamResult> findByStudent(Integer user_id,int from_num, int max_result);
 	
 	
-	
-	int countExamResultExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,String from_dt, String to_dt);
-	ArrayList<ExamResult> findExamResultExt(Integer school_id,Integer class_id,Integer student_id,Integer from_row_id,int from_num, int max_result, String from_dt, String to_dt);
-	
-	
-	ExamResult insertExamResult(ExamResult examResult);
-	ExamResult updateExamResult(ExamResult examResult);
+	void validUpdateExam(User teacher,ExamResult examResult,boolean is_update);
+	ExamResult updateExamResult(ExamResult examResult); 
+	ExamResult inputExam(ExamResult examResult);// new or update
 	 
+	int countExamResultExt(Integer school_id,
+			Integer class_id, 
+			Integer student_id, 
+			Integer subject_id,
+			Integer term_id,
+			Integer exam_year,
+			Integer exam_month,
+			String exam_dt,
+			String dateFrom, 
+			String dateTo,
+			Integer from_row_id);
+	ArrayList<ExamResult>  findExamResultExt(Integer school_id, int from_row, int max_result,
+			Integer class_id, 
+			Integer student_id, 
+			Integer subject_id,
+			Integer term_id,
+			Integer exam_year,
+			Integer exam_month,
+			String exam_dt,
+			String dateFrom, 
+			String dateTo,
+			Integer from_row_id);
 }

@@ -48,7 +48,7 @@ public class CronExecutor {
 					try{
 						command.setProcessed(1);
 						command.setProcessed_dt(Utils.now());
-						logger.info("command:"+command.toString());
+						logger.info("command[cron_id]="+cron_id+"///"+command.toString());
 						if ("FOROT_PASS".equals(command.getCommand())){
 							if  (command.getParams() == null ){
 								throw new ESchoolException("FORGOT Password, no params: sso_id=xxx&phone=xxx",HttpStatus.BAD_REQUEST);

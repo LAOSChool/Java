@@ -93,16 +93,16 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id,String from_dt, String to_dt) {
+			Integer from_row_id,String att_dt,String from_dt, String to_dt) {
 		
-		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,from_dt, to_dt);
+		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt);
 	}
 
 	@Override
 	public ArrayList<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id, int from_num, int max_result, String from_dt, String to_dt) {
+			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt) {
 		
-		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result, from_dt, to_dt);
+		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt);
 	}
 
 	@Override
@@ -144,9 +144,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 		}
 
 		
-		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null);
+		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null);
 		if (cnt > 0){
-			throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
 		}
 	}
 

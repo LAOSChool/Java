@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,7 +93,7 @@ public class AttedanceController extends BaseController {
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
-	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),filter_from_dt,filter_to_dt);
+	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),null,filter_from_dt,filter_to_dt);
 	    	if (total_row > Constant.MAX_RESP_ROW){
 	    		max_result = Constant.MAX_RESP_ROW;
 	    	}else{
@@ -103,7 +102,7 @@ public class AttedanceController extends BaseController {
 	    		
 			logger.info("Attendance count: total_row : "+total_row);
 			// Query class by school id
-			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,filter_from_dt,filter_to_dt);
+			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,null,filter_from_dt,filter_to_dt);
 		    rspEnt.setList(attendances);
 		    rspEnt.setFrom_row(from_row);
 		    rspEnt.setTo_row(from_row + max_result);
@@ -277,15 +276,24 @@ public class AttedanceController extends BaseController {
 	@Secured({ "ROLE_STUDENT"})
 	@RequestMapping(value = "/api/attendances/request", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	 public String requestAttendance(
+	 public RespInfo requestAttendance(
 				@RequestBody Attendance attendance,
+				@Context final HttpServletRequest request,
 				@Context final HttpServletResponse response			 
 			 ) {
 		logger.info(" *** MainRestController.requestAttendance Start");
 
 		User student = getCurrentUser();
+		
+		attendance.setStudent_id(student.getId());
+		attendance.setStudent_name(student.getFullname());
     	attendanceService.requestAttendance(student,attendance);
-	    return "Request was successfully";
+    	
+    	RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+    	
+		rsp.setMessageObject("Request was successfully");
+		
+	    return rsp;
 	 }
 	
 }

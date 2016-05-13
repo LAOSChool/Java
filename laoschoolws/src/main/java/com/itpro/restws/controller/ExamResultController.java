@@ -87,20 +87,13 @@ public class ExamResultController extends BaseController {
 			@RequestBody ExamResult examResult,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.exam_results.update");
+		logger.info(" *** createExamResult Start");
 		
 		User teacher = getCurrentUser();
-		examResult.setTeacher_id(teacher.getId());
-		examResult.setSchool_id(teacher.getSchool_id());
-		examResult.setExam_dt(Utils.now());
 		
-		User student = userService.findById(examResult.getStudent_id());
-		if (!student.hasRole(E_ROLE.STUDENT.getRole_short())){
-			throw new ESchoolException("Exam Student is not Student role:"+examResult.getStudent_id(), HttpStatus.BAD_REQUEST);
-		}
-		examResult.setStudent_name(student.getFullname());
+		examResultService.validUpdateExam(teacher,examResult,false);
 		
-		return examResultService.insertExamResult(examResult);
+		return examResultService.inputExam(examResult);
 		 
 	}
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
@@ -113,24 +106,7 @@ public class ExamResultController extends BaseController {
 		logger.info(" *** MainRestController.exam_results.update");
 		
 		User teacher = getCurrentUser();
-		examResult.setTeacher_id(teacher.getId());
-		examResult.setSchool_id(teacher.getSchool_id());
-		examResult.setExam_dt(Utils.now());
-		
-		User student = userService.findById(examResult.getStudent_id());
-		if (!student.hasRole(E_ROLE.STUDENT.getRole_short())){
-			throw new ESchoolException("Exam Student is not Student role:"+examResult.getStudent_id(), HttpStatus.BAD_REQUEST);
-		}
-		examResult.setStudent_name(student.getFullname());
-		
-		ExamResult curr =examResultService.findById(examResult.getId());
-		if (curr == null ){
-			throw new ESchoolException("Current Exam Result is not exisint:"+examResult.getId(), HttpStatus.BAD_REQUEST);
-		}
-		examResult.setActflg(curr.getActflg());
-		examResult.setCtddtm(curr.getCtddtm());
-		examResult.setCtdusr(curr.getCtdusr());
-		
+		examResultService.validUpdateExam(teacher,examResult,true);
 		return examResultService.updateExamResult(examResult);
 		 
 	}
@@ -142,7 +118,32 @@ public class ExamResultController extends BaseController {
 			 @PathVariable int  id
 			 ) {
 		logger.info(" *** MainRestController.delExamResult/{id}:"+id);
-
+		User teacher = getCurrentUser();
+		
+		ExamResult examresult = examResultService.findById(id);
+		if (examresult == null ){
+			throw new ESchoolException("Exam not found", HttpStatus.NOT_FOUND);
+		}
+		
+		if (teacher.getSchool_id() != examresult.getSchool_id() ){
+			throw new ESchoolException("Cannot access other school exam result", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (!teacher.hasRole(E_ROLE.ADMIN.getRole_short())){
+			
+		}else{
+			if (examresult.getTeacher_id() == null ){
+				throw new ESchoolException("Exam.teacherID cannot be NULL", HttpStatus.BAD_REQUEST);
+			}
+			
+			if	(teacher.getId().intValue() != examresult.getTeacher_id().intValue()){
+				throw new ESchoolException("Exam.teacherID="+examresult.getTeacher_id()+"  cannot be different from current teacher_id="+teacher.getId(), HttpStatus.BAD_REQUEST);
+			}
+			
+		
+		}
+		examresult.setActflg("D");
+		examResultService.updateExamResult(examresult);
 	    return "Request was successfully, delete exam result of id: "+id;
 	 }
 	
@@ -150,12 +151,18 @@ public class ExamResultController extends BaseController {
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getExamResultsExt(
+	public ListEnt getExamResults(
 			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_user_id",required =false) String filter_user_id,			
+			@RequestParam(value="filter_user_id",required =false) String filter_student_id,			
 			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
 			@RequestParam(value="filter_from_dt", required =false) String filter_from_dt,
 			@RequestParam(value="filter_to_dt", required =false) String filter_to_dt,
+			@RequestParam(value="filter_subject_id", required =false) String filter_subject_id,
+			@RequestParam(value="filter_term_id", required =false) String filter_term_id,
+			@RequestParam(value="filter_exam_year", required =false) String filter_exam_year,
+			@RequestParam(value="filter_exam_month", required =false) String filter_exam_month,
+			@RequestParam(value="filter_exam_dt", required =false) String filter_exam_dt,
+			@RequestParam(value="filter_exam_type", required =false) String filter_exam_type,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -166,7 +173,7 @@ public class ExamResultController extends BaseController {
 		User user = getCurrentUser();
 		Integer school_id = user.getSchool_id();
 		Integer class_id =  Utils.parseInteger(filter_class_id);
-		Integer user_id = Utils.parseInteger(filter_user_id);
+		Integer student_id = Utils.parseInteger(filter_student_id);
 		
 		
 		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
@@ -185,6 +192,8 @@ public class ExamResultController extends BaseController {
         			throw new ESchoolException("User ID="+user.getId()+" and Class are not in same school,class_id= "+class_id,HttpStatus.BAD_REQUEST);
         		}
     		}
+    		
+    	}else{
     		throw new ESchoolException("Invalid user role:"+user.getRoles(),HttpStatus.BAD_REQUEST);
     	}
     	
@@ -198,7 +207,7 @@ public class ExamResultController extends BaseController {
 		ListEnt rspEnt = new ListEnt();
 	    
     	// Count user
-    	total_row = examResultService.countExamResultExt(school_id, class_id, user_id, Utils.parseInteger(filter_from_id),filter_from_dt,filter_to_dt);
+    	total_row = examResultService.countExamResultExt(school_id, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id));
     	if (total_row > Constant.MAX_RESP_ROW){
     		max_result = Constant.MAX_RESP_ROW;
     	}else{
@@ -207,7 +216,7 @@ public class ExamResultController extends BaseController {
     		
 		logger.info("Attendance count: total_row : "+total_row);
 		// Query class by school id
-		exam_results = examResultService.findExamResultExt(school_id, class_id, user_id, Utils.parseInteger(filter_from_id), from_row, max_result,filter_from_dt,filter_to_dt);
+		exam_results = examResultService.findExamResultExt(school_id,from_row,max_result, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id));
 	    rspEnt.setList(exam_results);
 	    rspEnt.setFrom_row(from_row);
 	    rspEnt.setTo_row(from_row + max_result);
@@ -235,7 +244,7 @@ public class ExamResultController extends BaseController {
 		User student = getCurrentUser();
 
 		// Count user
-    	int total_row = attendanceService.countByStudent(student.getId());
+    	int total_row = examResultService.countByStudentID(student.getId());
     	if (total_row > Constant.MAX_RESP_ROW){
     		max_result = Constant.MAX_RESP_ROW;
     	}else{

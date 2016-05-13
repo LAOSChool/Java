@@ -99,7 +99,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 	
 	@Override
-	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String from_dt, String to_dt) {
+	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String att_dt,String from_dt, String to_dt) {
 		String query = 	"select count(*)  from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and att.class_id = '"+class_id.intValue()+"'"; 
@@ -113,7 +113,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		if (from_row_id != null && from_row_id> 0){
 			query = query +" and att.id > '"+from_row_id.intValue()+"'";
 		}
-		
+		if (att_dt != null ){
+			query = query +" and att.att_dt = '"+att_dt+"'";
+		}
 		
 		if (from_dt != null ){
 			query = query +" and att.att_dt >= '"+from_dt+"'";
@@ -127,7 +129,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 
 	@Override
 	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,
-			int from_num, int max_result,String from_dt, String to_dt) {
+			int from_num, int max_result,String att_dt,String from_dt, String to_dt) {
 		String str = 	"from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			str = str +" and att.class_id = '"+class_id.intValue()+"'"; 
@@ -137,6 +139,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 			str = str +" and att.student_id = '"+student_id.intValue()+"'"; 
 		}	
 		
+		if (att_dt != null ){
+			str = str +" and att.att_dt = '"+att_dt+"'";
+		}
 		if (from_row_id != null && from_row_id> 0){
 			str = str +" and att.id > '"+from_row_id.intValue()+"'";
 		}

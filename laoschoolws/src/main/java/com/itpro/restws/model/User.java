@@ -377,6 +377,14 @@ public class User extends AbstractModel{
 		return SchoolName;
 	}
 	
+	
+//	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+//	private int exam_result_type = 1;	
+//	public int getExam_result_type() {
+//		return exam_result_type;
+//	}
+	
+	
 	public void setSchoolName(String schoolName) {
 		SchoolName = schoolName;
 	}

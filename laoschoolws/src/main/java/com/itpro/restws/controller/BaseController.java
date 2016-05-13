@@ -15,12 +15,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.model.ActionLog;
 import com.itpro.restws.model.User;
 import com.itpro.restws.security.AuthenticationService;
 import com.itpro.restws.security.TokenManager;
 import com.itpro.restws.securityimpl.UserContext;
+import com.itpro.restws.service.ActionLogService;
 import com.itpro.restws.service.AttendanceService;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
@@ -49,6 +52,8 @@ public class BaseController {
 	@Autowired
 	protected ApplicationContext applicationContext;
 	
+	
+	
 //	@Autowired
 //	private ResourceBundleMessageSource messageSource;// Store messages
 	
@@ -72,7 +77,7 @@ public class BaseController {
 	@Autowired
 	protected MessageService messageService;
 	@Autowired
-	private NotifyService notifyService;
+	protected NotifyService notifyService;
 	
 	@Autowired
 	protected MasterTblService masterTblService;
@@ -88,6 +93,10 @@ public class BaseController {
 
 	@Autowired
 	protected PermitService permitService;
+	
+	@Autowired
+	protected ActionLogService actionLogService;
+	
 	
 	@PostConstruct
 	public void init() {
@@ -240,5 +249,19 @@ public class BaseController {
 		}
 		return userName;
 	}
+	protected ActionLog traceUserInfo(HttpServletRequest request){
+		Integer act_id = (Integer)request.getAttribute(Constant.actlog_id);
+		ActionLog act = actionLogService.findById(act_id);
+		User user = getCurrentUser();
+		if (act != null ){
+			act.setSchool_id(user.getSchool_id());
+			act.setSso_id(user.getSso_id());
+			act.setUser_role(user.getRoles());
+			actionLogService.updateAction(act);
+		}
+		return act;
+	}
+	
+	
 
 }

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +25,6 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.User;
-import com.itpro.restws.service.NotifyService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -40,11 +38,7 @@ import com.itpro.restws.service.NotifyService;
 @RestController 
 public class NotifyController extends BaseController {
 	
-	//private static String UPLOAD_LOCATION="/usr/local/src/apache-tomcat-8.0.0-RC1/webapps/eschool_content/";
-	private static String UPLOAD_LOCATION="D:/upload/";
-	@Autowired
-	private NotifyService notifyService;
-
+	
 	
 	@RequestMapping(value="/api/notifies",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -261,49 +255,50 @@ public class NotifyController extends BaseController {
 	    return "Request was successfully, delNotify of id: "+id;
 	 }
 	
-	/**
-	 * Upload multiple file using Spring Controller
-	 */
-	@RequestMapping(value = "/api/notifies/uploadMultipleFile", method = RequestMethod.POST)
-	public String uploadMultipleFileHandler(
-			@RequestParam("title") String title,
-			@RequestParam("content") String content,
-			@RequestParam("caption") String[] captions,
-			@RequestParam("file") MultipartFile[] files) {
-
-		if (files.length != captions.length)
-			return "Mandatory information missing";
-
-		String message = "";
-		for (int i = 0; i < files.length; i++) {
-			MultipartFile file = files[i];
-			String caption = captions[i];
-			String filename = file.getOriginalFilename();
-			try {
-				byte[] bytes = file.getBytes();
-
-				// Creating the directory to store file
-				String rootPath = UPLOAD_LOCATION;// System.getProperty("catalina.home");
-				File dir = new File(rootPath + File.separator + "tmpFiles");
-				if (!dir.exists())
-					dir.mkdirs();
-
-				// Create the file on server
-				File serverFile = new File(dir.getAbsolutePath() + File.separator + filename);
-				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
-				stream.write(bytes);
-				stream.close();
-
-				logger.info("Server File Location="+ serverFile.getAbsolutePath());
-
-				message = message + "You successfully uploaded file=" + filename
-						+ "<br />";
-			} catch (Exception e) {
-				return "You failed to upload " + filename + " => " + e.getMessage();
-			}
-		}
-		return message;
-	}
+//	/**
+//	 * Upload multiple file using Spring Controller
+//	 */
+//	@RequestMapping(value = "/api/notifies/uploadMultipleFile", method = RequestMethod.POST)
+//	public String uploadMultipleFileHandler(
+//			@RequestParam("title") String title,
+//			@RequestParam("content") String content,
+//			@RequestParam("caption") String[] captions,
+//			@RequestParam("file") MultipartFile[] files) {
+//		 String UPLOAD_LOCATION="/usr/local/src/apache-tomcat-8.0.0-RC1/webapps/eschool_content/";
+//
+//		if (files.length != captions.length)
+//			return "Mandatory information missing";
+//
+//		String message = "";
+//		for (int i = 0; i < files.length; i++) {
+//			MultipartFile file = files[i];
+//			String caption = captions[i];
+//			String filename = file.getOriginalFilename();
+//			try {
+//				byte[] bytes = file.getBytes();
+//
+//				// Creating the directory to store file
+//				String rootPath = UPLOAD_LOCATION;// System.getProperty("catalina.home");
+//				File dir = new File(rootPath + File.separator + "tmpFiles");
+//				if (!dir.exists())
+//					dir.mkdirs();
+//
+//				// Create the file on server
+//				File serverFile = new File(dir.getAbsolutePath() + File.separator + filename);
+//				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
+//				stream.write(bytes);
+//				stream.close();
+//
+//				logger.info("Server File Location="+ serverFile.getAbsolutePath());
+//
+//				message = message + "You successfully uploaded file=" + filename
+//						+ "<br />";
+//			} catch (Exception e) {
+//				return "You failed to upload " + filename + " => " + e.getMessage();
+//			}
+//		}
+//		return message;
+//	}
 	
 
 	

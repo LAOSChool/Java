@@ -8,7 +8,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-		return new Class[] { MainConfiguration.class };
+		return new Class[] { AppConfig.class };
 	}
  
 	@Override
@@ -31,7 +31,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 	    }
 	 
 	 private static final String LOCATION = "/tmp/"; // Temporary location where files will be stored
-// private static final String LOCATION = "D:/tmp/"; // Temporary location where files will be stored
+//private static final String LOCATION = "D:/tmp/"; // Temporary location where files will be stored
 	 
 	    private static final long MAX_FILE_SIZE = 2097152;// 2M ///5242880; // 5MB : Max file size.
 	                                                        // Beyond that size spring will throw exception.
@@ -39,5 +39,4 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 	     
 	    private static final int FILE_SIZE_THRESHOLD = 0; // Size threshold after which files will be written to disk
 	   
-	    
 }

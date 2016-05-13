@@ -149,7 +149,7 @@ public class Utils {
 		return fileName;
 	}
 	public static boolean checkDateTimeFormat(String inputString){
-		  //SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
 		       format.parse(inputString);
@@ -161,7 +161,8 @@ public class Utils {
 		    }
 	}
 	public static boolean checkDateFormat(String inputString){
-		  //SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+		
+		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
 		       format.parse(inputString);

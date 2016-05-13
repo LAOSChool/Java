@@ -95,6 +95,7 @@ public class UserContext  implements UserDetails {
 		this.user = user;
 	}
 
+	
 }
 
 

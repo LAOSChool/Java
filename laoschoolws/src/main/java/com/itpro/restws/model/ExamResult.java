@@ -56,16 +56,16 @@ public class ExamResult extends AbstractModel{
 	@Column(name="notice")
 	private String notice;
 	
-	@Column(name="result_type_id")
-	private Integer result_type_id;
+//	@Column(name="result_type_id")
+//	private Integer result_type_id;
 	
 
-	@Column(name="iresult")
-	private Integer iresult;
-
-	@Column(name="fresult")
-	private Float fresult;
-	
+//	@Column(name="iresult")
+//	private Integer iresult;
+//
+//	@Column(name="fresult")
+//	private Float fresult;
+//	
 	@Column(name="sresult")
 	private String sresult;
 	
@@ -75,6 +75,13 @@ public class ExamResult extends AbstractModel{
 //	@Column(table="m_term")
 //	private String term;
 
+	@Column(name="exam_month")
+	private Integer exam_month;
+	
+
+	@Column(name="exam_year")
+	private Integer exam_year;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -115,17 +122,17 @@ public class ExamResult extends AbstractModel{
 		return notice;
 	}
 
-	public Integer getResult_type_id() {
-		return result_type_id;
-	}
-
-	public Integer getIresult() {
-		return iresult;
-	}
-
-	public Float getFresult() {
-		return fresult;
-	}
+//	public Integer getResult_type_id() {
+//		return result_type_id;
+//	}
+//
+//	public Integer getIresult() {
+//		return iresult;
+//	}
+//
+//	public Float getFresult() {
+//		return fresult;
+//	}
 
 	public String getSresult() {
 		return sresult;
@@ -175,17 +182,17 @@ public class ExamResult extends AbstractModel{
 		this.notice = notice;
 	}
 
-	public void setResult_type_id(Integer result_type_id) {
-		this.result_type_id = result_type_id;
-	}
-
-	public void setIresult(Integer iresult) {
-		this.iresult = iresult;
-	}
-
-	public void setFresult(Float fresult) {
-		this.fresult = fresult;
-	}
+//	public void setResult_type_id(Integer result_type_id) {
+//		this.result_type_id = result_type_id;
+//	}
+//
+//	public void setIresult(Integer iresult) {
+//		this.iresult = iresult;
+//	}
+//
+//	public void setFresult(Float fresult) {
+//		this.fresult = fresult;
+//	}
 
 	public void setSresult(String sresult) {
 		this.sresult = sresult;
@@ -219,5 +226,21 @@ public class ExamResult extends AbstractModel{
 		return term;
 	}
 
+
+	public Integer getExam_month() {
+		return exam_month;
+	}
+
+	public Integer getExam_year() {
+		return exam_year;
+	}
+
+	public void setExam_month(Integer exam_month) {
+		this.exam_month = exam_month;
+	}
+
+	public void setExam_year(Integer exam_year) {
+		this.exam_year = exam_year;
+	}
 	
 }
