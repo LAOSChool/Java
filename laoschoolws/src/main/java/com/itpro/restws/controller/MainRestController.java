@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.FinalResult;
 import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.MasterBase;
@@ -392,85 +391,7 @@ public class MainRestController {
 	
 	
 	
-	@RequestMapping(value="/api/final_results",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt  getFinalResult() {
-		logger.info(" *** MainRestController.getFinalResult");
-		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
-
-		ListEnt listResp = new ListEnt();
-		User user = getCurrentUser();
-		
-    	// Count user
-    	total_row = finalResultService.countBySchoolID(user.getSchool_id());
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
-    	}
-    		
-		logger.info("FinalResult count: total_row : "+total_row);
-		// Query class by school id
-		ArrayList<FinalResult> finalResults = finalResultService.findBySchool(user.getSchool_id(), from_row, max_result);
-		
-		listResp.setList(finalResults);
-		listResp.setFrom_row(from_row);
-		listResp.setTo_row(from_row + max_result);
-		listResp.setTotal_count(total_row);
-	    return listResp;
-
-	}
 	
-	@RequestMapping(value="/api/final_results/{id}",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public FinalResult getFinalResult(@PathVariable int  id) 
-	{
-		logger.info(" *** MainRestController.getFinalResult/{id}:"+id);
-		return finalResultService.findById(Integer.valueOf(id));
-	 }
-	
-	
-
-	@RequestMapping(value="/api/final_results/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public FinalResult createFinalResult(
-			@RequestBody FinalResult finalResult,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.final_results.create");
-		//finalResult.setId(100);//TODO:Test
-		 return finalResultService.insertFinalResult(finalResult);
-		 
-	}
-	
-	@RequestMapping(value="/api/final_results/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public FinalResult updateFinalResult(
-			@RequestBody FinalResult finalResult,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.final_results.update");
-		return finalResultService.updateFinalResult(finalResult);
-		 
-	}
-
-	
-	@RequestMapping(value = "/api/final_result/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delFinalResult(
-			 @PathVariable int  id
-			 ) {
-		logger.info(" *** MainRestController.delFinalResult/{id}:"+id);
-
-	    return "Request was successfully, delete final result of id: "+id;
-	 }
-	
-	
-	
-
 
 	@RequestMapping(value="/api/timetables",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	

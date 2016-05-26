@@ -3,6 +3,8 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 
 import com.itpro.restws.model.FinalResult;
+import com.itpro.restws.model.StudentProfile;
+import com.itpro.restws.model.User;
 
 public interface FinalResultService {
 	
@@ -18,5 +20,9 @@ public interface FinalResultService {
 	
 	FinalResult insertFinalResult(FinalResult finalResult);
 	FinalResult updateFinalResult(FinalResult finalResult);
+	ArrayList<StudentProfile> findUserProfile(User student, Integer school_year);
+	void initStudentProfile(User student,Integer school_year) ;
+	//ArrayList<StudentProfile> findUserProfile(User student, Integer class_id);
+	
 	
 }

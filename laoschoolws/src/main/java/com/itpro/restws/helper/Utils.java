@@ -1,8 +1,10 @@
 package com.itpro.restws.helper;
 import java.io.File;
+import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class Utils {
 	public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
@@ -149,6 +151,9 @@ public class Utils {
 		return fileName;
 	}
 	public static boolean checkDateTimeFormat(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return false;
+		}
 		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
@@ -161,7 +166,9 @@ public class Utils {
 		    }
 	}
 	public static boolean checkDateFormat(String inputString){
-		
+		if ((inputString == null ) || inputString.equals("")){
+			return false;
+		}
 		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
 		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
@@ -172,5 +179,30 @@ public class Utils {
 		    {
 		        return false;
 		    }
+	}
+	
+	public static String dateToString(Date date){
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String s = formatter.format(date);
+		return s;
+	}
+	
+	public static Date fullTimeToDate(Date date){
+		
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String s = formatter.format(date);
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		    try{
+		       return format.parse(s);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	public static int getCurrentYear(){
+		Calendar now = Calendar.getInstance();   // Gets the current date and time
+		int year = now.get(Calendar.YEAR);
+		return year;
 	}
 }

@@ -78,9 +78,25 @@ public class ExamResult extends AbstractModel{
 	@Column(name="exam_month")
 	private Integer exam_month;
 	
-
+	
 	@Column(name="exam_year")
 	private Integer exam_year;
+
+	
+//	@OneToOne (cascade = CascadeType.ALL,optional = true)
+//	@JoinColumn(name="exam_time_id")
+//	private ExamTime examtime;
+//	
+//	
+//	public ExamTime getExamtime() {
+//		return examtime;
+//	}
+//
+//	public void setExamtime(ExamTime examtime) {
+//		this.examtime = examtime;
+//	}
+
+	
 	
 	public Integer getId() {
 		return id;
@@ -208,11 +224,22 @@ public class ExamResult extends AbstractModel{
 	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String subject;
 
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+
+
+
 	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String teacher;
 
 	@Formula("(SELECT t.sval FROM m_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String term;
+
+	public void setTerm(String term) {
+		this.term = term;
+	}
 
 	public String getSubject() {
 		return subject;

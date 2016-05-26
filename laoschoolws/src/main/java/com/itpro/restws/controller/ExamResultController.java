@@ -38,38 +38,7 @@ import com.itpro.restws.model.User;
 @RestController 
 public class ExamResultController extends BaseController {
 	
-//	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
-//	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	public ListEnt  getExamResults() {
-//		logger.info(" *** MainRestController.getExamResults");
-//		
-//		int total_row = 0;
-//		int from_row = 0;
-//		int max_result = Constant.MAX_RESP_ROW;;
-//		ListEnt listResp = new ListEnt();
-//		User user = getCurrentUser();
-//		Integer school_id = user.getSchool_id();
-//    	// Count user
-//    	total_row = examResultService.countBySchoolID(school_id);
-//    	if (total_row > Constant.MAX_RESP_ROW){
-//    		max_result = Constant.MAX_RESP_ROW;
-//    	}else{
-//    		max_result = total_row;
-//    	}
-//    		
-//		logger.info("ExamResult count: total_row : "+total_row);
-//		// Query class by school id
-//		ArrayList<ExamResult> examResults = examResultService.findBySchool(school_id, from_row, max_result);
-//		
-//		listResp.setList(examResults);
-//		listResp.setFrom_row(from_row);
-//		listResp.setTo_row(from_row + max_result);
-//		listResp.setTotal_count(total_row);
-//	    return listResp;
-//
-//	}
-	
+
 	@RequestMapping(value="/api/exam_results/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult getExamResult(@PathVariable int  id) 
@@ -78,10 +47,7 @@ public class ExamResultController extends BaseController {
 		logger.info(" *** MainRestController.getExamResult/{id}:"+id);
 		return examResultService.findById(Integer.valueOf(id));
 	 }
-	
-	
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
-	//@RequestMapping(value="/api/exam_results/create",method = RequestMethod.POST)
 	@RequestMapping(value="/api/exam_results/input",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult createExamResult(
@@ -208,7 +174,7 @@ public class ExamResultController extends BaseController {
 		ListEnt rspEnt = new ListEnt();
 	    
     	// Count user
-    	total_row = examResultService.countExamResultExt(school_id, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id));
+    	total_row = examResultService.countExamResultExt(school_id, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id),null);
     	if (total_row > Constant.MAX_RESP_ROW){
     		max_result = Constant.MAX_RESP_ROW;
     	}else{
@@ -217,13 +183,11 @@ public class ExamResultController extends BaseController {
     		
 		logger.info("Attendance count: total_row : "+total_row);
 		// Query class by school id
-		exam_results = examResultService.findExamResultExt(school_id,from_row,max_result, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id));
+		exam_results = examResultService.findExamResultExt(school_id,from_row,max_result, class_id, student_id,Utils.parseInteger(filter_subject_id), Utils.parseInteger(filter_term_id), Utils.parseInteger(filter_exam_year), Utils.parseInteger(filter_exam_month), filter_exam_dt, filter_from_dt, filter_to_dt,  Utils.parseInteger(filter_from_id),null);
 	    rspEnt.setList(exam_results);
 	    rspEnt.setFrom_row(from_row);
 	    rspEnt.setTo_row(from_row + max_result);
 	    rspEnt.setTotal_count(total_row);
-		    
-	
 	    
 	    return rspEnt;
 
@@ -233,32 +197,34 @@ public class ExamResultController extends BaseController {
 	@RequestMapping(value = "/api/exam_results/myprofile", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public ListEnt getExamResultProfile(
+			 @RequestParam(value="filter_class_id",required =false) String filter_class_id,
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
 		logger.info(" *** MainRestController.getExamResultProfile Start");
-		ListEnt rspEnt = new ListEnt();
-		
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
+		// Valid class ID
+		Integer class_id = Utils.parseInteger(filter_class_id);
+		if (class_id == null){
+			throw new ESchoolException(" filter_class_id  is required !", HttpStatus.BAD_REQUEST);
+			
+		}
 		
 		User student = getCurrentUser();
+		if (!student.is_belong2class(class_id)){
+			throw new ESchoolException(" user:"+student.getId()+" is not belong to class_id: "+class_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		ListEnt rspEnt = new ListEnt();
+		// Initi data if necessary
+		examResultService.initStudentExamResult(student, class_id);
 
-		// Count user
-    	int total_row = examResultService.countByStudentID(student.getId());
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
-    	}
-    	
-		ArrayList<ExamResult> list = examResultService.findByStudent(student.getId(), from_row, max_result);
-        
+		// Return data
+    	ArrayList<ExamResult> list = examResultService.findUserProfile(student, class_id);
+	    rspEnt.setFrom_row(0);
+	    rspEnt.setTo_row(list.size());
+		rspEnt.setTotal_count(list.size());
 		rspEnt.setList(list);
-	    rspEnt.setFrom_row(from_row);
-	    rspEnt.setTo_row(from_row + max_result);
-	    rspEnt.setTotal_count(total_row);
 	    
 	    return rspEnt;
+		
 	 }
 }

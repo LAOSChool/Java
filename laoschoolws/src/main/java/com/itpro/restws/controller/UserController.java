@@ -1,5 +1,6 @@
 package com.itpro.restws.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.dao.CommandDao;
+import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
@@ -29,6 +31,7 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Command;
 import com.itpro.restws.model.Message;
+import com.itpro.restws.model.Term;
 import com.itpro.restws.model.User;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -45,6 +48,9 @@ public class UserController extends BaseController {
 	
 	@Autowired
 	protected CommandDao commandDao;
+	
+	@Autowired
+	private TermDao termDao;
 
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
@@ -267,18 +273,24 @@ public class UserController extends BaseController {
 	//@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/change_pass",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
-	public String changePass(
+	public RespInfo changePass(
 			@RequestParam(value="username",required=true) String username,
 			@RequestParam(value="old_pass",required=true) String old_pass,
 			@RequestParam(value="new_pass",required=true) String new_pass,
-			@Context final HttpServletResponse response
+			@Context final HttpServletResponse response,
+			@Context final HttpServletRequest request
 			) {
 		
 		logger.info(" *** MainRestController.users.reset_pass");
 		if (!username.equals(getPrincipal())){
 			throw new RuntimeException("username is not mapped with logined sso_id");
 		}
-		return "newpass:"+userService.changePassword(username, old_pass,new_pass);
+		String msg =  "Request was successfully, newpass:"+userService.changePassword(username, old_pass,new_pass);
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+    	
+		rsp.setMessageObject(msg);
+		
+	    return rsp;
 	}
 	
 	
@@ -317,7 +329,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
-		
+			
 		logger.info(" *** MainRestController.users.forgotPass START");
 		User user = userService.findBySso(sso_id);
 		if (user == null || (user.getState() != E_STATE.ACTIVE.value())){

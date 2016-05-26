@@ -27,12 +27,12 @@ public interface ExamResultDao {
 	
 	int countExamResultExt(Integer school_id, Integer class_id, Integer user_id, Integer subject_id,
 			Integer term_id, Integer exam_year, Integer exam_month, String exam_dt, String dateFrom, String dateTo,
-			Integer from_row_id) ;
+			Integer from_row_id,Integer exam_type) ;
 
 	
 	ArrayList<ExamResult> findExamResultExt(Integer school_id, int from_row, int max_result, Integer class_id,
 			Integer user_id, Integer subject_id, Integer term_id, Integer exam_year, Integer exam_month,
-			String exam_dt, String dateFrom, String dateTo, Integer from_row_id) ;
+			String exam_dt, String dateFrom, String dateTo, Integer from_row_id,Integer exam_type) ;
 
 	
 }

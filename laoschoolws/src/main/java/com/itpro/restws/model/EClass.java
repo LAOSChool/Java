@@ -66,11 +66,6 @@ public class EClass extends AbstractModel{
 
 	@Column(name="head_teacher_id")
 	private long head_teacher_id;
-//
-//	@JsonIgnore
-//	 @OneToMany(mappedBy="eclass",targetEntity=User.class, fetch=FetchType.EAGER)
-//	 private Set<User> users;	
-	
 
 	@JsonIgnore
 	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "classes")

@@ -107,36 +107,21 @@ public class User extends AbstractModel{
 	@Column(name="std_parent_name", nullable=true)
 	private String std_parent_name;
 	
-//	@NotFound(action=NotFoundAction.IGNORE)
-//	@ManyToOne (optional=true)
-//	@JoinColumns({ @JoinColumn(name="class_id", referencedColumnName="id")	})
-//	private EClass eclass;
-//	public EClass getEclass() {
-//		return eclass;
-//	}
-//	public void setEclass(EClass eclass) {
-//		this.eclass = eclass;
-//	}
 
-//	@JsonIgnore
 	@NotFound(action=NotFoundAction.IGNORE)
 	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
 	
 	@JoinTable(name = "user2class", 
              joinColumns        = { @JoinColumn(name = "user_id") }, 
              inverseJoinColumns = { @JoinColumn(name = "class_id") })
-	private Set<EClass> classes = new HashSet<EClass>();
 	
-
+	private Set<EClass> classes = new HashSet<EClass>();
 	public Set<EClass> getClasses() {
 		return classes;
 	}
-
-
-	public void setClasses(Set<EClass> classes) {
-		this.classes = classes;
-	}
-
+//	public void setClasses(Set<EClass> classes) {
+//		this.classes = classes;
+//	}
 
 	public Integer getId() {
 		return id;
@@ -410,7 +395,7 @@ public class User extends AbstractModel{
 	public void setDefault_pass(String default_pass) {
 		this.default_pass = default_pass;
 	}
-	
+ 	
 	public String eClassesToString() {
 		if (classes == null ){
 			return "";
@@ -451,4 +436,41 @@ public class User extends AbstractModel{
 		return false;
 	}
 	
+//	@Transient
+//	private ArrayList<Term> terms;
+//	public ArrayList<Term> getTerms() {
+//		return terms;
+//	}
+//	
+//	public void setTerms(ArrayList<Term> terms) {
+//		this.terms = terms;
+//	}
+	
+	
+	
+//	@NotFound(action=NotFoundAction.IGNORE)
+//	@ManyToMany(fetch = FetchType.EAGER) 
+//	@JoinTable(name = "student_profile", 
+//             joinColumns        = { @JoinColumn(name = "student_id") }, 
+//             inverseJoinColumns = { @JoinColumn(name = "school_year") })
+//	private Set<MYear> myears = new HashSet<MYear>();
+//	public Set<MYear> getMyears() {
+//		return myears;
+//	}
+//	
+//	public void setMyears(Set<MYear> years) {
+//		this.myears = years;
+//	}
+
+	public boolean is_belong2class(Integer class_id){
+		if (classes == null){
+			return false;
+		}
+		for (EClass eclass: classes){
+			if (eclass.getId().intValue() == class_id.intValue()){
+				return true;
+			}
+		}
+		return false;
+	}
 }

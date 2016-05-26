@@ -50,6 +50,7 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 		
 	}
 	public Integer save(T entity) {
+		//getSession().evict(entity);
 		return (Integer) getSession().save(entity);
 		
 	}

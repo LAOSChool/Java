@@ -496,27 +496,26 @@ public class MessageServiceImpl implements MessageService{
 		
 		
 		
-		if (users == null || users.size()<=0)	{
-			throw new ESchoolException("There isn't any user in Class id="+eclass.getId(), HttpStatus.BAD_REQUEST);
-		}
-		// Get list of users from class				
-		for (User to_user : users){
+		if (users != null && users.size() > 0)	{
+			// Get list of users from class				
+			for (User to_user : users){
+					
+					Message new_message = message.copy();
+					
+					new_message.setFrom_usr_id(user.getId());
+					new_message.setFrom_user_name(user.getFullname());
+					
+					new_message.setTo_usr_id(to_user.getId());
+					new_message.setTo_user_name(to_user.getFullname());
+					
+					new_message.setSchool_id(to_user.getSchool_id());
+					
+					new_message.setSent_dt(Utils.now());
+					new_message.setIs_sent(1);// Disable sent			
+					messageDao.saveMessage(new_message);
+					list.add(new_message);
 				
-				Message new_message = message.copy();
-				
-				new_message.setFrom_usr_id(user.getId());
-				new_message.setFrom_user_name(user.getFullname());
-				
-				new_message.setTo_usr_id(to_user.getId());
-				new_message.setTo_user_name(to_user.getFullname());
-				
-				new_message.setSchool_id(to_user.getSchool_id());
-				
-				new_message.setSent_dt(Utils.now());
-				new_message.setIs_sent(1);// Disable sent			
-				messageDao.saveMessage(new_message);
-				list.add(new_message);
-			
+			}
 		}
 		return list;
 		
@@ -576,11 +575,32 @@ public class MessageServiceImpl implements MessageService{
 	public ArrayList<Message> broadcastMessage(User user, Message message, String filter_roles) {
 		ArrayList<Message> list = null;
 		if (message.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
+			
+			
 			message = createTaskMsg(user,message);
 			list = insertClassMessageExt(user, message, filter_roles);
-		}else if (message.getDest_type() == E_DEST_TYPE.SCHOOL.getValue()){
-			message = createTaskMsg(user,message);
-			list = insertSchoolMessageyExt(user, message, filter_roles);
+			// 
+			String cc_list = message.getCc_list();
+			if (cc_list != null ){
+				message.setCc_list("");// rest cc list
+				// CC List
+				for (String str : cc_list.split(",")){
+					Integer class_id = Utils.parseInteger(str);
+					if (class_id != null &&  (class_id.intValue() != message.getClass_id())){
+						Message new_msg = message.copy();
+						new_msg.setSchool_id(message.getSchool_id());
+						new_msg.setClass_id(class_id);
+						new_msg = createTaskMsg(user,new_msg);
+						list.addAll(insertClassMessageExt(user, new_msg, filter_roles));
+					}
+				}	
+			}
+//		}
+//		else if (message.getDest_type() == E_DEST_TYPE.SCHOOL.getValue()){
+//			message = createTaskMsg(user,message);
+//			list = insertSchoolMessageyExt(user, message, filter_roles);
+//			
+			
 		}else {
 			throw new ESchoolException("Unknow Dest_type="+ message.getDest_type(), HttpStatus.BAD_REQUEST);
 		}

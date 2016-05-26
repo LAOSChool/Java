@@ -22,6 +22,6 @@ public interface AttendanceService {
 	
 	Attendance insertAttendance(User teacher,Attendance attendance);
 	Attendance updateAttendance(User teacher,Attendance attendance);
-	Attendance requestAttendance(User student, Attendance attendance);
-	 
+	Attendance requestAttendance(User student, Attendance attendance,boolean in_range);
+	ArrayList<Attendance>  requestAttendanceEx(User user, Attendance request,String from_dt, String to_dt);
 }

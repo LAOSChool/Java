@@ -170,7 +170,7 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			Integer from_row_id
 			) {
 		
-		String str = 	"from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			str = str +" and cls.id = '"+class_id.intValue()+"'"; 
 		}

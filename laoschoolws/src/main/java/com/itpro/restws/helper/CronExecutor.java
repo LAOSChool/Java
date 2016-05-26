@@ -35,7 +35,7 @@ public class CronExecutor {
 	 * fixedRate specifies the number of milliseconds between each method start , regardless of how long method takes to complete. 
 	 * fixedDelay specifies the number of milliseconds between completion of previous run, and start of next run.
 	 */
-	@Scheduled(fixedDelay=20000)
+	@Scheduled(fixedDelay=30000)
      public void work() {
          // task execution logic
 			try {

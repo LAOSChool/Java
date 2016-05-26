@@ -19,12 +19,7 @@ public class CommandDaoImpl extends AbstractDao<Integer, Command> implements Com
 	
 	@Override
 	public Command findByID(Integer id) {
-		Criteria crit_list = createEntityCriteria();
-		crit_list.add(Restrictions.eq("id", id.intValue()));
-		
-	     Command cmd = (Command) crit_list.uniqueResult();
-	     
-		return  cmd;
+		return getByKey(id);
 	}
 
 	

@@ -204,14 +204,12 @@ public class MessageController extends BaseController {
 //		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath().toString(), "Successful");
 //		rsp.setMessageObject(null);
 //		return rsp;
-		
+		//message.setSchool_id(user.getSchool_id());
 		ArrayList<Message> list = messageService.broadcastMessage(user, message, filter_roles);
 		rsp.setMessageObject("Done, count= "+list.size());
 		return rsp;
 				
 	}
-	
-	
 	
 	@RequestMapping(value="/api/messages/update/{id}",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	

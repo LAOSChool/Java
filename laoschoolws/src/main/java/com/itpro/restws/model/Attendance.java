@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -76,7 +77,7 @@ public class Attendance extends AbstractModel{
 	@Column(name="auditor")
 	private Integer auditor;
 	
-
+	
 	@Column(name="auditor_name")
 	private String auditor_name;	
 	
@@ -316,6 +317,33 @@ public class Attendance extends AbstractModel{
 
 	public void setStudent_name(String student_name) {
 		this.student_name = student_name;
+	}
+
+
+	public Attendance clone(){
+		Attendance copy = new Attendance();
+		copy.setSchool_id(this.school_id);
+		copy.setClass_id(this.class_id);
+		copy.setAtt_dt(this.att_dt);
+		
+		copy.setSubject(this.subject);
+		copy.setSubject_id(this.subject_id);
+		copy.setSession_id(this.session_id);
+		copy.setExcused(this.excused);
+		copy.setNotice(this.notice);
+
+		copy.setTerm_id(this.term_id);
+		copy.setIs_requested(this.is_requested);
+		copy.setRequested_dt(this.requested_dt);
+		copy.setState(this.state);
+		copy.setAuditor(this.auditor);
+		
+		copy.setAuditor_name(this.auditor_name);
+		copy.setStudent_id(this.student_id);
+		copy.setStudent_name(this.student_name);
+			
+		
+		return copy;
 	}
 
 }
