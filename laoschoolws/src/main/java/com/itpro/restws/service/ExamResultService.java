@@ -25,6 +25,7 @@ public interface ExamResultService {
 	// User Profile
 	//int countUserProfile(User user,Integer class_id);
 	ArrayList<ExamResult> findUserProfile(User user,Integer class_id);
+	ArrayList<ExamResult> findUserProfile_Now(User user,Integer class_id);
 
 	
 	//	ArrayList<ExamResult> findByUser(User user, int from_num, int max_result);

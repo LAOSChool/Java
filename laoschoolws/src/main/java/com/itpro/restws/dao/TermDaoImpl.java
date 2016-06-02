@@ -11,36 +11,36 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.Term;
+import com.itpro.restws.model.SchoolTerm;
 
 
 @Repository("termDao")
 @Transactional
-public class TermDaoImpl extends AbstractDao<Integer, Term> implements TermDao {
+public class TermDaoImpl extends AbstractDao<Integer, SchoolTerm> implements TermDao {
 
 	@Override
-	public Term findById(Integer id) {
+	public SchoolTerm findById(Integer id) {
 		return getByKey(id.intValue());
 	}
 
 
 	@Override
-	public ArrayList<Term> findBySchool(Integer school_id, int from_row, int max_result) {
+	public ArrayList<SchoolTerm> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
 		@SuppressWarnings("unchecked")
-		List<Term> list = crit_list.list();
+		List<SchoolTerm> list = crit_list.list();
 	     
-		return  (ArrayList<Term>) list;
+		return  (ArrayList<SchoolTerm>) list;
 	}
 
 	
 	
 
 	@Override
-	public void saveTerm(Term term) {
+	public void saveTerm(SchoolTerm term) {
 		term.setActflg("A");
 		term.setCtdusr("HuyNQ-test");
 		term.setCtddtm(Utils.now());
@@ -52,7 +52,7 @@ public class TermDaoImpl extends AbstractDao<Integer, Term> implements TermDao {
 	}
 
 	@Override
-	public void updateTerm(Term term) {
+	public void updateTerm(SchoolTerm term) {
 		term.setMdfusr("HuyNQ-test");
 		term.setLstmdf(Utils.now());
 		term.setMdfpgm("RestWS");
@@ -71,7 +71,7 @@ public class TermDaoImpl extends AbstractDao<Integer, Term> implements TermDao {
 
 
 	@Override
-	public ArrayList<Term> getLatestTerm(Integer school_id) {
+	public ArrayList<SchoolTerm> getLatestTerm(Integer school_id) {
 		
 		Criteria crit_list = createEntityCriteria();
 		
@@ -81,8 +81,8 @@ public class TermDaoImpl extends AbstractDao<Integer, Term> implements TermDao {
 		crit_list.add(Restrictions.and(rest1, rest2));
 		crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
-		List<Term> list = crit_list.list();
-	     return (ArrayList<Term>) list;
+		List<SchoolTerm> list = crit_list.list();
+	     return (ArrayList<SchoolTerm>) list;
 	}
 
 

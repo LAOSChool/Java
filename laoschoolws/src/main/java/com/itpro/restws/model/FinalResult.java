@@ -16,10 +16,7 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-//@SecondaryTables({
-//    @SecondaryTable(name="m_term", pkJoinColumns={
-//        @PrimaryKeyJoinColumn(name="id", referencedColumnName="term_id") })
-//})
+
 public class FinalResult extends AbstractModel{
 	@Id
 	@GeneratedValue
@@ -284,9 +281,4 @@ public class FinalResult extends AbstractModel{
 	}
 	
 	
-//	@Column(name="term_id")
-//	private Integer term_id;
-//	
-//	@Column(table="m_term")
-//	private String term;
 }

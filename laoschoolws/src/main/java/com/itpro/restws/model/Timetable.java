@@ -17,18 +17,6 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-// Join with term table for term name
-//@SecondaryTables({
-//    @SecondaryTable(name="m_term", pkJoinColumns={@PrimaryKeyJoinColumn(name="id", referencedColumnName="term_id") }),
-//    @SecondaryTable(name="m_subject", pkJoinColumns={@PrimaryKeyJoinColumn(name="id", referencedColumnName="subject_id") })
-//})
-
-//@SecondaryTables(value ={ 
-//		@SecondaryTable(name = "m_term", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id", referencedColumnName = "term_id")), 
-//		@SecondaryTable(name = "m_subject", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id", referencedColumnName = "subject_id")) 
-//})
-
-
   
 public class Timetable extends AbstractModel{
 	@Id
@@ -135,15 +123,8 @@ public class Timetable extends AbstractModel{
 	@Column(name="term_id")
 	private int term_id;
 
-	// Joint with TERM	
-//	@Column(table="m_term", name="sval",insertable = false, updatable = false)
-//	private String term;
-//	
-//	// Joint with TERM	
-//	 @Column(table="m_subject",name="sval", insertable = false, updatable = false)
-//	private String subject;
 	 
-	@Formula("(SELECT t.sval FROM m_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String term;
 
 	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
@@ -152,8 +133,6 @@ public class Timetable extends AbstractModel{
 	@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@',t.fval1,'@',t.fval2) FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String session;
 	
-//	@Formula("(SELECT t.notice FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-//	private String session_time;
 
 	@Formula("(SELECT t.sval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String weekday;
@@ -162,9 +141,6 @@ public class Timetable extends AbstractModel{
 	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String teacher_name;
 	
-//	public String getSession_time() {
-//		return session_time;
-//	}
 	
 	public String getTeacher_name() {
 		return teacher_name;

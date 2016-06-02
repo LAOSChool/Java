@@ -215,10 +215,9 @@ public class ExamResultController extends BaseController {
 		}
 		ListEnt rspEnt = new ListEnt();
 		// Initi data if necessary
-		examResultService.initStudentExamResult(student, class_id);
-
-		// Return data
-    	ArrayList<ExamResult> list = examResultService.findUserProfile(student, class_id);
+		//examResultService.initStudentExamResult(student, class_id);
+    	// ArrayList<ExamResult> list = examResultService.findUserProfile(student, class_id);
+		ArrayList<ExamResult> list  = examResultService.findUserProfile_Now(student,class_id);
 	    rspEnt.setFrom_row(0);
 	    rspEnt.setTo_row(list.size());
 		rspEnt.setTotal_count(list.size());

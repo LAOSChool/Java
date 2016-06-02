@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.itpro.restws.dao.ExamMonthDao;
 import com.itpro.restws.dao.ExamResultDao;
 import com.itpro.restws.dao.MSubjectDao;
+import com.itpro.restws.dao.SchoolYearDao;
 import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
@@ -19,7 +20,8 @@ import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ExamMonth;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.MSubject;
-import com.itpro.restws.model.Term;
+import com.itpro.restws.model.SchoolTerm;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 @Service("examResultService")
@@ -40,6 +42,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private SchoolYearDao schoolYearDao;
+	
 	
 	@Override
 	public ExamResult findById(Integer id) {
@@ -226,7 +232,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 
-	private ExamResult  new_blank_exam(User user, Integer class_id, Term term,ExamMonth ex_month, MSubject subject){
+	private ExamResult  new_blank_exam(User user, Integer class_id, SchoolTerm term,ExamMonth ex_month, MSubject subject){
 		ExamResult tmp= new ExamResult();
 		
 		
@@ -250,8 +256,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 		tmp.setTerm_id(term.getId());
 		tmp.setTerm(term.getTerm_name());
 		
-		// Save to DB
-		examResultDao.saveExamResult(tmp);
 		return tmp;
 		
 	}
@@ -289,11 +293,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 	public ArrayList<ExamResult> findUserProfile(User user,Integer class_id) {
 		ArrayList<ExamResult> list_ret = new ArrayList<ExamResult>();
 		ArrayList<MSubject> m_subjects = null;
-		ArrayList<Term> filter_terms = null;
+		ArrayList<SchoolTerm> filter_terms = null;
 		ArrayList<ExamMonth> filter_ex_months = null;
 
 		// Filter terms
-		filter_terms = (ArrayList<Term>) termDao.findBySchool(user.getSchool_id(), 0, 99999);
+		filter_terms = (ArrayList<SchoolTerm>) termDao.findBySchool(user.getSchool_id(), 0, 99999);
 		// Filter exam_month		
 		filter_ex_months = (ArrayList<ExamMonth>) examMonthDao.findBySchool(user.getSchool_id(), 0, 99999);
 		// Filter subjects
@@ -303,7 +307,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		ArrayList<ExamResult> tmp_list = examResultDao.findExamResultExt(user.getSchool_id(), 0,99999, class_id, user.getId(), null,null,null,null,null, null, null, null,null);
 		
 		// Query from DB
-		for( Term term: filter_terms){
+		for( SchoolTerm term: filter_terms){
 			for (ExamMonth exam_month: filter_ex_months){
 				for (MSubject msubject: m_subjects){
 					if (exam_month.getTerm_id().intValue() == term.getId() )
@@ -332,11 +336,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 	@Override
 	public void initStudentExamResult(User user, Integer class_id) {
 		ArrayList<MSubject> m_subjects = null;
-		ArrayList<Term> filter_terms = null;
+		ArrayList<SchoolTerm> filter_terms = null;
 		ArrayList<ExamMonth> filter_ex_months = null;
 
 		// Filter terms
-		filter_terms = (ArrayList<Term>) termDao.findBySchool(user.getSchool_id(), 0, 100);
+		filter_terms = (ArrayList<SchoolTerm>) termDao.findBySchool(user.getSchool_id(), 0, 100);
 		// Filter exam_month		
 		filter_ex_months = (ArrayList<ExamMonth>) examMonthDao.findBySchool(user.getSchool_id(), 0, 100);
 		
@@ -344,7 +348,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		m_subjects = (ArrayList<MSubject>) msubjectDao.findBySchool(user.getSchool_id(), 0, 100);
 		
 		// Query from DB
-		for( Term term: filter_terms){
+		for( SchoolTerm term: filter_terms){
 			for (ExamMonth exam_month: filter_ex_months){
 				if (exam_month.getTerm_id().intValue() == term.getId() )
 				{
@@ -353,7 +357,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 						if (tmp > 0 ){
 						}else{
 							logger.info("Initial exam for user: "+user.getId()+", class_id:"+class_id+",exam_month:"+exam_month.getEx_month()+",exam_year:"+exam_month.getEx_year()+",subject:"+msubject.getSval()+", exam_type:"+exam_month.getEx_type());
-							new_blank_exam(user,class_id,term,exam_month,msubject);
+							ExamResult blank = new_blank_exam(user,class_id,term,exam_month,msubject);
+							// Save to DB
+							examResultDao.saveExamResult(blank);
+
 						}	
 					}
 					
@@ -364,5 +371,68 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 	}
 
+	@Override
+	public ArrayList<ExamResult> findUserProfile_Now(User user, Integer class_id) {
+		
+		// Get current school year
+		SchoolYear school_year = schoolYearDao.findLastestOfSchoolId(user.getSchool_id());
+		if (school_year != null){ 
+			ArrayList<ExamResult> list = (ArrayList<ExamResult>) examResultDao.findStudentExam(user.getSchool_id(), class_id, user.getId(), school_year.getId());
+			return list;
+		}
+		logger.error("Cannot find School Year for school_id:"+user.getSchool_id());;
+		return null;
+		
+	}
 	
+//	public ArrayList<ExamResult> getBlankExamResults(User student){
+//		 ArrayList<ExamResult> list = new ArrayList<ExamResult>();
+//		 Integer school_id = student.getSchool_id();
+//		 Set<EClass> classes = student.getClasses();
+//		 ArrayList<MSubject> msubjects = msubjectDao.findBySchool(school_id, 0, 99999);
+//		 ArrayList<Term> terms = termDao.getLatestTerm(school_id);
+//		// Query from DB
+//		for( Term term: terms){
+//			
+//				if (exam_month.getTerm_id().intValue() == term.getId() )
+//				{
+//					for (MSubject msubject: m_subjects){
+//						int tmp= examResultDao.countExamResultExt(user.getSchool_id(), class_id, user.getId(), msubject.getId(), term.getId(), exam_month.getEx_year(), exam_month.getEx_month(), null, null, null, null,exam_month.getEx_type());
+//						if (tmp > 0 ){
+//						}else{
+//							logger.info("Initial exam for user: "+user.getId()+", class_id:"+class_id+",exam_month:"+exam_month.getEx_month()+",exam_year:"+exam_month.getEx_year()+",subject:"+msubject.getSval()+", exam_type:"+exam_month.getEx_type());
+//							ExamResult blank = new_blank_exam(user,class_id,term,exam_month,msubject);
+//							// Save to DB
+//							examResultDao.saveExamResult(blank);
+//
+//						}	
+//					}
+//					
+//					
+//				}
+//				
+//			
+//		}
+//	}
+//	
+	
+	
+//	public ArrayList<ExamResult> getBlankExamResults(User student, Integer class_id, MSubject subject, Term term){
+//		Integer school_id = student.getSchool_id();
+//		 ArrayList<ExamResult> list = new ArrayList<ExamResult>();
+//		 // Get list of exam type
+//		 ArrayList<ExamMonth> exam_months = (ArrayList<ExamMonth>) examMonthDao.findBySchool(school_id, 0, 99999);
+//		 // Create Blank result for each Type
+//		 for (ExamMonth exam_month: exam_months){
+//			 if ((exam_month.getTerm_id() == null  || exam_month.getTerm_id().intValue() == 0) || // In case ReTest = > no term_id
+//			     ((exam_month.getTerm_id() != null && exam_month.getTerm_id().intValue() >0 && exam_month.getTerm_id().intValue() == term.getId())))
+//			 {
+//				 ExamResult blank = new_blank_exam(student,class_id,term,exam_month,subject);
+//				 list.add(blank);
+//			 }
+//			 
+//		 }
+//		 return list;
+//	}
+//	
 }

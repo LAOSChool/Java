@@ -23,10 +23,6 @@ import com.itpro.restws.helper.Utils;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-//@SecondaryTables({
-//    @SecondaryTable(name="m_term", pkJoinColumns={
-//        @PrimaryKeyJoinColumn(name="id", referencedColumnName="term_id") })
-//})
 public class Message extends AbstractModel{
 	@Id
 	@GeneratedValue

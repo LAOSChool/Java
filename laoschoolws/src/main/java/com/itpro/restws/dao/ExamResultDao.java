@@ -35,5 +35,7 @@ public interface ExamResultDao {
 			String exam_dt, String dateFrom, String dateTo, Integer from_row_id,Integer exam_type) ;
 
 	
+	List<ExamResult>  findStudentExam(Integer school_id, Integer class_id, Integer student_id,Integer year_id);
+	
 }
 

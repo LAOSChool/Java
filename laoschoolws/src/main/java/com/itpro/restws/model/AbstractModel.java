@@ -134,7 +134,16 @@ public class AbstractModel {
 	 */
 	public static <T> T updateChanges(T oDb, T oUp) {
 	    try {
-	        java.lang.reflect.Field[] fields = oDb.getClass().getDeclaredFields();
+	    	// Super class
+	    	java.lang.reflect.Field[] fields = oDb.getClass().getSuperclass().getDeclaredFields();
+	        for (Field field : fields) {
+	            field.setAccessible(true);
+	            if (field.get(oUp) != null) {
+	                field.set(oDb, field.get(oUp));
+	            }
+	        }
+	        // This class
+	        fields = oDb.getClass().getDeclaredFields();
 	        for (Field field : fields) {
 	            field.setAccessible(true);
 	            if (field.get(oUp) != null) {

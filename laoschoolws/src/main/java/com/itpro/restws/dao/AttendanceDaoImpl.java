@@ -99,7 +99,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 	
 	@Override
-	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String att_dt,String from_dt, String to_dt) {
+	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String att_dt,String from_dt, String to_dt, Integer session_id) {
 		String query = 	"select count(*)  from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and att.class_id = '"+class_id.intValue()+"'"; 
@@ -123,13 +123,16 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		if (to_dt != null ){
 			query = query +" and att.att_dt <= '"+to_dt+"'";
 		}
+		if (session_id != null ){
+			query = query +" and att.session_id = '"+session_id.intValue()+"'";
+		}
 		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
 	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,
-			int from_num, int max_result,String att_dt,String from_dt, String to_dt) {
+			int from_num, int max_result,String att_dt,String from_dt, String to_dt,Integer session_id) {
 		String str = 	"from Attendance att where att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			str = str +" and att.class_id = '"+class_id.intValue()+"'"; 
@@ -152,6 +155,11 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		if (to_dt != null ){
 			str = str +" and att.att_dt <= '"+to_dt+"'";
 		}
+		
+		if (session_id != null ){
+			str = str +" and att.session_id = '"+session_id.intValue()+"'";
+		}
+		
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_num);

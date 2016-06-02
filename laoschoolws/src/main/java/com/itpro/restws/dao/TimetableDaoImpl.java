@@ -16,7 +16,7 @@ import com.itpro.restws.model.Timetable;
 public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements TimetableDao {
 
 	@Override
-	public int countBySchool(int school_id) {
+	public int countBySchool(Integer school_id) {
 		// Get row count
 		int count = ((Long)getSession().createQuery("select count(*) from Timetable WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
@@ -25,7 +25,7 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 
 
 	@Override
-	public List<Timetable> findBySchool(int school_id, int from_row, int max_result) {
+	public List<Timetable> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
@@ -36,7 +36,7 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 	}
 
 	@Override
-	public List<Timetable> findByClass(int class_id, int from_row, int max_result) {
+	public List<Timetable> findByClass(Integer class_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
@@ -48,7 +48,7 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 
 
 	@Override
-	public Timetable findById(int id) {
+	public Timetable findById(Integer id) {
 		return this.getByKey(id);
 	}
 
@@ -74,12 +74,18 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		
 	}
 
-	
 
-	
+	@Override
+	public List<Timetable> findByWeekDay(Integer class_id, Integer weekday_id) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("class_id", class_id));
+		crit_list.add(Restrictions.eq("weekday_id", weekday_id));
+		@SuppressWarnings("unchecked")
+		List<Timetable> ret = crit_list.list();
+		
+		return ret;
+		
+	}
 
-
-
-	
 	
 }

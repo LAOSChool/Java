@@ -1,6 +1,5 @@
 package com.itpro.restws.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.dao.CommandDao;
-import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
@@ -31,7 +29,6 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Command;
 import com.itpro.restws.model.Message;
-import com.itpro.restws.model.Term;
 import com.itpro.restws.model.User;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -49,10 +46,8 @@ public class UserController extends BaseController {
 	@Autowired
 	protected CommandDao commandDao;
 	
-	@Autowired
-	private TermDao termDao;
 
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public ListEnt getUsers(
@@ -85,7 +80,7 @@ public class UserController extends BaseController {
 	    try {
 	    	if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
 	    	}else{
-	    		if (class_id == null || class_id == 0 ){
+	    		if (class_id == null || class_id.intValue() == 0 ){
 	    			throw new ESchoolException("User is not Admin, require filter_class_id to get Users ",HttpStatus.BAD_REQUEST);
 	    		}
 	    		if (!userService.isBelongToClass(user.getId(), class_id)){
@@ -148,14 +143,14 @@ public class UserController extends BaseController {
 			throw new ESchoolException("Cannot find user of id:"+id, HttpStatus.NOT_FOUND);
 		}
 		if (load_user.getSchool_id() != user.getSchool_id()){
-			throw new ESchoolException("User ID is not in the same School"+id, HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("Teacher and user are not in the same School"+id, HttpStatus.BAD_REQUEST);
 		}
 		
 	    if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
 	    	
 	    }else{
 	    	if (!userService.isSameClass(user, load_user)){
-	    		throw new ESchoolException("User ID is not in the same Class"+id, HttpStatus.BAD_REQUEST);
+	    		throw new ESchoolException("Teacher and user are not in the same Class"+id, HttpStatus.BAD_REQUEST);
 	    	}
 	    }
 		

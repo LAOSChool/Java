@@ -3,6 +3,7 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -225,8 +226,8 @@ public class UserServiceImpl implements UserService{
 		if (user1 == null || user2 == null || user1.getClasses() == null || user2.getClasses() == null ){
 			return false;
 		}
-		HashSet<EClass>  setClasses1 = (HashSet<EClass>) user1.getClasses();
-		HashSet<EClass>  setClasses2 = (HashSet<EClass>) user2.getClasses();
+		Set<EClass>  setClasses1 = user1.getClasses();
+		Set<EClass>  setClasses2 = user2.getClasses();
 		for (EClass e1 : setClasses1 ){
 			for (EClass e2 : setClasses2 ){
 				if (e1.getId() == e2.getId()){

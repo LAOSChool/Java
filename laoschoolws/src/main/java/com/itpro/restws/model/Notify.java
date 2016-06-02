@@ -20,10 +20,6 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-//@SecondaryTables({
-//    @SecondaryTable(name="m_term", pkJoinColumns={
-//        @PrimaryKeyJoinColumn(name="id", referencedColumnName="term_id") })
-//})
 public class Notify extends AbstractModel{
 	
 	
@@ -303,9 +299,4 @@ public class Notify extends AbstractModel{
 	public void setTask_id(Integer task_id) {
 		this.task_id = task_id;
 	}
-//	@Column(name="term_id")
-//	private int term_id;
-//	
-//	@Column(table="m_term")
-//	private String term;
 }

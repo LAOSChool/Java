@@ -39,7 +39,7 @@ public class Utils {
 		
 	}
 	public static Integer parseInteger(String val){
-		if (val == null){
+		if (val == null || "".equals(val)){
 			return null;
 		}
 		try{
@@ -204,5 +204,34 @@ public class Utils {
 		Calendar now = Calendar.getInstance();   // Gets the current date and time
 		int year = now.get(Calendar.YEAR);
 		return year;
+	}
+	
+	public static Date parsetDate(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		    try{
+		       return  format.parse(inputString);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	public static Integer parseWeekDay(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		    try{
+		       Calendar now = Calendar.getInstance();   // Gets the current date and time
+		       now.setTime(format.parse(inputString));
+		       return now.get(Calendar.DAY_OF_WEEK);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
 	}
 }

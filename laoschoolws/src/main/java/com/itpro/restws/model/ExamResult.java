@@ -9,7 +9,36 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.NamedNativeQueries;
+import org.hibernate.annotations.NamedNativeQuery;
 import org.hibernate.annotations.SelectBeforeUpdate;
+
+
+//@NamedNativeQueries({
+//	@NamedNativeQuery(
+//	name = "sp_get_exam_result",
+//	query = "CALL sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
+//	callable=true, 
+//	readOnly=true,	
+//	resultClass = ExamResult.class
+//	)
+////})
+//
+//@NamedNativeQuery(
+//	    name="call_sp_get_exam_result", 
+//	    query="call sp_get_exam_result(?,?,?,?)", 
+//	    // query="call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
+//	    resultClass=ExamResult.class
+//)
+//
+//
+//@NamedNativeQuery(
+//	    name="call_sp_get_exam_result", 
+//	    query="call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)", 
+//	    callable=true, 
+//	    readOnly=true, 
+//	    resultClass=ExamResult.class
+//	)
 
 @Entity
 @Table(name="exam_result")
@@ -17,10 +46,6 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-//@SecondaryTables({
-//    @SecondaryTable(name="m_term", pkJoinColumns={
-//        @PrimaryKeyJoinColumn(name="id", referencedColumnName="term_id") })
-//})
 public class ExamResult extends AbstractModel{
 	@Id
 	@GeneratedValue
@@ -33,6 +58,12 @@ public class ExamResult extends AbstractModel{
 
 	@Column(name="class_id")
 	private Integer class_id;
+	
+	@Column(name="exam_id")
+	private Integer exam_id;
+	
+	@Column(name="exam_name")
+	private String exam_name;
 	
 	@Column(name="exam_type")
 	private Integer exam_type;
@@ -56,24 +87,11 @@ public class ExamResult extends AbstractModel{
 	@Column(name="notice")
 	private String notice;
 	
-//	@Column(name="result_type_id")
-//	private Integer result_type_id;
-	
-
-//	@Column(name="iresult")
-//	private Integer iresult;
-//
-//	@Column(name="fresult")
-//	private Float fresult;
-//	
 	@Column(name="sresult")
 	private String sresult;
 	
 	@Column(name="term_id")
 	private Integer term_id;
-//	
-//	@Column(table="m_term")
-//	private String term;
 
 	@Column(name="exam_month")
 	private Integer exam_month;
@@ -83,19 +101,13 @@ public class ExamResult extends AbstractModel{
 	private Integer exam_year;
 
 	
-//	@OneToOne (cascade = CascadeType.ALL,optional = true)
-//	@JoinColumn(name="exam_time_id")
-//	private ExamTime examtime;
-//	
-//	
-//	public ExamTime getExamtime() {
-//		return examtime;
-//	}
-//
-//	public void setExamtime(ExamTime examtime) {
-//		this.examtime = examtime;
-//	}
-
+	@Column(name="term_val")
+	private Integer term_val;
+	
+	
+	@Column(name="sch_year_id")
+	private Integer sch_year_id;
+	
 	
 	
 	public Integer getId() {
@@ -138,24 +150,48 @@ public class ExamResult extends AbstractModel{
 		return notice;
 	}
 
-//	public Integer getResult_type_id() {
-//		return result_type_id;
-//	}
-//
-//	public Integer getIresult() {
-//		return iresult;
-//	}
-//
-//	public Float getFresult() {
-//		return fresult;
-//	}
-
 	public String getSresult() {
 		return sresult;
 	}
 
 	public Integer getTerm_id() {
 		return term_id;
+	}
+
+	public Integer getExam_id() {
+		return exam_id;
+	}
+
+	public String getExam_name() {
+		return exam_name;
+	}
+
+	public Integer getTerm_val() {
+		return term_val;
+	}
+
+	public Integer getSch_year_id() {
+		return sch_year_id;
+	}
+
+	public void setExam_id(Integer exam_id) {
+		this.exam_id = exam_id;
+	}
+
+	public void setExam_name(String exam_name) {
+		this.exam_name = exam_name;
+	}
+
+	public void setTerm_val(Integer term_val) {
+		this.term_val = term_val;
+	}
+
+	public void setSch_year_id(Integer sch_year_id) {
+		this.sch_year_id = sch_year_id;
+	}
+
+	public void setTeacher(String teacher) {
+		this.teacher = teacher;
 	}
 
 	public void setId(Integer id) {
@@ -198,17 +234,6 @@ public class ExamResult extends AbstractModel{
 		this.notice = notice;
 	}
 
-//	public void setResult_type_id(Integer result_type_id) {
-//		this.result_type_id = result_type_id;
-//	}
-//
-//	public void setIresult(Integer iresult) {
-//		this.iresult = iresult;
-//	}
-//
-//	public void setFresult(Float fresult) {
-//		this.fresult = fresult;
-//	}
 
 	public void setSresult(String sresult) {
 		this.sresult = sresult;
@@ -234,7 +259,7 @@ public class ExamResult extends AbstractModel{
 	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String teacher;
 
-	@Formula("(SELECT t.sval FROM m_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String term;
 
 	public void setTerm(String term) {

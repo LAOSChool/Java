@@ -3,7 +3,10 @@ package com.itpro.restws.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Query;
+
 import org.hibernate.Criteria;
+import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.Command;
 import com.itpro.restws.model.ExamResult;
 
 
@@ -250,10 +254,41 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 		update(examResult);
 		
 	}
+
+	@Override
+	public List<ExamResult> findStudentExam(Integer school_id, Integer class_id, Integer student_id,Integer year_id) {
+		//query = "CALL sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
+		org.hibernate.Query query = getSession().getNamedQuery("sp_get_exam_result"); 
+//		query.setParameter(0, school_id);
+//		query.setParameter(1, class_id);
+//		query.setParameter(2, student_id);
+//		query.setParameter(3, year_id);
+		query.setParameter("p_school_id", school_id);
+		query.setParameter("p_class_id", class_id);
+		query.setParameter("p_student_id", student_id);
+		query.setParameter("p_year_id", year_id);
+		
+		
+//		SQLQuery query = getSession().createSQLQuery("call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)");
+//		query.addEntity(ExamResult.class);
+//		query.setInteger(position, val)
+//				.addEntity(ExamResult.class)
+//				.setParameter("p_school_id", "7277");
+//						
+//			List result = query.list();
+//			for(int i=0; i<result.size(); i++){
+//				Stock stock = (Stock)result.get(i);
+//				System.out.println(stock.getStockCode());
+//			}
+//		
+		
+		@SuppressWarnings("unchecked")
+		List<ExamResult>  result = query.list();
+		getSession().flush();
+		return result;
+		
+	}
 	
-
-
-
 	
 	
 }

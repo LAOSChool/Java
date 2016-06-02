@@ -7,20 +7,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.MExamDao;
-import com.itpro.restws.dao.MExamTimeDao;
+
 import com.itpro.restws.dao.MFeeDao;
 import com.itpro.restws.dao.MGradeDao;
 import com.itpro.restws.dao.MSessionDao;
 import com.itpro.restws.dao.MSubjectDao;
-import com.itpro.restws.dao.MUser2ClassDao;
 import com.itpro.restws.model.MExam;
-import com.itpro.restws.model.MExamTime;
+
 import com.itpro.restws.model.MFee;
 import com.itpro.restws.model.MGrade;
 import com.itpro.restws.model.MSession;
 import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.MTemplate;
-import com.itpro.restws.model.MUser2Class;
+
 
 @Service("masterTblService")
 
@@ -39,10 +38,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 	@Autowired
 	private MSubjectDao msubjectDao;
 	
-	@Autowired
-	private MUser2ClassDao muser2classDao;
-	@Autowired
-	private MExamTimeDao mexamTimeDao;
+	
 
 	@Override
 	public MTemplate findById(String tbl_name, Integer id) {
@@ -62,12 +58,6 @@ public class MasterTblServiceImpl implements MasterTblService{
 			return msubjectDao.findById(id).convertToTemplate();
 		} 
 		 
-		else if (MasterTblName.TBLNAME_M_USER2CLASS.equalsName(tbl_name) ){
-			return muser2classDao.findById(id).convertToTemplate();
-		} 
-		else if (MasterTblName.TBLNAME_M_EXAM_TIME.equalsName(tbl_name) ){
-			return mexamTimeDao.findById(id).convertToTemplate();
-		} 
 		 
 		 
 		return null;
@@ -91,42 +81,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			return msubjectDao.countBySchool(school_id);
 		} 
 		 
-		else if (MasterTblName.TBLNAME_M_USER2CLASS.equalsName(tbl_name) ){
-			return muser2classDao.countBySchool(school_id);
-		} 
-		else if (MasterTblName.TBLNAME_M_EXAM_TIME.equalsName(tbl_name) ){
-			return mexamTimeDao.countBySchool(school_id);
-		} 
 		 
 		return 0;
 	}
 
 
-//	@Override
-//	public ArrayList<? extends MasterBase> findBySchool(String tbl_name, int school_id, int from_num, int max_result) {
-//		if (MasterTblName.TBLNAME_M_EXAM.equals(tbl_name) ){
-//			return (ArrayList<MExam>) mexamDao.findBySchool(school_id, from_num, max_result);
-//		}
-//		else if (MasterTblName.TBLNAME_M_FEE.equals(tbl_name) ){
-//			return (ArrayList<MFee>) mfeeDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		else if (MasterTblName.TBLNAME_M_GRADE.equals(tbl_name) ){
-//			return (ArrayList<MGrade>) mgradeDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		else if (MasterTblName.TBLNAME_M_SESSION.equals(tbl_name) ){
-//			return (ArrayList<MSession>) msessionDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		else if (MasterTblName.TBLNAME_M_SUBJECT.equals(tbl_name) ){
-//			return (ArrayList<MSubject>) msubjectDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		else if (MasterTblName.TBLNAME_M_TERM.equals(tbl_name) ){
-//			return (ArrayList<MTerm>) mtermDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		else if (MasterTblName.TBLNAME_M_USER2CLASS.equals(tbl_name) ){
-//			return (ArrayList<MUser2Class>) muser2classDao.findBySchool(school_id, from_num, max_result);
-//		} 
-//		return null;
-//	}
+
 	
 	@Override
 	public ArrayList<MTemplate> findBySchool(String tbl_name, Integer school_id, int from_num, int max_result) {
@@ -171,23 +131,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 			}
 			return list_ret;
 		} 
-		else if (MasterTblName.TBLNAME_M_USER2CLASS.equalsName(tbl_name) ){
-			ArrayList<MUser2Class> list = (ArrayList<MUser2Class>) muser2classDao.findBySchool(school_id, from_num, max_result);
-			for (int i = 0;i<list.size(); i++){
-				MUser2Class e = list.get(i);
-				list_ret.add(e.convertToTemplate());
-			}
-			return list_ret;
-		}
-		else if (MasterTblName.TBLNAME_M_EXAM_TIME.equalsName(tbl_name) ){
-			ArrayList<MExamTime> list = (ArrayList<MExamTime>) mexamTimeDao.findBySchool(school_id, from_num, max_result);
-			for (int i = 0;i<list.size(); i++){
-				MExamTime e = list.get(i);
-				list_ret.add(e.convertToTemplate());
-			}
-			return list_ret;
-		} 
-		
+	
 		return null;
 	}
 
@@ -224,18 +168,6 @@ public class MasterTblServiceImpl implements MasterTblService{
 			msubject.saveFromTemplate(temp);
 			msubjectDao.saveSubject(msubject);
 			return msubject.convertToTemplate();
-		} 
-		else if (MasterTblName.TBLNAME_M_USER2CLASS.equalsName(tbl_name) ){
-			MUser2Class muser2class = new MUser2Class();
-			muser2class.saveFromTemplate(temp);
-			muser2classDao.saveUser2Class(muser2class);
-			return muser2class.convertToTemplate();
-		}
-		else if (MasterTblName.TBLNAME_M_EXAM_TIME.equalsName(tbl_name) ){
-			MExamTime examTime = new MExamTime();
-			examTime.saveFromTemplate(temp);
-			mexamTimeDao.saveExamTime(examTime);
-			return examTime.convertToTemplate();
 		} 
 		return null;
 	}
@@ -276,18 +208,6 @@ public class MasterTblServiceImpl implements MasterTblService{
 			return msubject.convertToTemplate();
 		} 
 		 
-		else if (MasterTblName.TBLNAME_M_USER2CLASS.equalsName(tbl_name) ){
-			MUser2Class muser2class =muser2classDao.findById(temp.getId());
-			muser2class.saveFromTemplate(temp);
-			muser2classDao.updateUser2Class(muser2class);
-			return muser2class.convertToTemplate();
-		} 
-		else if (MasterTblName.TBLNAME_M_EXAM_TIME.equalsName(tbl_name) ){
-			MExamTime mexamTime = mexamTimeDao.findById(temp.getId());
-			mexamTime.saveFromTemplate(temp);
-			mexamTimeDao.updateExamTime(mexamTime);
-			return mexamTime.convertToTemplate();
-		}
 		return null;
 	}
 

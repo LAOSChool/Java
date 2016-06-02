@@ -1,5 +1,6 @@
 package com.itpro.restws.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Criteria;
@@ -29,14 +30,14 @@ public class MSubjectDaoImpl extends AbstractDao<Integer, MSubject> implements M
 	}
 
 	@Override
-	public List<MSubject> findBySchool(Integer school_id, int from_row, int max_result) {
+	public ArrayList<MSubject> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
 	     @SuppressWarnings("unchecked")
 		List<MSubject> result = crit_list.list();
-	     return result;
+	     return (ArrayList<MSubject>) result;
 	}
 
 	@Override

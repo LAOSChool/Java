@@ -18,7 +18,7 @@ import com.itpro.restws.model.ExamProfile;
 import com.itpro.restws.model.FinalResult;
 import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.StudentProfile;
-import com.itpro.restws.model.Term;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.User;
 
 @Service("finalResultService")
@@ -115,10 +115,10 @@ public class FinalResultServiceImpl implements FinalResultService{
 	private void initStudentProfile(User student, EClass eclass, Integer school_year) {
 		Integer school_id = student.getSchool_id();
 		Integer class_id = eclass.getId();
-		ArrayList<Term> terms = termDao.getLatestTerm(school_id);
+		ArrayList<SchoolTerm> terms = termDao.getLatestTerm(school_id);
 		// Get current year
 		if (school_year == null){
-			school_year = terms.get(0).getSchool_year();
+			school_year = terms.get(0).getSchool_year_id();
 		}
 		
 		ArrayList<StudentProfile> list_std_profiles = studentProfileDao.findEx(student.getId(), school_id, class_id, school_year);

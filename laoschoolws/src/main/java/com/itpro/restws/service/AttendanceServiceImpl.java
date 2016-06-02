@@ -19,7 +19,7 @@ import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 
-import com.itpro.restws.model.Term;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.User;
 
 import sun.util.logging.resources.logging_pt_BR;
@@ -85,45 +85,66 @@ public class AttendanceServiceImpl implements AttendanceService{
 		return attendance;
 	}
 
+//	@Override
+//	public Attendance auditAttendance(User teacher, Attendance attendance) {
+//		
+//		User student = userService.findById(attendance.getStudent_id());
+//		Attendance curr = findById(attendance.getId());
+//		
+//		// Keep first create date time
+//		attendance.setActflg("A");
+//		attendance.setCtddtm(curr.getCtddtm());
+//		attendance.setCtdusr(curr.getCtdusr());
+//		///
+//		attendance.setAuditor(teacher.getId());
+//		attendance.setAuditor_name(teacher.getFullname());
+//		attendance.setStudent_name(student.getFullname());
+//		
+//		//attendanceDB = Attendance.updateChanges(attendanceDB, attendance);
+//		attendanceDao.updateAttendance(attendance);
+//		
+//		return attendance;
+//	}
+
 	@Override
 	public Attendance updateAttendance(User teacher, Attendance attendance) {
 		
 		User student = userService.findById(attendance.getStudent_id());
 		Attendance curr = findById(attendance.getId());
-		// Keep first create date time
-		attendance.setActflg("A");
-		attendance.setCtddtm(curr.getCtddtm());
-		attendance.setCtdusr(curr.getCtdusr());
-		///
-		attendance.setAuditor(teacher.getId());
-		attendance.setAuditor_name(teacher.getFullname());
-		attendance.setStudent_name(student.getFullname());
 		
-		//attendanceDB = Attendance.updateChanges(attendanceDB, attendance);
-		attendanceDao.updateAttendance(attendance);
-		
-		return attendance;
+		if (curr != null ){
+			curr = Attendance.updateChanges(curr, attendance);
+			
+			curr.setAuditor(teacher.getId());
+			curr.setAuditor_name(teacher.getFullname());
+			curr.setStudent_name(student.getFullname());
+	
+			attendanceDao.updateAttendance(curr);
+		}else{
+			throw new ESchoolException("Error: cannot find attendace_id:"+attendance.getId(), HttpStatus.BAD_REQUEST);
+		}
+		return curr;
 	}
 
 	@Override
 	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id,String att_dt,String from_dt, String to_dt) {
+			Integer from_row_id,String att_dt,String from_dt, String to_dt,Integer session_id) {
 		
-		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt);
+		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt,session_id);
 	}
 
 	@Override
 	public ArrayList<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt) {
+			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt,Integer session_id) {
 		
-		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt);
+		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt,session_id);
 	}
 
 	@Override
 	public Attendance requestAttendance(User user, Attendance request,boolean in_range) {
 		boolean is_valid = validAttendanceRequest(user, request,in_range);
-		ArrayList<Term> terms = termDao.getLatestTerm(user.getSchool_id());
-		Term term = terms.get(terms.size()-1);
+		ArrayList<SchoolTerm> terms = termDao.getLatestTerm(user.getSchool_id());
+		SchoolTerm term = terms.get(terms.size()-1);
 		if (is_valid){
 			request.setTerm_id(term.getId());
 			request.setExcused(1);
@@ -161,7 +182,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		}
 
 		
-		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null);
+		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null,null);
 		if (cnt > 0){
 			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
 			logger.error("Request already existing:"+curr_user.getId());
