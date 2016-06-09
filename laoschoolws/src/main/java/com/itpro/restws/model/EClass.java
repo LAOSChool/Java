@@ -65,8 +65,11 @@ public class EClass extends AbstractModel{
 	private Integer sts;
 
 	@Column(name="head_teacher_id")
-	private long head_teacher_id;
+	private Integer head_teacher_id;
 
+	@Column(name="level")
+	private Integer level;
+	
 	@JsonIgnore
 	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "classes")
 	private Set<User> users;
@@ -175,11 +178,11 @@ public class EClass extends AbstractModel{
 		this.sts = sts;
 	}
 
-	public long getHead_teacher_id() {
+	public Integer getHead_teacher_id() {
 		return head_teacher_id;
 	}
 
-	public void setHead_teacher_id(long head_teacher_id) {
+	public void setHead_teacher_id(Integer head_teacher_id) {
 		this.head_teacher_id = head_teacher_id;
 	}
 	
@@ -201,6 +204,15 @@ public class EClass extends AbstractModel{
 			
 		}
 		return ret;
+	}
+	public Integer getLevel() {
+		return level;
+	}
+	public void setLevel(Integer level) {
+		this.level = level;
+	}
+	public void setHeadTeacherName(String headTeacherName) {
+		this.headTeacherName = headTeacherName;
 	}
 
 

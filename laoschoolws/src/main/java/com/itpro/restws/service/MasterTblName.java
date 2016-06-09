@@ -4,13 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum MasterTblName {
-	TBLNAME_M_EXAM("m_exam","MExam"),
 	TBLNAME_M_FEE("m_fee","MFee"),
 	TBLNAME_M_GRADE("m_grade","MGrade"),
 	TBLNAME_M_SESSION("m_session","MSession"),
 	TBLNAME_M_SUBJECT ("m_subject","MSubject"),
-	
-	TBLNAME_M_EXAM_TIME ("m_exam_time","MExamTime"),
 	TBLNAME_M_USER2CLASS ("m_user2class","MUser2Class");
 	
 	  

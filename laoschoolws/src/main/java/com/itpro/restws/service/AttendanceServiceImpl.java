@@ -12,17 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.itpro.restws.controller.BaseController;
 import com.itpro.restws.dao.AttendanceDao;
 import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
-
 import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.User;
-
-import sun.util.logging.resources.logging_pt_BR;
 
 @Service("attendanceService")
 @Transactional
@@ -143,8 +139,8 @@ public class AttendanceServiceImpl implements AttendanceService{
 	@Override
 	public Attendance requestAttendance(User user, Attendance request,boolean in_range) {
 		boolean is_valid = validAttendanceRequest(user, request,in_range);
-		ArrayList<SchoolTerm> terms = termDao.getLatestTerm(user.getSchool_id());
-		SchoolTerm term = terms.get(terms.size()-1);
+		
+		SchoolTerm term = termDao.getCurrentTerm(user.getSchool_id());
 		if (is_valid){
 			request.setTerm_id(term.getId());
 			request.setExcused(1);

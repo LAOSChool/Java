@@ -4,14 +4,12 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.Message;
 import com.itpro.restws.model.User;
 
 @Repository("userDao")

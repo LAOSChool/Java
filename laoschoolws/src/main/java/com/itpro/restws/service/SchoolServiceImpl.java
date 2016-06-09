@@ -3,14 +3,11 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.SchoolDao;
-import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.model.School;
-import com.itpro.restws.model.Timetable;
 
 @Service("schoolService")
 @Transactional

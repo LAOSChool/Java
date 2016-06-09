@@ -30,6 +30,8 @@ import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Command;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.User;
+import com.itpro.restws.model.User2Class;
+import com.itpro.restws.service.User2ClassService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -46,6 +48,8 @@ public class UserController extends BaseController {
 	@Autowired
 	protected CommandDao commandDao;
 	
+	@Autowired
+	protected User2ClassService user2ClassService;
 
 	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
@@ -367,6 +371,26 @@ public class UserController extends BaseController {
 		userService.updateUser(del_user);
 		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
 	    return "Request was successfully, deleted user of id:"+id;
+	 }
+	
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value = "/api/users/assign_to_class", method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)
+	 public RespInfo assignToClass(
+			@RequestParam(value="user_id",required=true) Integer user_id,
+			@RequestParam(value="class_id",required=true) Integer class_id,
+			@RequestParam(value="notice",required=false) String notice,
+			
+		    @Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			 
+			 ) {
+		User user = getCurrentUser();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		
+		User2Class user2Class = user2ClassService.assignUserToClass(user, user_id, class_id, notice);
+		rsp.setMessageObject(user2Class);
+	    return rsp;
 	 }
 	
 }

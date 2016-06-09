@@ -21,8 +21,5 @@ public interface FinalResultService {
 	FinalResult insertFinalResult(FinalResult finalResult);
 	FinalResult updateFinalResult(FinalResult finalResult);
 	ArrayList<StudentProfile> findUserProfile(User student, Integer school_year);
-	void initStudentProfile(User student,Integer school_year) ;
-	//ArrayList<StudentProfile> findUserProfile(User student, Integer class_id);
-	
 	
 }

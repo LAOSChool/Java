@@ -9,36 +9,18 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.NamedNativeQueries;
-import org.hibernate.annotations.NamedNativeQuery;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 
-//@NamedNativeQueries({
-//	@NamedNativeQuery(
-//	name = "sp_get_exam_result",
+//
+//@NamedNativeQuery(
+//	name = "call_sp_get_exam_result",
 //	query = "CALL sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
 //	callable=true, 
-//	readOnly=true,	
+//	readOnly=true, 
 //	resultClass = ExamResult.class
-//	)
-////})
-//
-//@NamedNativeQuery(
-//	    name="call_sp_get_exam_result", 
-//	    query="call sp_get_exam_result(?,?,?,?)", 
-//	    // query="call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
-//	    resultClass=ExamResult.class
 //)
-//
-//
-//@NamedNativeQuery(
-//	    name="call_sp_get_exam_result", 
-//	    query="call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)", 
-//	    callable=true, 
-//	    readOnly=true, 
-//	    resultClass=ExamResult.class
-//	)
+
 
 @Entity
 @Table(name="exam_result")
@@ -258,10 +240,18 @@ public class ExamResult extends AbstractModel{
 
 	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String teacher;
-
+	
+	@Formula("(SELECT t.photo FROM user t WHERE t.id = student_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String std_photo;
+	
+	@Formula("(SELECT t.nickname FROM user t WHERE t.id = student_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String std_nickname;
+	
+	
 	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String term;
-
+	
+	
 	public void setTerm(String term) {
 		this.term = term;
 	}
@@ -294,5 +284,24 @@ public class ExamResult extends AbstractModel{
 	public void setExam_year(Integer exam_year) {
 		this.exam_year = exam_year;
 	}
+
+	public String getStd_photo() {
+		return std_photo;
+	}
+
+	public String getStd_nickname() {
+		return std_nickname;
+	}
+
+	
+
+	public void setStd_photo(String std_photo) {
+		this.std_photo = std_photo;
+	}
+
+	public void setStd_nickname(String std_nickname) {
+		this.std_nickname = std_nickname;
+	}
+
 	
 }

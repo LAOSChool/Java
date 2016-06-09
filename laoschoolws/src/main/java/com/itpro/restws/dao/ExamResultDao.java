@@ -17,7 +17,15 @@ public interface ExamResultDao {
 	List<ExamResult> findByStudent(Integer user_id,int from_row,int max_result) ;
 	
 	
-	List<ExamResult> findSameExam(Integer school_id,Integer student_id,Integer year, Integer month, Integer subject_id,Integer exam_type_id);
+	List<ExamResult> findSameExam(
+			Integer school_id,
+			Integer student_id, 
+			Integer class_id, 
+			Integer subject_id,
+			Integer exam_id, 
+			Integer term_id,
+			Integer exam_year, 
+			Integer school_year_id);
 	
 	void saveExamResult(ExamResult examResult);
 	void updateExamResult(ExamResult examResult);
@@ -27,15 +35,13 @@ public interface ExamResultDao {
 	
 	int countExamResultExt(Integer school_id, Integer class_id, Integer user_id, Integer subject_id,
 			Integer term_id, Integer exam_year, Integer exam_month, String exam_dt, String dateFrom, String dateTo,
-			Integer from_row_id,Integer exam_type) ;
+			Integer from_row_id,Integer exam_type, Integer sch_year_id) ;
 
 	
 	ArrayList<ExamResult> findExamResultExt(Integer school_id, int from_row, int max_result, Integer class_id,
 			Integer user_id, Integer subject_id, Integer term_id, Integer exam_year, Integer exam_month,
-			String exam_dt, String dateFrom, String dateTo, Integer from_row_id,Integer exam_type) ;
+			String exam_dt, String dateFrom, String dateTo, Integer from_row_id,Integer exam_type, Integer sch_year_id) ;
 
-	
-	List<ExamResult>  findStudentExam(Integer school_id, Integer class_id, Integer student_id,Integer year_id);
 	
 }
 

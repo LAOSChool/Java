@@ -131,9 +131,6 @@ public class FinalResultController extends BaseController {
 		User student = getCurrentUser();
 	
 		ListEnt rspEnt = new ListEnt();
-		// Initi data if necessary
-		finalResultService.initStudentProfile(student,school_year);
-
 		// Return data
     	ArrayList<StudentProfile> list = finalResultService.findUserProfile(student, school_year);
 	    rspEnt.setFrom_row(0);

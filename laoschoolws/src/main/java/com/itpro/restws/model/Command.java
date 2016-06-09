@@ -20,12 +20,9 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 	    resultClass=Command.class
 )
 
-//@NamedQueries({
-//	@NamedQuery(
-//	name = "getCommand",
-//	query = "call get_unproc_command()"
-//	)
-//})
+
+
+
 @Entity
 @Table(name="command")
 @DynamicInsert(value=true)

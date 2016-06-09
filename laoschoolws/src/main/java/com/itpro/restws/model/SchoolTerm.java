@@ -32,7 +32,9 @@ public class SchoolTerm extends AbstractModel{
 	@Column(name="school_id")
 	private Integer school_id;
 	
-
+	@Column(name="term_val")
+	private Integer term_val;
+	
 	@Column(name="term_name")
 	private String term_name;
 	
@@ -135,6 +137,14 @@ public class SchoolTerm extends AbstractModel{
 
 	public Integer getSchool_year_id() {
 		return school_year_id;
+	}
+
+	public Integer getTerm_val() {
+		return term_val;
+	}
+
+	public void setTerm_val(Integer term_val) {
+		this.term_val = term_val;
 	}
 
 	public void setSchool_year_id(Integer school_year) {

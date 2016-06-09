@@ -26,15 +26,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ListEnt;
+import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.FinalResult;
 import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.MasterBase;
 import com.itpro.restws.model.School;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SysTemplate;
-import com.itpro.restws.model.Timetable;
 import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.ClassService;
@@ -85,6 +86,9 @@ public class MainRestController {
 	
 	@Autowired
 	private SysTblService sysTblService;
+	
+	@Autowired
+	private TermDao termDao;
 
 //	@Autowired
 //	private AuthenticationService authenticationService;
@@ -190,120 +194,7 @@ public class MainRestController {
 
 	
 	
-	@RequestMapping(value="/api/classes",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getClasses(@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getClasses");
-		List<EClass> classes = null;
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
-		
-		User user = getCurrentUser();
-		Integer school_id = user.getSchool_id();
-		
-		ListEnt rspEnt = new ListEnt();
-	    try {
-	    	// Count user
-	    	total_row = classService.countBySchoolID(school_id);
-	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;;
-	    	}else{
-	    		max_result = total_row;
-	    	}
-	    		
-			logger.info("Class count: total_row : "+total_row);
-			// Query class by school id
-			classes = classService.findBySchool(school_id, from_row, max_result);
-		    rspEnt.setList(classes);
-		    rspEnt.setFrom_row(from_row);
-		    rspEnt.setTo_row(from_row + max_result);
-		    rspEnt.setTotal_count(total_row);
-		    
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.getClasses() ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    
-	    return rspEnt;
 
-	}
-	
-	
-	@RequestMapping(value = "/api/classes/{id}", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public EClass getClass(@PathVariable int  id,@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getClass/{id}:"+id);
-		EClass eclass = null;
-	    try {
-	    	User user = getCurrentUser();
-	    	eclass = classService.findById(Integer.valueOf(id));
-	    	if (eclass != null && user.getSchool_id() != eclass.getSchool_id()){
-	    		logger.info("Eclass is not in same school with current user");
-	    		eclass = null;
-	    	}
-			logger.info("eclass: "+eclass.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController  ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    return eclass;
-	 }
-	
-	
-	@RequestMapping(value="/api/classes/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public EClass createClass(
-			@RequestBody EClass eclass,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.users.create");
-		// eclass = classService.findById(1);
-		
-		 return classService.insertClass(eclass);
-		 
-	}
-	
-	@RequestMapping(value="/api/classes/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public EClass updateClass(
-			@RequestBody EClass eclass,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.classes.update");
-		
-		// eclass = classService.findById(1);
-		 return classService.updateClass(eclass);
-		 
-	}
-	
-	@RequestMapping(value = "/api/classes/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delClass(
-			@PathVariable int id,
-			@Context final HttpServletResponse response
-			 
-			 ) {
-		logger.info(" *** MainRestController.delUser/{class_id}:"+id);
-	    return "Request was successfully, delete class of id: "+id;
-	 }
-	
-		
 	
 	
 	
@@ -385,92 +276,6 @@ public class MainRestController {
 
 	
 	
-	
-	
-	
-	
-	
-	
-	
-
-	@RequestMapping(value="/api/timetables",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt  getTimetables() {
-		logger.info(" *** MainRestController.getTimetables");
-		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
-		int school_id = 1;//TODO: get from token => user info
-		ListEnt listResp = new ListEnt();
-		
-    	// Count user
-    	total_row = timetableService.countBySchoolID(school_id);
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
-    	}
-    		
-		logger.info("Timetable count: total_row : "+total_row);
-		// Query class by school id
-		ArrayList<Timetable> examResults = timetableService.findBySchool(school_id, from_row, max_result);
-		
-		listResp.setList(examResults);
-		listResp.setFrom_row(from_row);
-		listResp.setTo_row(from_row + max_result);
-		listResp.setTotal_count(total_row);
-	    return listResp;
-
-	}
-
-	
-	@RequestMapping(value="/api/timetables/{id}",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Timetable getTimetable(@PathVariable int  id) 
-	{
-		logger.info(" *** MainRestController.getTimetable/{id}:"+id);
-		return timetableService.findById(id);
-	 }
-	
-	
-	
-	@RequestMapping(value="/api/timetables/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Timetable createTimetable(
-			@RequestBody Timetable timetable
-			) {
-		logger.info(" *** MainRestController.ceateTimetable.create");
-		//timetable.setId(100);//TODO:Test
-		return timetableService.insertTimetable(timetable);
-		 
-		 
-	}
-	
-	@RequestMapping(value="/api/timetables/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public Timetable updateTimetable(
-			@RequestBody Timetable timetable
-			) {
-		logger.info(" *** MainRestController.updateTimetable.update");
-		 //return timetable;
-		return timetableService.updateTimetable(timetable);
-		 
-	}
-	
-	@RequestMapping(value = "/api/timetables/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delTimetable(
-			 @PathVariable int  id
-			 ) {
-		logger.info(" *** MainRestController.delTimetable/{id}:"+id);
-
-	    return "Request was successfully, delete delTimetable of id: "+id;
-	 }
-	
-	
-
-
 	
 	
 	@RequestMapping(value="/api/masters/{tbl_name}",method = RequestMethod.GET)
@@ -607,5 +412,22 @@ public class MainRestController {
 		return user;
 	}
 
-
+	@RequestMapping(value="/api/schools/current_term",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo getCurrentTerm(
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		
+		logger.info(" *** getCurrentTerm Start");
+	    User user = getCurrentUser();
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+	    SchoolTerm terms = termDao.getCurrentTerm(user.getSchool_id());
+	    rsp.setMessageObject(terms);
+		
+	    return rsp;
+	    
+	 }
+			
 }

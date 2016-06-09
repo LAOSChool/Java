@@ -3,10 +3,9 @@ package com.itpro.restws.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Query;
-
 import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
+//import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -14,9 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.Command;
 import com.itpro.restws.model.ExamResult;
-
 
 @Repository("examResultDao")
 @Transactional
@@ -103,15 +100,28 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 
 
 	@Override
-	public List<ExamResult> findSameExam(Integer school_id,Integer student_id,Integer year, Integer month, Integer subject_id,Integer exam_type_id)
-	{	
+	public List<ExamResult> findSameExam(
+			Integer school_id,
+			Integer student_id, 
+			Integer class_id, 
+			Integer subject_id,
+			Integer exam_id, 
+			Integer term_id,
+			Integer exam_year, 
+			Integer school_year_id){
+	
+		
 		Criteria crit_list = createEntityCriteria();
+		
 		crit_list.add(Restrictions.eq("school_id", school_id));
+		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.add(Restrictions.eq("student_id", student_id));
-		crit_list.add(Restrictions.eq("exam_year", year));
-		crit_list.add(Restrictions.eq("exam_month", month));
 		crit_list.add(Restrictions.eq("subject_id", subject_id));
-		crit_list.add(Restrictions.eq("exam_type", exam_type_id));
+		crit_list.add(Restrictions.eq("exam_id", exam_id));
+		crit_list.add(Restrictions.eq("exam_year", exam_year));
+		crit_list.add(Restrictions.eq("term_id", term_id));
+		crit_list.add(Restrictions.eq("sch_year_id", school_year_id));
+
 		crit_list.addOrder(Order.desc("id"));
 		@SuppressWarnings("unchecked")
 		List<ExamResult> list = crit_list.list();
@@ -122,7 +132,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	@Override
 	public int countExamResultExt(Integer school_id, Integer class_id, Integer user_id, Integer subject_id,
 			Integer term_id, Integer exam_year, Integer exam_month, String exam_dt, String dateFrom, String dateTo,
-			Integer from_row_id,Integer exam_type) {
+			Integer from_row_id,Integer exam_type, Integer sch_year_id) {
 		
 		Criteria crit_list = createEntityCriteria();
 		// Filter by school
@@ -171,6 +181,9 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 		}
 
 		
+		if (sch_year_id != null && sch_year_id > 0) {
+			crit_list.add(Restrictions.eq("sch_year_id", sch_year_id));
+		}
 		
 		// 
 		if (from_row_id != null && from_row_id >= 0) {
@@ -187,7 +200,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	@Override
 	public ArrayList<ExamResult> findExamResultExt(Integer school_id, int from_row, int max_result, Integer class_id,
 			Integer user_id, Integer subject_id, Integer term_id, Integer exam_year, Integer exam_month,
-			String exam_dt, String dateFrom, String dateTo, Integer from_row_id, Integer exam_type) {
+			String exam_dt, String dateFrom, String dateTo, Integer from_row_id, Integer exam_type, Integer sch_year_id) {
 		Criteria crit_list = createEntityCriteria();
 		// Filter by school
 		crit_list.add(Restrictions.eq("school_id", school_id));
@@ -243,6 +256,11 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 		if (from_row_id != null && from_row_id >= 0) {
 			crit_list.add(Restrictions.gt("id", from_row_id));
 		}
+		
+		if (sch_year_id != null) {
+			crit_list.add(Restrictions.eq("sch_year_id", sch_year_id));
+		}
+		
 		@SuppressWarnings("unchecked")
 		ArrayList<ExamResult> list = (ArrayList<ExamResult>) crit_list.list();
 		return list;
@@ -255,39 +273,31 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 		
 	}
 
-	@Override
-	public List<ExamResult> findStudentExam(Integer school_id, Integer class_id, Integer student_id,Integer year_id) {
-		//query = "CALL sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)",
-		org.hibernate.Query query = getSession().getNamedQuery("sp_get_exam_result"); 
-//		query.setParameter(0, school_id);
-//		query.setParameter(1, class_id);
-//		query.setParameter(2, student_id);
-//		query.setParameter(3, year_id);
-		query.setParameter("p_school_id", school_id);
-		query.setParameter("p_class_id", class_id);
-		query.setParameter("p_student_id", student_id);
-		query.setParameter("p_year_id", year_id);
-		
-		
-//		SQLQuery query = getSession().createSQLQuery("call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)");
-//		query.addEntity(ExamResult.class);
-//		query.setInteger(position, val)
-//				.addEntity(ExamResult.class)
-//				.setParameter("p_school_id", "7277");
-//						
-//			List result = query.list();
-//			for(int i=0; i<result.size(); i++){
-//				Stock stock = (Stock)result.get(i);
-//				System.out.println(stock.getStockCode());
-//			}
+//	@Override
+//	public List<ExamResult> findStudentExam(Integer school_id, Integer class_id, Integer student_id,Integer year_id) {
 //		
-		
-		@SuppressWarnings("unchecked")
-		List<ExamResult>  result = query.list();
-		getSession().flush();
-		return result;
-		
-	}
+//		SQLQuery query = getSession().createSQLQuery("call sp_get_exam_result(:p_school_id,:p_class_id,:p_student_id,:p_year_id)");
+//		query.setInteger("p_school_id", school_id);
+//		query.setInteger("p_class_id", class_id);
+//		query.setInteger("p_student_id", student_id);
+//		query.setInteger("p_year_id", year_id);
+//		
+//		@SuppressWarnings("unchecked")
+//		List<ExamResult> result = query.list();
+//		getSession().flush();
+//		return result;
+//		
+//		
+////		org.hibernate.Query query = getSession().getNamedQuery("call_sp_get_exam_result");
+////		query.setParameter("p_school_id", school_id);
+////		query.setParameter("p_class_id", class_id);
+////		query.setParameter("p_student_id", student_id);
+////		query.setParameter("p_year_id", year_id);
+////		@SuppressWarnings("unchecked")
+////		List<ExamResult> result = query.list();
+////			return result;
+//	}
+	
 	
 	
 	

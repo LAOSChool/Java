@@ -70,8 +70,24 @@ public class TermDaoImpl extends AbstractDao<Integer, SchoolTerm> implements Ter
 	}
 
 
+//	@Override
+//	public ArrayList<SchoolTerm> getLatestTerm(Integer school_id) {
+//		
+//		Criteria crit_list = createEntityCriteria();
+//		
+//		Criterion rest1= Restrictions.le("start_year", Utils.getCurrentYear()); 
+//		Criterion rest2= Restrictions.ge("end_year", Utils.getCurrentYear());
+//		
+//		crit_list.add(Restrictions.and(rest1, rest2));
+//		crit_list.addOrder(Order.asc("id"));
+//	     @SuppressWarnings("unchecked")
+//		List<SchoolTerm> list = crit_list.list();
+//	     return (ArrayList<SchoolTerm>) list;
+//	}
+
+
 	@Override
-	public ArrayList<SchoolTerm> getLatestTerm(Integer school_id) {
+	public SchoolTerm getCurrentTerm(Integer school_id) {
 		
 		Criteria crit_list = createEntityCriteria();
 		
@@ -82,10 +98,17 @@ public class TermDaoImpl extends AbstractDao<Integer, SchoolTerm> implements Ter
 		crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
 		List<SchoolTerm> list = crit_list.list();
-	     return (ArrayList<SchoolTerm>) list;
+	     if (list != null & list.size() > 0){
+	    	 SchoolTerm term = list.get(0);
+		     for (SchoolTerm tmp: list){
+		    	 if (term.getTerm_val().intValue() < tmp.getTerm_val() ){
+		    		 term = tmp;
+		    	 }
+		     }
+		     return term;
+	     }
+	     return null;
 	}
-
-
 
 
 	

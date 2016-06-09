@@ -19,14 +19,14 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	@Override
 	public int countAttendanceBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE actflg = 'A' AND school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
 	public int countAttendanceByClass(Integer class_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE class_id= '" + class_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE actflg = 'A' AND class_id= '" + class_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 
@@ -60,7 +60,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	@Override
 	public int countAttendanceByStudent(Integer student_id) {
 		// Get row count
-				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE student_id= '" + student_id+ "'").uniqueResult()).intValue();
+				int count = ((Long)getSession().createQuery("select count(*) from Attendance WHERE actflg = 'A' AND student_id= '" + student_id+ "'").uniqueResult()).intValue();
 				return count;
 	}
 
@@ -100,7 +100,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	
 	@Override
 	public int countAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,String att_dt,String from_dt, String to_dt, Integer session_id) {
-		String query = 	"select count(*)  from Attendance att where att.school_id ='"+school_id +"'";
+		String query = 	"select count(*)  from Attendance att where att.actflg = 'A' AND att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and att.class_id = '"+class_id.intValue()+"'"; 
 		}
@@ -133,7 +133,7 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	@Override
 	public List<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer student_id, Integer from_row_id,
 			int from_num, int max_result,String att_dt,String from_dt, String to_dt,Integer session_id) {
-		String str = 	"from Attendance att where att.school_id ='"+school_id +"'";
+		String str = 	"from Attendance att where att.actflg = 'A' AND att.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			str = str +" and att.class_id = '"+class_id.intValue()+"'"; 
 		}

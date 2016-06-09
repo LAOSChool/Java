@@ -19,14 +19,16 @@ public interface ExamResultService {
 
 	// Input/delete
 	void deleteExamResult(ExamResult exam);
-	void validUpdateExam(User teacher,ExamResult examResult,boolean is_update);
-	ExamResult updateExamResult(ExamResult examResult); 
-	ExamResult inputExam(ExamResult examResult);
+	void validInputExam(User teacher, ExamResult exam);
+	ExamResult updateExamResult(User teacher,ExamResult examResult); 
+	ExamResult inputExam(User teacher,ExamResult examResult);
 	// User Profile
-	//int countUserProfile(User user,Integer class_id);
-	ArrayList<ExamResult> findUserProfile(User user,Integer class_id);
-	ArrayList<ExamResult> findUserProfile_Now(User user,Integer class_id);
-
+//	ArrayList<ExamResult> findUserProfile(User user,Integer class_id);
+	//public ArrayList<ExamResult> findUserProfile_Up(User user, Integer class_id);
+	
+	
+	ArrayList<ExamResult>  getUserProfile_Mark(User student, Integer class_id, Integer subject_id,boolean all_term);
+	ArrayList<ExamResult>  getClassProfile_Mark(Integer school_id, Integer class_id, Integer subject_id,boolean all_term);
 	
 	//	ArrayList<ExamResult> findByUser(User user, int from_num, int max_result);
 	int countExamResultExt(Integer school_id,
@@ -40,7 +42,8 @@ public interface ExamResultService {
 			String dateFrom, 
 			String dateTo,
 			Integer from_row_id,
-			Integer exam_type
+			Integer exam_type,
+			Integer sch_year_id
 			);
 	ArrayList<ExamResult>  findExamResultExt(Integer school_id, int from_row, int max_result,
 			Integer class_id, 
@@ -53,9 +56,10 @@ public interface ExamResultService {
 			String dateFrom, 
 			String dateTo,
 			Integer from_row_id,
-			Integer exam_type);
+			Integer exam_type,
+			Integer sch_year_id);
 	
-	void initStudentExamResult(User user,Integer class_id);
+	//void initStudentExamResult(User user,Integer class_id);
 	
 	 
 }

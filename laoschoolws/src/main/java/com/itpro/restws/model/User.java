@@ -22,6 +22,7 @@ import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.SelectBeforeUpdate;
+import org.hibernate.annotations.WhereJoinTable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -110,11 +111,12 @@ public class User extends AbstractModel{
 
 	@NotFound(action=NotFoundAction.IGNORE)
 	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
-	
 	@JoinTable(name = "user2class", 
              joinColumns        = { @JoinColumn(name = "user_id") }, 
              inverseJoinColumns = { @JoinColumn(name = "class_id") })
-	
+	 //@Where (applied on the target entity)
+	// @WhereJoinTable (applied on the association table)
+	@WhereJoinTable(clause="closed=0")
 	private Set<EClass> classes = new HashSet<EClass>();
 	public Set<EClass> getClasses() {
 		return classes;
