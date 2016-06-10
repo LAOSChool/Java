@@ -51,7 +51,7 @@ public class ExamResultController extends BaseController {
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
 	@RequestMapping(value="/api/exam_results/input",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo createExamResult(
+	public RespInfo inputExamResult(
 			@RequestBody ExamResult examResult,
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response

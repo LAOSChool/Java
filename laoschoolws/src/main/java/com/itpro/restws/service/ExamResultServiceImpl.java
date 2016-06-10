@@ -110,27 +110,38 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public ExamResult inputExam(User teacher, ExamResult examResult) {
+		// Check Teacher
 		if (teacher.getSchool_id().intValue() != examResult.getSchool_id().intValue()){
 			throw new ESchoolException("Exam.SchoolID not similar with current user.school_id", HttpStatus.BAD_REQUEST);
 		}
+		// Update exam
 		if (examResult.getId() != null && examResult.getId().intValue() > 0){
 			updateExamResult(teacher,examResult);
 			return examResult;
 		}else{
-			// Get Master Exam Info
-			SchoolExam school_exam = schoolExamDao.findById(examResult.getExam_id());
+		// Add new exam
+			examResult.setId(null);// New exam
+			// Check exam_id
+			SchoolExam school_exam = null;
+			if (examResult.getExam_id() != null && examResult.getExam_id().intValue() > 0){
+				school_exam = schoolExamDao.findById(examResult.getExam_id());
+				if (school_exam == null ){
+					throw new ESchoolException("ExamResult.exam_id is not existing:"+examResult.getExam_id().intValue(), HttpStatus.BAD_REQUEST);
+				}
+				if (school_exam.getSchool_id().intValue() != examResult.getSchool_id().intValue() ){
+					throw new ESchoolException("ExamResult.Term_ID.School_ID is not similar with Exam.School_ID", HttpStatus.BAD_REQUEST);
+				}	
+			}
 			if (school_exam == null ){
-				throw new ESchoolException("ExamResult.exam_id is not existing:"+examResult.getExam_id().intValue(), HttpStatus.BAD_REQUEST);
-			}
-			if (school_exam.getSchool_id().intValue() != examResult.getSchool_id().intValue() ){
-				throw new ESchoolException("ExamResult.Term_ID.School_ID is not similar with Exam.School_ID", HttpStatus.BAD_REQUEST);
+				throw new ESchoolException("ExamResult.exam_id  is NULL", HttpStatus.BAD_REQUEST);
 			}
 			
 			
-			// Get Master TERM/YEAR
-			SchoolTerm term = termDao.getCurrentTerm(examResult.getSchool_id());
 			
-			if (examResult.getTerm_id() != null ){
+			// Get term_id
+			SchoolTerm term = null;
+			
+			if (examResult.getTerm_id() != null && examResult.getTerm_id().intValue() > 0){
 				term = termDao.findById(examResult.getTerm_id());
 				if (term == null ){
 					throw new ESchoolException("ExamResult.Term_ID is not existing:"+examResult.getTerm_id().intValue(), HttpStatus.BAD_REQUEST);
@@ -141,7 +152,14 @@ public class ExamResultServiceImpl implements ExamResultService{
 				if (term.getSchool_id().intValue() != examResult.getSchool_id().intValue() ){
 					throw new ESchoolException("ExamResult.Term_ID.School_ID is not similar with Exam.School_ID", HttpStatus.BAD_REQUEST);
 				}
+			}else{
+				term = termDao.getCurrentTerm(examResult.getSchool_id());
 			}
+			
+			if (term == null ){
+				throw new ESchoolException("Cannot get TERM", HttpStatus.BAD_REQUEST);
+			}
+			
 			// Update Exam Information
 			examResult.setExam_month(school_exam.getEx_month());
 			examResult.setExam_type(school_exam.getEx_type());
@@ -196,7 +214,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		exam.setStd_photo(student.getPhoto());
 		
 		// Check teacher
-		if (exam.getTeacher_id() == null ){
+		if (exam.getTeacher_id() == null || exam.getTeacher_id().intValue() <=0){
 			exam.setTeacher_id(teacher.getId());
 		}else{
 			User tmp_teach = userService.findById(exam.getTeacher_id());
@@ -214,7 +232,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 		
 		// Check Exam 
-		if (exam.getExam_id() == null){
+		if (exam.getExam_id() == null || exam.getExam_id().intValue() <=0){
 			throw new ESchoolException("exam.exam_id cannot be NULL", HttpStatus.BAD_REQUEST);
 		}
 		SchoolExam school_exam = schoolExamDao.findById(exam.getExam_id());
@@ -227,7 +245,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 
 		// Check Subject
-		if (exam.getSubject_id() == null ){
+		if (exam.getSubject_id() == null  || exam.getSubject_id().intValue() <=0){
 			throw new ESchoolException("subject_id cannot be NULL", HttpStatus.BAD_REQUEST);
 		}
 		MSubject msubject = msubjectDao.findById(exam.getSubject_id());
@@ -239,7 +257,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 		
 		// Check Term
-		if (exam.getTerm_id() == null ){
+		if (exam.getTerm_id() == null  || exam.getTerm_id().intValue() <=0){
 			throw new ESchoolException("term_id cannot be NULL", HttpStatus.BAD_REQUEST);
 		}
 		
@@ -254,7 +272,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		exam.setTerm(term.getTerm_name());
 		exam.setTerm_val(term.getTerm_val());
 		// Check YEAR
-		if (exam.getSch_year_id() == null ){
+		if (exam.getSch_year_id() == null   || exam.getSch_year_id().intValue() <=0 ){
 			exam.setSch_year_id(term.getSchool_year_id());
 		}
 		
@@ -274,7 +292,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			}
 		}
 		// Optional
-		if (exam.getExam_dt() == null ){
+		if (exam.getExam_dt() == null || "".equals(exam.getExam_dt()) ){
 			exam.setExam_dt(Utils.now());
 		}
 		
