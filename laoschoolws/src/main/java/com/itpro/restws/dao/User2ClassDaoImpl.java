@@ -90,9 +90,12 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 
 
 	@Override
-	public List<User2Class> findByUserId(Integer user_id) {
+	public List<User2Class> findByUserId(Integer user_id,boolean is_running) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("user_id", user_id));
+		if (is_running){
+			crit_list.add(Restrictions.eq("closed", 0));
+		}
 	     @SuppressWarnings("unchecked")
 		List<User2Class> list = crit_list.list();
 	     
@@ -103,11 +106,13 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 
 
 	@Override
-	public List<User2Class> findByUserAndClass(Integer class_id, Integer user_id) {
+	public List<User2Class> findByUserAndClass(Integer class_id, Integer user_id, boolean is_running) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("user_id", user_id));
 		crit_list.add(Restrictions.eq("class_id", class_id));
-		
+		if (is_running){
+			crit_list.add(Restrictions.eq("closed", 0));
+		}
 	     @SuppressWarnings("unchecked")
 		List<User2Class> list = crit_list.list();
 	     

@@ -40,7 +40,7 @@ import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
-import com.itpro.restws.service.FinalResultService;
+
 import com.itpro.restws.service.MasterTblService;
 import com.itpro.restws.service.SchoolService;
 import com.itpro.restws.service.SysTblService;
@@ -74,8 +74,7 @@ public class MainRestController {
 	@Autowired
 	private ExamResultService examResultService;
 	
-	@Autowired
-	private FinalResultService finalResultService;
+	
 	
 	@Autowired
 	private TimetableService timetableService;

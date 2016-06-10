@@ -28,7 +28,7 @@ import com.itpro.restws.service.AttendanceService;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
 
-import com.itpro.restws.service.FinalResultService;
+
 import com.itpro.restws.service.MasterTblService;
 import com.itpro.restws.service.MessageService;
 import com.itpro.restws.service.NotifyService;
@@ -69,8 +69,7 @@ public class BaseController {
 	@Autowired
 	protected ExamResultService examResultService;
 
-	@Autowired
-	protected FinalResultService finalResultService;
+	
 	
 	@Autowired
 	protected TimetableService timetableService;

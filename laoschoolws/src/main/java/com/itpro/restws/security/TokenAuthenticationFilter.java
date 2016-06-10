@@ -108,7 +108,11 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	        	  byte[] copy = responseCopier.getCopy();
 	        	  long endTime = System.currentTimeMillis();
 	        	  long executeTime = endTime - startTime;
-	  			actionLogService.end_trace(act.getId(),new String(copy, response.getCharacterEncoding()),responseCopier.getStatus(),executeTime);
+	        	if  (httpRequest.getMethod().equals("GET")){
+	        		actionLogService.end_trace(act.getId(),"",responseCopier.getStatus(),executeTime);
+	        	}else{
+	        		actionLogService.end_trace(act.getId(),new String(copy, response.getCharacterEncoding()),responseCopier.getStatus(),executeTime);
+	        	}
 	        }
 			
 			// Dump end

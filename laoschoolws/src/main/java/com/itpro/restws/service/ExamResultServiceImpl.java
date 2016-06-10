@@ -265,7 +265,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		if (school_year.getSchool_id().intValue() != exam.getSchool_id().intValue() ){
 			throw new ESchoolException("SchoolYear.School_ID is not similar with exam.School_ID", HttpStatus.BAD_REQUEST);
 		}
-		if (exam.getExam_year() == null ){
+		if (exam.getExam_year() == null || exam.getExam_year().intValue() <= 0 ){
 			exam.setExam_year(Utils.getCurrentYear());
 		}else{
 			if( (exam.getExam_year().intValue() < school_year.getFrom_year().intValue()) ||
