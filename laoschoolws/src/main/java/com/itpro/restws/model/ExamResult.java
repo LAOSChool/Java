@@ -251,7 +251,17 @@ public class ExamResult extends AbstractModel{
 	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String term;
 	
+	@Formula("(SELECT t.ex_displayname FROM school_exam t WHERE t.id = exam_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String ex_displayname;
 	
+	public String getEx_displayname() {
+		return ex_displayname;
+	}
+
+	public void setEx_displayname(String ex_displayname) {
+		this.ex_displayname = ex_displayname;
+	}
+
 	public void setTerm(String term) {
 		this.term = term;
 	}

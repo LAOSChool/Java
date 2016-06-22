@@ -20,12 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.helper.ErrInfo;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.User;
+import com.mysql.fabric.jdbc.ErrorReportingExceptionInterceptor;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -236,7 +238,7 @@ public class ExamResultController extends BaseController {
 		// examResultService.initStudentExamResult(student, class_id);
     	// ArrayList<ExamResult> list = examResultService.findUserProfile(student, class_id);
 		
-		ArrayList<ExamResult> list  = examResultService.getUserProfile_Mark(student,class_id,null,true);
+		ArrayList<ExamResult> list  = examResultService.getUserResult_Mark(student,class_id,null,true);
 	    rspEnt.setFrom_row(0);
 	    rspEnt.setTo_row(list.size());
 		rspEnt.setTotal_count(list.size());
@@ -288,7 +290,8 @@ public class ExamResultController extends BaseController {
     	}
 		ListEnt rspEnt = new ListEnt();
 		
-		ArrayList<ExamResult> list  = examResultService.getClassProfile_Mark(school_id,class_id, subject_id,false);
+		ArrayList<ExamResult> list  = examResultService.getClassResult_Mark(school_id,class_id, subject_id,false);
+		
 	    rspEnt.setFrom_row(0);
 	    rspEnt.setTo_row(list.size());
 		rspEnt.setTotal_count(list.size());
@@ -296,6 +299,86 @@ public class ExamResultController extends BaseController {
 		// Query class by school id
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(list);
+	    return rsp;
+
+	}
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@RequestMapping(value="/api/exam_results/input/batch",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo inputExamResults(
+			@RequestBody ArrayList<ExamResult> examResults,
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** createExamResult Start");
+		
+		User teacher = getCurrentUser();
+		ArrayList<ErrInfo> errors = new ArrayList<ErrInfo>();
+		int cnt =0;
+		if (examResults != null && examResults.size() > 0){
+			try{
+				for (ExamResult examResult: examResults){
+					examResultService.validInputExam(teacher,examResult);
+					ExamResult ret = examResultService.inputExam(teacher,examResult);
+				}
+				cnt +=1;
+			}catch (Exception ex){
+				ErrInfo errinfo = new ErrInfo();
+				errinfo.setError(ex.getMessage());
+				errinfo.setData(examResults);
+				errors.add(errinfo);
+			}
+		}
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		if (errors.size() > 0){
+			rsp.setMessage("Finished with error, successed:"+cnt+"/"+examResults.size());
+			rsp.setMessageObject(errors);
+		}
+		
+	    return rsp;
+		 
+	}
+	
+	
+// Get 
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@RequestMapping(value="/api/exam_results/exe_ave",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo getExamResultMarks(
+			@RequestParam(value="filter_class_id",required =true) Integer filter_class_id,
+			@RequestParam(value="filter_term_val",required =true) Integer filter_term_val,
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** MainRestController.getExamResultsExt");
+		
+		User user = getCurrentUser();
+		Integer school_id = user.getSchool_id();
+		
+		
+		
+		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
+			
+    	}else if (user.hasRole(E_ROLE.TEACHER.getRole_short()) || user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ){
+    		if (!userService.isBelongToClass(user.getId(), filter_class_id)){
+    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
+    		}
+    		
+    	}else{
+    		throw new ESchoolException("Invalid user role:"+user.getRoles(),HttpStatus.BAD_REQUEST);
+    	}
+		EClass eclass = classService.findById(filter_class_id);
+		if (eclass.getSchool_id().intValue() != school_id.intValue()){
+			if (!userService.isBelongToClass(user.getId(), filter_class_id)){
+    			throw new ESchoolException("User ID="+user.getId()+" and Class are not in same school,class_id= "+filter_class_id,HttpStatus.BAD_REQUEST);
+    		}
+		}
+
+		examResultService.calAverage(eclass,filter_term_val.intValue());
+		// Query class by school id
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 	    return rsp;
 
 	}

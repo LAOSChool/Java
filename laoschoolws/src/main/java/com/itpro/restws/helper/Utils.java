@@ -234,4 +234,16 @@ public class Utils {
 		        return null;
 		    }
 	}
+	public static Float parseFloat(String val){
+		if (val == null || "".equals(val)){
+			return null;
+		}
+		try{
+			val = val.replaceAll("\r", "");
+			val = val.replaceAll("\n", "");
+			return Float.valueOf(val);
+		}catch(Exception e){
+			return null;
+		}
+	}
 }

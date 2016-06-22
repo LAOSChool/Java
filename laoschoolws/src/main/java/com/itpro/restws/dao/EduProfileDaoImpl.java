@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EduProfile;
+import com.itpro.restws.model.SchoolYear;
 
 
 @Repository("eduProfileDao")
@@ -76,7 +77,7 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 
 	@Override
 	public
-	ArrayList<EduProfile> findEx(Integer student_id, Integer school_id, Integer cls_id, Integer school_year){
+	ArrayList<EduProfile> findEx(Integer student_id, Integer school_id, Integer cls_id, Integer school_year_id){
 		Criteria crit_list = createEntityCriteria();
 		if (student_id != null){
 			crit_list.add(Restrictions.eq("student_id", student_id));
@@ -87,8 +88,8 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 		if (cls_id != null){
 			crit_list.add(Restrictions.eq("cls_id", cls_id));
 		}
-		if (school_year != null){
-			crit_list.add(Restrictions.eq("school_year", school_year));
+		if (school_year_id != null){
+			crit_list.add(Restrictions.eq("school_year_id", school_year_id));
 		}
 		
 		//crit_list.addOrder(Order.desc("id"));
@@ -101,9 +102,9 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 
 
 	@Override
-	public EduProfile findLatestProfile(Integer student_id, Integer school_id, Integer cls_id) {
+	public EduProfile findLatestProfile(Integer student_id, Integer school_id) {
 		
-		ArrayList<EduProfile> list = findEx(student_id,school_id,cls_id,null);
+		ArrayList<EduProfile> list = findEx(student_id,school_id,null,null);
 		if (list == null || list.size() <= 0 ){
 			return null;
 		}
@@ -116,5 +117,5 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 		return max_eduProfile;
 	}
 
-	
+
 }

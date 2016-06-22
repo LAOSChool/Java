@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 public interface UserService {
@@ -43,6 +44,9 @@ public interface UserService {
 	ArrayList<User> filterByStatus(ArrayList<User> list, String filter_state );
 	ArrayList<User> filterByRoles(ArrayList<User> list, String filter_roles );
 	ArrayList<User> filterByClasses(ArrayList<User> list, String filter_classes );
+	
+	SchoolYear getLatestSchoolYear(User student);
+	ArrayList<SchoolYear> getSchoolYears(User student);
 	
 	
 }

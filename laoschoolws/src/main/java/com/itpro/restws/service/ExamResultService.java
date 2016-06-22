@@ -2,7 +2,9 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.ExamResult;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 public interface ExamResultService {
@@ -27,8 +29,8 @@ public interface ExamResultService {
 	//public ArrayList<ExamResult> findUserProfile_Up(User user, Integer class_id);
 	
 	
-	ArrayList<ExamResult>  getUserProfile_Mark(User student, Integer class_id, Integer subject_id,boolean all_term);
-	ArrayList<ExamResult>  getClassProfile_Mark(Integer school_id, Integer class_id, Integer subject_id,boolean all_term);
+	ArrayList<ExamResult>  getUserResult_Mark(User student, Integer class_id, Integer subject_id,boolean all_term);
+	ArrayList<ExamResult>  getClassResult_Mark(Integer school_id, Integer class_id, Integer subject_id,boolean all_term);
 	
 	//	ArrayList<ExamResult> findByUser(User user, int from_num, int max_result);
 	int countExamResultExt(Integer school_id,
@@ -60,6 +62,9 @@ public interface ExamResultService {
 			Integer sch_year_id);
 	
 	//void initStudentExamResult(User user,Integer class_id);
+	 void calAverageTerm(User student, SchoolYear schoolYear,int term_val);
+	 void calAverageYear(User student, SchoolYear schoolYear);
+	 void calAverage(EClass eclass,int term_val);
 	
 	 
 }

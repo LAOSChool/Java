@@ -70,6 +70,16 @@ public class EClass extends AbstractModel{
 	@Column(name="level")
 	private Integer level;
 	
+	@Column(name="year_id")
+	private Integer year_id;
+	
+	public Integer getYear_id() {
+		return year_id;
+	}
+	public void setYear_id(Integer year_id) {
+		this.year_id = year_id;
+	}
+
 	@JsonIgnore
 	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "classes")
 	private Set<User> users;

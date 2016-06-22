@@ -33,6 +33,7 @@ public class SchoolExam extends AbstractModel{
 	private Integer school_id;
 	
 
+
 	@Column(name="term_val")
 	private Integer term_val;
 	
@@ -48,6 +49,9 @@ public class SchoolExam extends AbstractModel{
 	
 	@Column(name="cls_levels")
 	private String cls_levels;
+	
+	@Column(name="ex_displayname")
+	private String ex_displayname;
 	
 	public Integer getSchool_id() {
 		return school_id;
@@ -97,6 +101,14 @@ public class SchoolExam extends AbstractModel{
 		this.cls_levels = cls_levels;
 	}
 	
+	
+	public String getEx_displayname() {
+		return ex_displayname;
+	}
+
+	public void setEx_displayname(String ex_displayname) {
+		this.ex_displayname = ex_displayname;
+	}
 	
 	
 }

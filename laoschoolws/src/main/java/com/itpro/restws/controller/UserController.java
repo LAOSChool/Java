@@ -1,5 +1,6 @@
 package com.itpro.restws.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,8 +30,10 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Command;
 import com.itpro.restws.model.Message;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
+import com.itpro.restws.service.EduProfileService;
 import com.itpro.restws.service.User2ClassService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -50,7 +53,9 @@ public class UserController extends BaseController {
 	
 	@Autowired
 	protected User2ClassService user2ClassService;
-
+	@Autowired
+	protected EduProfileService eduProfileService;
+	
 	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -394,6 +399,25 @@ public class UserController extends BaseController {
 	 }
 	
 	
-
+	
+	
+	@Secured({"ROLE_STUDENT"})
+	@RequestMapping(value="/api/users/my_years",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)
+	public RespInfo getSchoolYears(
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			
+			) {
+			
+			User student = getCurrentUser();
+			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
+				
+			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+			
+			rsp.setMessageObject(years);
+		    return rsp;
+		}
+	
 	
 }

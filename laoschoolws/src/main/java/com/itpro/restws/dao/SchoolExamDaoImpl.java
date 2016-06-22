@@ -83,6 +83,24 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 	}
 
 
+	@Override
+	public List<SchoolExam> findByEx(Integer school_id, Integer ex_type, Integer term_val) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("school_id", school_id));
+
+		if (ex_type != null && ex_type.intValue() > 0){
+			crit_list.add(Restrictions.eq("ex_type", ex_type));
+		}
+		if (term_val != null && term_val.intValue() > 0) {
+			crit_list.add(Restrictions.eq("term_val", term_val));
+		}
+	     @SuppressWarnings("unchecked")
+		List<SchoolExam> list = crit_list.list();
+	     
+		return  list;
+	}
+
+
 	
 	
 }

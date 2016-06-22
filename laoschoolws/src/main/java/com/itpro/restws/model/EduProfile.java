@@ -100,7 +100,7 @@ public class EduProfile extends AbstractModel{
 		return this.exam_results;
 	}
 
-	public void setExamProfiles(ArrayList<ExamResult> results) {
+	public void setExam_results(ArrayList<ExamResult> results) {
 		this.exam_results= results;
 	}
 

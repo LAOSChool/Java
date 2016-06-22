@@ -1,8 +1,11 @@
 package com.itpro.restws.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
+import org.hibernate.engine.jdbc.spi.ExtractedDatabaseMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,9 @@ import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.dao.SchoolExamDao;
 import com.itpro.restws.dao.SchoolYearDao;
 import com.itpro.restws.dao.TermDao;
+import com.itpro.restws.helper.AveInfo;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_EXAM_TYPE;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
@@ -49,6 +54,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 	@Autowired
 	private SchoolExamDao schoolExamDao;
+	
+	
 	
 	@Autowired
 	private TimetableService timetableService;
@@ -177,7 +184,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	
 	@Override
-	public void validInputExam(User teacher, ExamResult exam){
+	public void validInputExam(User teacher, ExamResult exam) {
 		// Fix school info
 		exam.setSchool_id(teacher.getSchool_id());
 		// Check class
@@ -386,22 +393,20 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 
 	@Override
-	public ArrayList<ExamResult> getUserProfile_Mark(User user, Integer class_id, Integer subject_id, boolean all_term) {
+	public ArrayList<ExamResult> getUserResult_Mark(User student, Integer class_id, Integer subject_id, boolean all_term) {
 		
 		// Get current school year
-		SchoolYear school_year = schoolYearDao.findLastestOfSchoolId(user.getSchool_id());
-		if (school_year == null ){
-			// Return
-			throw new ESchoolException("Cannot find School Year for school_id:"+user.getSchool_id(),HttpStatus.BAD_REQUEST);
+//		SchoolYear school_year = schoolYearDao.findLastestOfSchoolId(student.getSchool_id());
+//		if (school_year == null ){
+//			// Return
+//			throw new ESchoolException("Cannot find School Year for school_id:"+student.getSchool_id(),HttpStatus.BAD_REQUEST);
+//
+//		}
 
-		}
-
-		// Get current term
-		SchoolTerm tar_term = null;
-		if (!all_term){
-			tar_term = termDao.getCurrentTerm(user.getSchool_id());
-		}
-		
+		// Get current term & year
+		SchoolTerm current_term = termDao.getCurrentTerm(student.getSchool_id());
+		SchoolYear school_year = schoolYearDao.findById(current_term.getSchool_year_id());
+	
 		
 		// Get Blank ExamResult
 		MSubject tar_subject = null;
@@ -409,9 +414,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 			tar_subject = msubjectDao.findById(subject_id);
 		}
 		
-		ArrayList<ExamResult> blank_list = iniBlankExamResults(user, class_id,tar_subject,tar_term);
+		ArrayList<ExamResult> blank_list = iniBlankExamResults(student, class_id,tar_subject,all_term?null:current_term);
 		// Get Actual ExamResult
-		ArrayList<ExamResult> db_list = (ArrayList<ExamResult>) examResultDao.findExamResultExt(user.getSchool_id(), 0, 99999, class_id,user.getId(),subject_id, tar_term==null?null:tar_term.getId(), null, null, null, null, null, null, null,school_year.getId());
+		ArrayList<ExamResult> db_list = (ArrayList<ExamResult>) examResultDao.findExamResultExt(student.getSchool_id(), 0, 99999, class_id,student.getId(),subject_id, all_term?null:current_term.getId(), null, null, null, null, null, null, null,school_year.getId());
 		                                                                                       
 		// Final list
 		ArrayList<ExamResult> profile_list = new ArrayList<ExamResult>();
@@ -452,6 +457,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 //				profile_list.add(act);
 //			}
 //		}
+		
+		//calAverage(profile_list,student,school_year);
 		return profile_list;
 		
 	}
@@ -515,7 +522,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 	@Override
-	public ArrayList<ExamResult> getClassProfile_Mark(Integer school_id, Integer class_id, 	Integer subject_id,boolean all_term) {
+	public ArrayList<ExamResult> getClassResult_Mark(Integer school_id, Integer class_id, 	Integer subject_id,boolean all_term) {
 		// Check lass
 		EClass eclass = classesDao.findById(class_id);
 		if (eclass == null){
@@ -530,10 +537,194 @@ public class ExamResultServiceImpl implements ExamResultService{
 		// Get exam result
 		for (User user : users){
 			if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
-				list.addAll(getUserProfile_Mark(user, class_id, subject_id,all_term));
+				list.addAll(getUserResult_Mark(user, class_id, subject_id,all_term));
 			}
 		}
 		return list;
 	}
+//	@Override
+//	public void calAverage(User student, SchoolYear schoolYear, int term_val){
+//		
+//		ArrayList<ExamResult> exam_results = findExamResultExt(student.getSchool_id(),0,999999, null, student.getId(), null, null, null, null, null, null, null, null, null, schoolYear.getId());
+//		
+//		// TB - 4 thang hoc ky 1, HK2
+//		ArrayList <Integer> sub_ex_types = new ArrayList<Integer>();
+//		sub_ex_types.add(new Integer(E_EXAM_TYPE.MONTH.getValue()));
+//		
+//		cal_average(list,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_4_MONTH.getValue(),1);
+//		cal_average(list,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_4_MONTH.getValue(),2);
+//		// TB - Hoc ky 1, Hk2
+//		sub_ex_types.clear();
+//		sub_ex_types.add(new Integer(E_EXAM_TYPE.AVE_4_MONTH.getValue()));
+//		sub_ex_types.add(new Integer(E_EXAM_TYPE.TEST_TERM.getValue()));
+//		cal_average(list,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_TERM.getValue(),1);
+//		cal_average(list,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_TERM.getValue(),2);
+//		
+//		// TB Year
+//		sub_ex_types.clear();
+//		sub_ex_types.add(new Integer(E_EXAM_TYPE.AVE_TERM.getValue()));
+//		cal_average(list,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_YEAR.getValue(),0);
+//	}
+	@Override
+	public void calAverageTerm(User student, SchoolYear schoolYear, int term_val){
+		
+		ArrayList<ExamResult> exam_results = findExamResultExt(student.getSchool_id(),0,999999, null, student.getId(), null, null, null, null, null, null, null, null, null, schoolYear.getId());
+		
+		// TB - 4 thang hoc ky 1, HK2
+		ArrayList <Integer> sub_ex_types = new ArrayList<Integer>();
+		sub_ex_types.add(new Integer(E_EXAM_TYPE.MONTH.getValue()));
+		
+		cal_average(exam_results,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_4_MONTH.getValue(),1);
+	}
 
+	@Override
+	public void calAverageYear(User student, SchoolYear schoolYear){
+		calAverageTerm(student,schoolYear,1);
+		calAverageTerm(student,schoolYear,2);
+		// TB Year
+		ArrayList<ExamResult> exam_results = findExamResultExt(student.getSchool_id(),0,999999, null, student.getId(), null, null, null, null, null, null, null, null, null, schoolYear.getId());		
+		ArrayList <Integer> sub_ex_types = new ArrayList<Integer>();
+		sub_ex_types.add(new Integer(E_EXAM_TYPE.AVE_TERM.getValue()));
+		cal_average(exam_results,student,schoolYear,sub_ex_types,E_EXAM_TYPE.AVE_YEAR.getValue(),0);
+		
+	}
+	
+	
+	private void  cal_average(ArrayList<ExamResult> list, User student, SchoolYear schoolYear,ArrayList<Integer> sum_ex_types,int ave_ex_type,int term_val){
+
+		HashMap<String, AveInfo> hashMap = new HashMap<>();
+		
+		for (ExamResult examResult : list){
+			// Check user
+			if (examResult.getStudent_id().intValue() != student.getId().intValue()){
+				continue;
+			}
+			// Check school year
+			if (	examResult.getSch_year_id() == null || 
+					examResult.getSch_year_id().intValue() == 0 || 
+					(examResult.getSch_year_id().intValue() != schoolYear.getId().intValue())){
+				continue;
+			}
+			
+			// Create HashMap with key = SubjectID
+			if (!hashMap.containsKey(""+examResult.getSubject_id().intValue())){
+				AveInfo aveInfo = new AveInfo();
+				//Ini data
+				
+				SchoolTerm sch_term = termDao.findById(examResult.getTerm_id());
+				MSubject msubject = msubjectDao.findById(examResult.getSubject_id());
+				SchoolExam ave_exam = null;
+				ArrayList<SchoolExam> sch_exams = (ArrayList<SchoolExam>) schoolExamDao.findByEx(student.getSchool_id(), ave_ex_type, term_val);
+				if (sch_exams != null && sch_exams.size() > 0){
+					ave_exam = sch_exams.get(0);
+					ExamResult blank_examResult =  new_blank_exam(student, examResult.getClass_id(), sch_term, ave_exam, msubject);
+					aveInfo.setAve_exam_result(blank_examResult);
+					aveInfo.setCnt(0);
+					aveInfo.setTotal(0);
+					aveInfo.setIs_new(1);
+					hashMap.put(""+examResult.getSubject_id().intValue(), aveInfo);
+				}
+				
+			}
+			
+			// SET MAIN EXAM TYPE IF EXIST
+			if ( (examResult.getExam_type() != null) && 
+					(examResult.getExam_type().intValue() == ave_ex_type) 
+					){
+				
+						if (term_val > 0){
+							if (    (examResult.getTerm_val() != null) &&
+									(examResult.getTerm_val().intValue() != term_val)){
+								continue;
+							}
+						}
+						if (hashMap.containsKey(""+examResult.getSubject_id().intValue())){
+							AveInfo aveInfo = hashMap.get(""+examResult.getSubject_id().intValue());
+							aveInfo.setAve_exam_result(examResult);// Replace the blank
+							aveInfo.setIs_new(0);
+						}
+			}else{
+				// Check SUB EXAM TYPE
+				boolean next = false;
+				for (Integer sub_ex_type : sum_ex_types){
+					if (sub_ex_type.intValue() == examResult.getExam_type().intValue()){
+						next = true;
+						break;
+					}
+				}
+				if (!next){
+					continue;
+				}
+				// Check term val (Optional)
+				next = true;
+				if (term_val > 0){
+					
+					if (    (examResult.getTerm_val() != null) &&
+							(examResult.getTerm_val().intValue() == term_val)){
+						next = true;
+					}
+				}
+				if (!next){
+					continue;
+				}
+				// Group by subject ID
+				Float val = Utils.parseFloat(examResult.getSresult());
+				if (val != null ){
+					if (hashMap.containsKey(""+examResult.getSubject_id().intValue())){
+						AveInfo aveInfo = hashMap.get(""+examResult.getSubject_id().intValue());
+						aveInfo.setCnt(aveInfo.getCnt()+1);
+						aveInfo.setTotal(aveInfo.getTotal()+ val);
+					}
+				}
+			}
+		}
+		 // Calculate
+		Iterator<String> keyIterator = hashMap.keySet().iterator();
+	    while (keyIterator.hasNext()) {
+	    	 String key = keyIterator.next();
+	    	 AveInfo aveInfo =  hashMap.get(key);
+	    	 if (aveInfo.getCnt() > 0){
+	    		 Float average =  aveInfo.getTotal() / aveInfo.getCnt();
+	    		 ExamResult aveExamResult = aveInfo.getAve_exam_result();
+	    		 // calculate average 
+	    		 if (aveExamResult != null ) {
+		    		 aveExamResult.setSresult(String.format("%.2f", average));
+		    		 examResultDao.saveExamResult(aveExamResult);
+	    		 }
+	    	 }
+	    	 
+	    }
+	  
+	}
+	private ArrayList<ExamResult> diffExamResults(ArrayList<ExamResult> list1, ArrayList<ExamResult> list2 ){
+		ArrayList<ExamResult>  diff_list = new ArrayList<ExamResult>();
+		for (ExamResult e1: list1){
+			boolean is_diff = true;
+			for (ExamResult e2: list2){
+				if (( e1.getSchool_id().intValue() == e2.getSchool_id().intValue()) &&
+				   ( e1.getClass_id().intValue() == e2.getClass_id().intValue()) &&
+				   ( e1.getStudent_id().intValue() == e2.getStudent_id().intValue()) &&
+				   ( e1.getSubject_id().intValue() == e2.getSubject_id().intValue()) &&
+				   ( e1.getExam_id().intValue() == e2.getExam_id().intValue()) &&
+				   ( e1.getSch_year_id().intValue() == e2.getSch_year_id().intValue()) &&
+				   ( e1.getTerm_val().intValue() == e2.getTerm_val().intValue()) &&
+				   ( e1.getExam_type().intValue() == e2.getExam_type().intValue()) ){
+					is_diff = false;
+					break;
+				}
+			}
+			if (is_diff){
+				diff_list.add(e1);
+			}
+		}
+		return diff_list;
+	}
+
+	@Override
+	public void calAverage(EClass eclass, int term_val) {
+		userService.findByClass(eclass.getId(), 0, 999999);
+		
+	}
+
+		
 }

@@ -9,11 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.SchoolExamDao;
+import com.itpro.restws.dao.SchoolYearDao;
 import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolExam;
 import com.itpro.restws.model.SchoolTerm;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 @Service("classService")
@@ -27,6 +29,8 @@ public class ClassServiceImpl implements ClassService{
 	@Autowired
 	private SchoolExamDao schoolExamDao;
 	
+	@Autowired
+	protected SchoolYearDao schoolYearDao;
 
 	
 	@Override
@@ -104,6 +108,13 @@ public class ClassServiceImpl implements ClassService{
 	    
 		
 	    return cls_list;
+	}
+
+	@Override
+	public SchoolYear getSchoolYear(EClass eclass) {
+		Integer year_id = eclass.getYear_id();
+		
+		return schoolYearDao.findById(year_id); 
 	}
 
 

@@ -17,6 +17,7 @@ import com.itpro.restws.helper.Password;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.Message;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 @Service("userService")
@@ -30,6 +31,10 @@ public class UserServiceImpl implements UserService{
 
 	@Autowired
 	private MessageService messageService;
+	
+	@Autowired
+	protected EduProfileService eduProfileService;
+	
 	
 	public User findById(Integer id) {
 		User user = userDao.findById(id);
@@ -382,6 +387,36 @@ public class UserServiceImpl implements UserService{
 	public ArrayList<User> findUserExt(Integer school_id, int from_num, int max_result, Integer filter_class_id,
 			String filter_user_role, Integer filter_sts,Integer from_row_id) {
 		return (ArrayList<User>) userDao.findUserExt(school_id, from_num, max_result, filter_class_id, filter_user_role, filter_sts, from_row_id);
+	}
+
+	@Override
+	public SchoolYear getLatestSchoolYear(User student) {
+		SchoolYear max = null;
+		if (student.hasRole(E_ROLE.STUDENT.getRole_short())){
+			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
+			if (years != null && years.size() > 0){
+				max = years.get(0);
+				for (SchoolYear year: years){
+					if (max.getId().intValue() < year.getId().intValue()){
+						max = year;
+					}
+				}
+			}
+		}else{
+			throw new ESchoolException("User must be student to access this API", HttpStatus.BAD_REQUEST);
+		}
+		return max;
+		
+	}
+
+	@Override
+	public ArrayList<SchoolYear> getSchoolYears(User student) {
+		if (student.hasRole(E_ROLE.STUDENT.getRole_short())){
+			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
+			return years;
+		}else{
+			throw new ESchoolException("User must be student to access this API", HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	
