@@ -10,11 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.SchoolExamDao;
 import com.itpro.restws.dao.SchoolYearDao;
-import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolExam;
-import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 

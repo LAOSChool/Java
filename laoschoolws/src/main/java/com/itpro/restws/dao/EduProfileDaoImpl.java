@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EduProfile;
-import com.itpro.restws.model.SchoolYear;
 
 
 @Repository("eduProfileDao")

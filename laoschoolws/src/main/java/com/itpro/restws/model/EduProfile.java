@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 @Entity
@@ -264,5 +265,13 @@ public class EduProfile extends AbstractModel{
 		this.notice = notice;
 	}
 
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = student_id)")
+	private String std_fullname;
+	public String getStd_fullname() {
+		return std_fullname;
+	}
+	public void setStd_fullname(String std_fullname) {
+		this.std_fullname = std_fullname;
+	}
 	
 	}

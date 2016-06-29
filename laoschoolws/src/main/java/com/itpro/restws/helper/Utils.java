@@ -16,6 +16,13 @@ public class Utils {
 
 		}
 	
+	public static String currenDate() {
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		return sdf.format(cal.getTime());
+
+		}
+	
 	public static String[] duplicateRemove(String [] array){
 		for(int i=0;i<array.length-1;i++)
 		{
@@ -234,6 +241,36 @@ public class Utils {
 		        return null;
 		    }
 	}
+	public static Integer parseMonth(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		       Calendar now = Calendar.getInstance();   // Gets the current date and time
+		       now.setTime(format.parse(inputString));
+		       return now.get(Calendar.MONTH);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	public static Integer parseYear(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		       Calendar now = Calendar.getInstance();   // Gets the current date and time
+		       now.setTime(format.parse(inputString));
+		       return now.get(Calendar.YEAR);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
 	public static Float parseFloat(String val){
 		if (val == null || "".equals(val)){
 			return null;
@@ -246,4 +283,59 @@ public class Utils {
 			return null;
 		}
 	}
+	public static String addMonthToDate(String inputString, int months){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		    	Calendar cal = Calendar.getInstance();   // Gets the current date and time
+		    	cal.setTime(format.parse(inputString));
+		    	cal.add(Calendar.MONTH, months);
+			    String s = format.format(cal);
+				return s;
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	
+	public static String addDayToDate(String inputString, int days){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		    	Calendar cal = Calendar.getInstance();   // Gets the current date and time
+		    	cal.setTime(format.parse(inputString));
+		    	cal.add(Calendar.DATE, days);
+			    String s = format.format(cal);
+				return s;
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	
+	public static int compareTo(String date1,String date2){
+		if ((date1 == null ) || date2.equals("")){
+			return -1;
+		}
+		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		    	Calendar cal1 = Calendar.getInstance();   // Gets the current date and time
+		    	Calendar cal2 = Calendar.getInstance();   // Gets the current date and time
+		    	cal1.setTime(format.parse(date1));
+		    	cal2.setTime(format.parse(date2));
+		    	
+		    	return cal1.compareTo(cal2);
+		    }
+		    catch(Exception e)
+		    {
+		        return -1;
+		    }
+	}
+	
 }

@@ -13,11 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.AttendanceDao;
-import com.itpro.restws.dao.TermDao;
+
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
-import com.itpro.restws.model.SchoolTerm;
+
 import com.itpro.restws.model.User;
 
 @Service("attendanceService")
@@ -26,9 +27,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 	protected static final Logger logger = Logger.getLogger(AttendanceServiceImpl.class);
 	@Autowired
 	private AttendanceDao attendanceDao;
-	@Autowired
-	private TermDao termDao;
+//	@Autowired
+//	private TermDao termDao;
 	
+	@Autowired
+	private SchoolYearService schoolYearService;
 	
 	@Autowired
 	private UserService userService;
@@ -140,9 +143,13 @@ public class AttendanceServiceImpl implements AttendanceService{
 	public Attendance requestAttendance(User user, Attendance request,boolean in_range) {
 		boolean is_valid = validAttendanceRequest(user, request,in_range);
 		
-		SchoolTerm term = termDao.getCurrentTerm(user.getSchool_id());
+		SchoolTerm term = schoolYearService.findLatestTermBySchool(user.getSchool_id());
+		 
 		if (is_valid){
-			request.setTerm_id(term.getId());
+			
+			request.setTerm_val(term.getTerm_val());
+			request.setYear_id(term.getYear_id());
+			
 			request.setExcused(1);
 			request.setSession_id(null);
 			request.setSubject_id(null);

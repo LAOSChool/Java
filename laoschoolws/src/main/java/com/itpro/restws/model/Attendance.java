@@ -63,8 +63,11 @@ public class Attendance extends AbstractModel{
 	
 
 	
-	@Column(name="term_id")
-	private Integer term_id;
+	@Column(name="term_val")
+	private Integer term_val;
+	
+	@Column(name="year_id")
+	private Integer year_id;
 	
 
 	@Column(name="is_requested")
@@ -220,12 +223,16 @@ public class Attendance extends AbstractModel{
 	@Formula("(SELECT t.sval FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String session;
 
-	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String term;
-	public String getTerm() {
-		return term;
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = user_id)")
+	private String std_fullname;
+	public String getStd_fullname() {
+		return std_fullname;
 	}
-	
+	public void setStd_fullname(String std_fullname) {
+		this.std_fullname = std_fullname;
+	}
+
+
 	public String getSubject() {
 		return subject;
 	}
@@ -247,11 +254,7 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public Integer getTerm_id() {
-		return term_id;
-	}
-
-
+	
 
 
 	public void setSession_id(Integer session_id) {
@@ -259,9 +262,7 @@ public class Attendance extends AbstractModel{
 	}
 
 
-	public void setTerm_id(Integer term_id) {
-		this.term_id = term_id;
-	}
+
 
 
 	public Integer getIs_requested() {
@@ -322,6 +323,26 @@ public class Attendance extends AbstractModel{
 	}
 
 
+	public Integer getTerm_val() {
+		return term_val;
+	}
+
+
+	public Integer getYear_id() {
+		return year_id;
+	}
+
+
+	public void setTerm_val(Integer term_val) {
+		this.term_val = term_val;
+	}
+
+
+	public void setYear_id(Integer year_id) {
+		this.year_id = year_id;
+	}
+
+
 	public Attendance clone(){
 		Attendance copy = new Attendance();
 		copy.setSchool_id(this.school_id);
@@ -334,7 +355,8 @@ public class Attendance extends AbstractModel{
 		copy.setExcused(this.excused);
 		copy.setNotice(this.notice);
 
-		copy.setTerm_id(this.term_id);
+		copy.setTerm_val(this.term_val);
+		copy.setYear_id(this.year_id);
 		copy.setIs_requested(this.is_requested);
 		copy.setRequested_dt(this.requested_dt);
 		copy.setState(this.state);

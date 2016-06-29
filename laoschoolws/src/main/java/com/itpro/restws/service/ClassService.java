@@ -2,9 +2,9 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolExam;
-import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 

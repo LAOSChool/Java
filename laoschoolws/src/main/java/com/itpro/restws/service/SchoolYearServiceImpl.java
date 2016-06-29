@@ -3,11 +3,15 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.SchoolYearDao;
+import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.SchoolTerm;
+import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolYear;
 
@@ -97,6 +101,108 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 			for (SchoolYear schoolYear: list){
 				if (max.getId().intValue() < schoolYear.getId().intValue()){
 					max = schoolYear;
+				}
+			}
+		}
+		return max;
+	}
+
+
+
+	@Override
+	public ArrayList<SchoolTerm> findTermByYear(Integer school_id,Integer year_id) {
+		ArrayList<SchoolTerm> terms = null; 
+		SchoolYear schoolYear = schoolYearDao.findById(year_id);
+		if (schoolYear != null ){
+			
+			
+			Integer frm_year = schoolYear.getFrom_year();
+			Integer to_year = schoolYear.getFrom_year();
+			Integer term_num = schoolYear.getTerm_num();
+			Integer term_duration = schoolYear.getTerm_duration();
+			String  start_dt = schoolYear.getStart_dt();
+			
+			if (
+					frm_year == null ||  
+					frm_year.intValue() ==0 ||
+					to_year == null ||  
+					to_year.intValue() ==0 ||
+					term_num == null ||  // number of month
+					term_num.intValue() ==0 ||
+					term_duration == null ||  
+					term_duration.intValue() ==0 ||
+					start_dt == null
+					){
+				throw new ESchoolException("Must one of school year field is NULL, canont generate TERM info", HttpStatus.BAD_REQUEST);
+			}
+			
+			if (to_year.intValue() < frm_year){
+				throw new ESchoolException("Invalid to_year:"+to_year.intValue()+" < frm_year:"+frm_year.intValue(), HttpStatus.BAD_REQUEST);
+			}
+					
+			// get total month of year
+			terms = new ArrayList<SchoolTerm>();
+			String term_start_date=start_dt;
+			String term_end_date=Utils.addMonthToDate(term_start_date, term_duration.intValue());
+			
+			for (int i=0;i<  term_num.intValue();i++){
+				// new term
+				SchoolTerm term = new SchoolTerm();
+				term.setSchool_id(school_id);
+				term.setYear_id(year_id);
+				term.setTerm_val(i+1);
+
+				// Term info
+				term.setStart_date(term_start_date);
+				term.setEnd_date(term_end_date);
+				term.setStart_year(Utils.parseYear(term_start_date));
+				term.setStart_month( Utils.parseMonth(term_start_date));
+				term.setEnd_year(Utils.parseYear(term_end_date));
+				term.setEnd_month( Utils.parseMonth(term_end_date));
+				
+				
+				terms.add(term);
+				// Next term
+				term_start_date = Utils.addDayToDate(term_end_date, 1);
+				term_end_date= Utils.addMonthToDate(term_start_date, term_duration.intValue());				
+				
+			}
+		}
+		return terms;
+	}
+
+
+
+	@Override
+	public ArrayList<SchoolTerm> findTermBySchool(Integer school_id) {
+		ArrayList<SchoolYear> list_year = (ArrayList<SchoolYear>) schoolYearDao.findBySchoolId(school_id);
+		ArrayList<SchoolTerm> list_term = new ArrayList<SchoolTerm>();
+		
+		if (list_year != null && list_year.size() > 0){
+			for (SchoolYear schoolYear:list_year){
+				ArrayList<SchoolTerm> terms = findTermByYear(school_id,schoolYear.getId());
+				if (terms != null && terms.size() > 0){
+					list_term.addAll(terms);
+				}
+			}
+		}
+		return list_term;
+	}
+
+
+
+	@Override
+	public SchoolTerm findLatestTermBySchool(Integer school_id) {
+		
+		ArrayList<SchoolTerm> terms = findTermBySchool(school_id);
+		SchoolTerm max = null;
+		if (terms != null && terms.size() > 0){
+			max = terms.get(0);
+			for (SchoolTerm term: terms){
+				if ((max.getEnd_year().intValue() <  term.getEnd_year().intValue() ) ||
+				   ((max.getEnd_year().intValue() ==  term.getEnd_year().intValue()) && (max.getEnd_month().intValue() <  term.getEnd_month().intValue()) ) ||
+				   (Utils.compareTo(max.getEnd_date(), term.getEnd_date()) < 0 ) ){
+					max = term;
 				}
 			}
 		}

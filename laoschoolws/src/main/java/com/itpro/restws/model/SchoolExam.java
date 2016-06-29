@@ -53,6 +53,25 @@ public class SchoolExam extends AbstractModel{
 	@Column(name="ex_displayname")
 	private String ex_displayname;
 	
+	public String getEx_key() {
+		return ex_key;
+	}
+
+	public void setEx_key(String ex_key) {
+		this.ex_key = ex_key;
+	}
+
+	@Column(name="ex_key")
+	private String ex_key;
+	
+	@Column(name="min")
+	private Float min;
+	
+	
+
+	@Column(name="max")
+	private Float max;
+	
 	public Integer getSchool_id() {
 		return school_id;
 	}
@@ -110,6 +129,21 @@ public class SchoolExam extends AbstractModel{
 		this.ex_displayname = ex_displayname;
 	}
 	
-	
+
+	public Float getMin() {
+		return min;
+	}
+
+	public Float getMax() {
+		return max;
+	}
+
+	public void setMin(Float min) {
+		this.min = min;
+	}
+
+	public void setMax(Float max) {
+		this.max = max;
+	}
 }
 

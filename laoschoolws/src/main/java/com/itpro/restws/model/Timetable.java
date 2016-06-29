@@ -57,9 +57,6 @@ public class Timetable extends AbstractModel{
 		return description;
 	}
 
-	public int getTerm_id() {
-		return term_id;
-	}
 
 	public void setId(int id) {
 		this.id = id;
@@ -93,9 +90,7 @@ public class Timetable extends AbstractModel{
 		this.description = description;
 	}
 
-	public void setTerm_id(int term_id) {
-		this.term_id = term_id;
-	}
+	
 
 	@Column(name="school_id")
 	private int school_id;
@@ -120,12 +115,30 @@ public class Timetable extends AbstractModel{
 	@Column(name="description")
 	private String description;
 	
-	@Column(name="term_id")
-	private int term_id;
+	public int getTerm_val() {
+		return term_val;
+	}
 
+	public int getYear_id() {
+		return year_id;
+	}
+
+	public void setTerm_val(int term_val) {
+		this.term_val = term_val;
+	}
+
+	public void setYear_id(int year_id) {
+		this.year_id = year_id;
+	}
+
+
+	@Column(name="term_val")
+	private int term_val;
+	
+	@Column(name="year_id")
+	private int year_id;
 	 
-	@Formula("(SELECT t.term_name FROM school_term t WHERE t.id = term_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String term;
+
 
 	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String subject;
@@ -147,18 +160,12 @@ public class Timetable extends AbstractModel{
 	}
 
 
-	public String getTerm() {
-		return term;
-	}
 
 	public String getSubject() {
 		return subject;
 	}
 
-	public void setTerm(String term) {
-		this.term = term;
-	}
-
+	
 	public void setSubject(String subject) {
 		this.subject = subject;
 	}

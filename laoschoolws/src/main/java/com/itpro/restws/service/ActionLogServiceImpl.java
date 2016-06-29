@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ActionLogDao;
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ActionLog;
 import com.itpro.restws.model.User;
+import com.mysql.jdbc.Constants;
 
 @Service("actionLogService")
 @Transactional
@@ -121,8 +123,8 @@ public class ActionLogServiceImpl implements ActionLogService{
 		
 		act.setResp_dt(Utils.now());
 		act.setExec_duration(duration);
-		
-		act.setRequest_data(act.getRequest_data() + "\n--- REST Response ---\n"+resp_data);
+		String req_data =act.getRequest_data() + "\n--- REST Response ---\n"+resp_data;
+		act.setRequest_data(req_data.length() > Constant.ActionLogMaxLength?req_data.substring(0, Constant.ActionLogMaxLength-1):req_data);
 		act.setResp_status(resp_sts);
 		
 		actionLogDao.updateAction(act);
@@ -171,8 +173,8 @@ public class ActionLogServiceImpl implements ActionLogService{
 	                   .append("]\n[LOCAL ADDRESS:")
 	                   .append(request.getLocalAddr())
 	                   .append("\n");
-	
-		act.setRequest_data(logMessage.toString());
+        
+		act.setRequest_data(logMessage.length() > Constant.ActionLogMaxLength?logMessage.toString().substring(0, Constant.ActionLogMaxLength-1):logMessage.toString());
 		act.setRequest_dt(Utils.now());
 		act.setRequest_method(request.getMethod());
 		act.setRequest_url(request.getServletPath());

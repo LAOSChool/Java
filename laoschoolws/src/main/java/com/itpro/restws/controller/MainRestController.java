@@ -1,7 +1,6 @@
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
@@ -22,29 +21,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ListEnt;
-import com.itpro.restws.helper.RespInfo;
-import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.MasterBase;
-import com.itpro.restws.model.School;
-import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
-import com.itpro.restws.service.ClassService;
-import com.itpro.restws.service.ExamResultService;
-
 import com.itpro.restws.service.MasterTblService;
-import com.itpro.restws.service.SchoolService;
 import com.itpro.restws.service.SysTblService;
-import com.itpro.restws.service.TimetableService;
 import com.itpro.restws.service.UserService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -64,21 +52,8 @@ public class MainRestController {
 
 //	@Autowired
 //	private ResourceBundleMessageSource messageSource;// Store messages
-	
 	@Autowired
 	private UserService userService;	
-	@Autowired
-	private ClassService classService;
-	@Autowired
-	private SchoolService schoolService;
-	@Autowired
-	private ExamResultService examResultService;
-	
-	
-	
-	@Autowired
-	private TimetableService timetableService;
-
 	
 	@Autowired
 	private MasterTblService masterTblService;
@@ -86,9 +61,6 @@ public class MainRestController {
 	@Autowired
 	private SysTblService sysTblService;
 	
-	@Autowired
-	private TermDao termDao;
-
 //	@Autowired
 //	private AuthenticationService authenticationService;
 
@@ -196,83 +168,6 @@ public class MainRestController {
 
 	
 	
-	
-	@RequestMapping(value="/api/schools",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)
-	public List<School> getSchools(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_user_id",required =false) String filter_user_id,			
-			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts
-			) {
-		
-		logger.info(" *** MainRestController.getSchools");
-	   	return schoolService.findActive();
-	}
-	
-	@RequestMapping(value = "/api/schools/{id}", method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public School getSchool(
-				@PathVariable int  id,
-				@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getSchool/{id}:"+id);
-		School school = null;
-
-	    response.setStatus(HttpServletResponse.SC_OK);
-	    try {
-	    	school = schoolService.findById(Integer.valueOf(id));
-			logger.info("Schoo : "+school.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    return school;
-	 }
-
-	
-	@RequestMapping(value="/api/schools/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public School createSchool(
-			@RequestBody School school,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.school.create");
-		 //school = schoolService.findById(1);
-		 return schoolService.insertSchool(school);
-		 
-	}
-	
-	@RequestMapping(value="/api/schools/update",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public School updateSchool(
-			@RequestBody School school,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.schools.update");
-			 school = schoolService.findById(Integer.valueOf(1));
-		 return schoolService.updateSchool(school);
-	}
-	
-	@RequestMapping(value = "/api/schools/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delSchool(
-			 @PathVariable int  id,
-			@Context final HttpServletResponse response
-			 
-			 ) {
-		logger.info(" *** MainRestController.delSchool/{school_id}:"+id);
-
-	    return "Request was successfully, delete school of id: "+id;
-	 }
-	
-
 	
 	
 	
@@ -411,22 +306,6 @@ public class MainRestController {
 		return user;
 	}
 
-	@RequestMapping(value="/api/schools/current_term",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo getCurrentTerm(
-			@Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
-			) {
-		
-		
-		logger.info(" *** getCurrentTerm Start");
-	    User user = getCurrentUser();
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-	    SchoolTerm terms = termDao.getCurrentTerm(user.getSchool_id());
-	    rsp.setMessageObject(terms);
-		
-	    return rsp;
-	    
-	 }
+	
 			
 }

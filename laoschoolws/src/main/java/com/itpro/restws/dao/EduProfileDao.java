@@ -3,7 +3,6 @@ package com.itpro.restws.dao;
 import java.util.ArrayList;
 
 import com.itpro.restws.model.EduProfile;
-import com.itpro.restws.model.SchoolYear;
 
 
 public interface EduProfileDao {

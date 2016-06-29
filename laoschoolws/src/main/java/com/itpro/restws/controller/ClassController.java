@@ -1,30 +1,21 @@
 package com.itpro.restws.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itpro.restws.dao.TermDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ListEnt;
-import com.itpro.restws.helper.RespInfo;
-import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.SchoolExam;
-import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.User;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -39,8 +30,6 @@ import com.itpro.restws.model.User;
 @RestController 
 public class ClassController extends BaseController {
 	
-	@Autowired
-	private TermDao termDao;
 	
 	@RequestMapping(value="/api/classes",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -153,35 +142,6 @@ public class ClassController extends BaseController {
 			 ) {
 		logger.info(" *** MainRestController.delUser/{class_id}:"+id);
 	    return "Request was successfully, delete class of id: "+id;
-	 }
-	
-	
-	@RequestMapping(value="/api/classes/exams",method = RequestMethod.GET)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo getClassExams(
-			@RequestParam(value="filter_class_id",required =true) String filter_class_id,
-			
-			
-			@Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
-			) {
-		
-		
-		logger.info(" *** getClassExams Start, filter_class_id:"+filter_class_id);
-		Integer class_id =  Utils.parseInteger(filter_class_id);
-		
-	    User user = getCurrentUser();
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-	    
-	    SchoolTerm term = termDao.getCurrentTerm(user.getSchool_id());
-	    
-	    ArrayList<SchoolExam> cls_list = classService.findExamOfClass(user, class_id,term);
-	    
-	    
-	    rsp.setMessageObject(cls_list);
-		
-	    return rsp;
-	    
 	 }
 	
 	

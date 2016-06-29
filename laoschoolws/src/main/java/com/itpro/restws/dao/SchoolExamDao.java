@@ -10,6 +10,8 @@ public interface SchoolExamDao {
 	int countBySchool(Integer school_id);
 	SchoolExam findById(Integer id);
 	
+	SchoolExam findByExKey(Integer school_id, String ex_key);
+	
 	List<SchoolExam> findByMonth(Integer school_id,Integer ex_year, Integer ex_month) ;
 	
 	List<SchoolExam> findByEx(Integer school_id,Integer ex_type, Integer term_val) ;
@@ -18,5 +20,7 @@ public interface SchoolExamDao {
 	
 	void saveSchoolExam(SchoolExam schoolExam);
 	void updateSchoolExam(SchoolExam schoolExam);
+	
+	
 }
 

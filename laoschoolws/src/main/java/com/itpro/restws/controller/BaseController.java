@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,6 @@ import com.itpro.restws.service.ActionLogService;
 import com.itpro.restws.service.AttendanceService;
 import com.itpro.restws.service.ClassService;
 import com.itpro.restws.service.ExamResultService;
-
-
 import com.itpro.restws.service.MasterTblService;
 import com.itpro.restws.service.MessageService;
 import com.itpro.restws.service.NotifyService;

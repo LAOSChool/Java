@@ -101,6 +101,23 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 	}
 
 
+	@Override
+	public SchoolExam findByExKey(Integer school_id, String ex_key) {
+		
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("school_id", school_id));
+		crit_list.add(Restrictions.eq("ex_key", ex_key));
+
+		
+	     @SuppressWarnings("unchecked")
+		List<SchoolExam> list = crit_list.list();
+	    if (list !=null && list.size() > 0){
+	    	return list.get(0);
+	    }
+		return  null;
+	}
+
+
 	
 	
 }
