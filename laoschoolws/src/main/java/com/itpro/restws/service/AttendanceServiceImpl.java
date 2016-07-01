@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.faces.view.AttachedObjectHandler;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +20,8 @@ import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
-
+import com.itpro.restws.model.EClass;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
 @Service("attendanceService")
@@ -35,6 +38,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private ClassService classService;
+	
 	
 	@Override
 	public Attendance findById(Integer id) {
@@ -80,6 +87,8 @@ public class AttendanceServiceImpl implements AttendanceService{
 		attendance.setAuditor_name(teacher.getFullname());
 		attendance.setStudent_name(student.getFullname());
 		
+		valid_insert_attendance(teacher,attendance);
+		
 		attendanceDao.saveAttendance(attendance);
 		return attendance;
 	}
@@ -107,7 +116,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public Attendance updateAttendance(User teacher, Attendance attendance) {
-		
+		if (attendance.getId() == null){
+			throw new ESchoolException("attendance.ID = NULL", HttpStatus.BAD_REQUEST);
+		}
 		User student = userService.findById(attendance.getStudent_id());
 		Attendance curr = findById(attendance.getId());
 		
@@ -118,6 +129,8 @@ public class AttendanceServiceImpl implements AttendanceService{
 			curr.setAuditor_name(teacher.getFullname());
 			curr.setStudent_name(student.getFullname());
 	
+			valid_attendance_info(teacher,attendance);
+			
 			attendanceDao.updateAttendance(curr);
 		}else{
 			throw new ESchoolException("Error: cannot find attendace_id:"+attendance.getId(), HttpStatus.BAD_REQUEST);
@@ -141,14 +154,15 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public Attendance requestAttendance(User user, Attendance request,boolean in_range) {
-		boolean is_valid = validAttendanceRequest(user, request,in_range);
 		
-		SchoolTerm term = schoolYearService.findLatestTermBySchool(user.getSchool_id());
-		 
+		// more valid
+		valid_insert_attendance(user, request);
+		
+		boolean is_valid = validAttendanceRequest(user, request,in_range); 
 		if (is_valid){
-			
-			request.setTerm_val(term.getTerm_val());
-			request.setYear_id(term.getYear_id());
+			//SchoolTerm term = schoolYearService.findLatestTermBySchool(user.getSchool_id());
+//			request.setTerm_val(term.getTerm_val());
+//			request.setYear_id(term.getYear_id());
 			
 			request.setExcused(1);
 			request.setSession_id(null);
@@ -251,5 +265,87 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 	
 
-
+	private void valid_insert_attendance(User curr_user, Attendance attendace){
+		int cnt = countAttendanceExt(attendace.getSchool_id(), attendace.getClass_id(), attendace.getStudent_id(),null,attendace.getAtt_dt(),null,null,attendace.getSession_id());
+		if (cnt > 0){
+			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
+			logger.error("Request already existing:"+curr_user.getId());
+			throw new ESchoolException("Attendance already existing ! ", HttpStatus.BAD_REQUEST);
+		}
+		valid_attendance_info(curr_user,attendace);
+	}
+	private void valid_attendance_info(User curr_user, Attendance attendace) {
+		if ((attendace.getSchool_id() == null || attendace.getSchool_id().intValue() == 0) ||
+			( attendace.getStudent_id() == null || attendace.getStudent_id().intValue() == 0) ||
+			( attendace.getClass_id() == null || attendace.getClass_id().intValue() == 0) ||
+			( attendace.getAtt_dt() == null ) 
+			)
+		{
+			throw new ESchoolException("school_id, student_id, class_id,att_dt are required", HttpStatus.BAD_REQUEST);
+		}
+		
+		// check user
+	
+		
+		if (curr_user.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
+			throw new ESchoolException("Current User.SchoolID() != Attendance.school_id ", HttpStatus.BAD_REQUEST);
+		}
+		
+		
+		User student = userService.findById(attendace.getStudent_id());
+		EClass eclass = classService.findById(attendace.getClass_id());
+		
+		if (curr_user.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
+			throw new ESchoolException("Current User.SchoolID() != Attendance.school_id ", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (curr_user.getSchool_id().intValue() != student.getSchool_id().intValue()){
+			throw new ESchoolException("Current User.SchoolID() != Student.school_id ", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (curr_user.getSchool_id().intValue() != eclass.getSchool_id().intValue()){
+			throw new ESchoolException("Current User.SchoolID() != Eclass.school_id ", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (!student.is_belong2class(eclass.getId())){
+			throw new ESchoolException("Student_ID:"+student.getId().intValue()+" is not belong to class_id: "+eclass.getId().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		// Year 
+		SchoolYear schoolYear = null;
+		if (attendace.getYear_id() == null) {
+			schoolYear = schoolYearService.findLatestYearBySchool(student.getSchool_id());
+			if (schoolYear == null ){
+				throw new ESchoolException("SchoolYear is NULL ( school_id="+student.getSchool_id().intValue() +")", HttpStatus.BAD_REQUEST);
+			}
+			attendace.setYear_id(schoolYear.getId());
+		}else{
+			schoolYear = schoolYearService.findById(attendace.getYear_id());
+			if (schoolYear == null ){
+				throw new ESchoolException("SchoolYearID is not existing:"+attendace.getYear_id().intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		// TERM
+		
+		if (attendace.getTerm_val() == null) {
+			SchoolTerm term  = schoolYearService.findLatestTermBySchool(student.getSchool_id());
+			if (term == null ){
+				throw new ESchoolException("Latest SchoolTerm is NULL ( school_id="+student.getSchool_id().intValue() +")", HttpStatus.BAD_REQUEST);
+			}
+			attendace.setTerm_val(term.getTerm_val());
+		}else{
+			ArrayList<SchoolTerm> terms = schoolYearService.findTermByYear(student.getSchool_id(), schoolYear.getId());
+			boolean valid_term = false;
+			for (SchoolTerm term :  terms){
+				if (term.getTerm_val().intValue() == attendace.getTerm_val().intValue()){
+					valid_term = true;
+					break;
+				}
+			}
+			if (!valid_term){
+				throw new ESchoolException("TermVal is not existing for year_id:"+schoolYear.getId().intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		
+		
+	}
 }

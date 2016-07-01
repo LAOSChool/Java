@@ -223,7 +223,7 @@ public class Attendance extends AbstractModel{
 	@Formula("(SELECT t.sval FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String session;
 
-	@Formula("(SELECT t.fullname FROM user t WHERE t.id = user_id)")
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = student_id)")
 	private String std_fullname;
 	public String getStd_fullname() {
 		return std_fullname;

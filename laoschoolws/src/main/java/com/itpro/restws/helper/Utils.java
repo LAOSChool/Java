@@ -161,10 +161,10 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return false;
 		}
-		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		//
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
-		       format.parse(inputString);
+		       formater.parse(inputString);
 		       return true;
 		    }
 		    catch(Exception e)
@@ -176,10 +176,9 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return false;
 		}
-		//SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
-		       format.parse(inputString);
+		       formater.parse(inputString);
 		       return true;
 		    }
 		    catch(Exception e)
@@ -198,9 +197,9 @@ public class Utils {
 		
 		Format formatter = new SimpleDateFormat("yyyy-MM-dd");
 		String s = formatter.format(date);
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
-		       return format.parse(s);
+		       return formater.parse(s);
 		    }
 		    catch(Exception e)
 		    {
@@ -217,9 +216,9 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
-		       return  format.parse(inputString);
+		       return  formater.parse(inputString);
 		    }
 		    catch(Exception e)
 		    {
@@ -230,26 +229,11 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
 		       Calendar now = Calendar.getInstance();   // Gets the current date and time
-		       now.setTime(format.parse(inputString));
+		       now.setTime(formater.parse(inputString));
 		       return now.get(Calendar.DAY_OF_WEEK);
-		    }
-		    catch(Exception e)
-		    {
-		        return null;
-		    }
-	}
-	public static Integer parseMonth(String inputString){
-		if ((inputString == null ) || inputString.equals("")){
-			return null;
-		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		    try{
-		       Calendar now = Calendar.getInstance();   // Gets the current date and time
-		       now.setTime(format.parse(inputString));
-		       return now.get(Calendar.MONTH);
 		    }
 		    catch(Exception e)
 		    {
@@ -260,10 +244,10 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
 		    try{
 		       Calendar now = Calendar.getInstance();   // Gets the current date and time
-		       now.setTime(format.parse(inputString));
+		       now.setTime(formater.parse(inputString));
 		       return now.get(Calendar.YEAR);
 		    }
 		    catch(Exception e)
@@ -271,6 +255,22 @@ public class Utils {
 		        return null;
 		    }
 	}
+	public static Integer parseMonth(String inputString){
+		if ((inputString == null ) || inputString.equals("")){
+			return null;
+		}
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		    try{
+		       Calendar now = Calendar.getInstance();   // Gets the current date and time
+		       now.setTime(formater.parse(inputString));
+		       return now.get(Calendar.MONTH);
+		    }
+		    catch(Exception e)
+		    {
+		        return null;
+		    }
+	}
+	
 	public static Float parseFloat(String val){
 		if (val == null || "".equals(val)){
 			return null;
@@ -287,12 +287,12 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
 		    	Calendar cal = Calendar.getInstance();   // Gets the current date and time
-		    	cal.setTime(format.parse(inputString));
+		    	cal.setTime(formater.parse(inputString));
 		    	cal.add(Calendar.MONTH, months);
-			    String s = format.format(cal);
+			    String s = formater.format(cal.getTime());
 				return s;
 		    }
 		    catch(Exception e)
@@ -305,12 +305,12 @@ public class Utils {
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
 		    	Calendar cal = Calendar.getInstance();   // Gets the current date and time
-		    	cal.setTime(format.parse(inputString));
+		    	cal.setTime(formater.parse(inputString));
 		    	cal.add(Calendar.DATE, days);
-			    String s = format.format(cal);
+			    String s = formater.format(cal.getTime());
 				return s;
 		    }
 		    catch(Exception e)
@@ -323,12 +323,12 @@ public class Utils {
 		if ((date1 == null ) || date2.equals("")){
 			return -1;
 		}
-		SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		    try{
 		    	Calendar cal1 = Calendar.getInstance();   // Gets the current date and time
 		    	Calendar cal2 = Calendar.getInstance();   // Gets the current date and time
-		    	cal1.setTime(format.parse(date1));
-		    	cal2.setTime(format.parse(date2));
+		    	cal1.setTime(formater.parse(date1));
+		    	cal2.setTime(formater.parse(date2));
 		    	
 		    	return cal1.compareTo(cal2);
 		    }

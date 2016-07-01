@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.ExamResultDao;
 import com.itpro.restws.dao.MSubjectDao;
@@ -26,8 +28,6 @@ import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.SchoolExam;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 @Service("examResultService")
 @Transactional
 public class ExamResultServiceImpl implements ExamResultService{
@@ -208,7 +208,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 				
 		// Check Exam 
-		boolean valid_exam = false;
+		//boolean valid_exam = false;
 //		if (examResult.getM1() == null &&
 //			examResult.getM2() == null &&
 //			examResult.getM3() == null &&
@@ -256,6 +256,7 @@ public class ExamResultServiceImpl implements ExamResultService{
             			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
             			sresult = examDetail.getSresult();
             			
+            			
                 		// Get Exam master information
                 		school_exam = schoolExamDao.findByExKey(school_id, fname);// school_id vs m1,m2,m3...m20
                 		if (school_exam == null ){
@@ -263,7 +264,12 @@ public class ExamResultServiceImpl implements ExamResultService{
                         }
                 		
                 		// Parsing float 
-                		String sval = sresult;
+                		String sval = sresult; // delete point
+                		if (sval == null || sval.trim().length() == 0 ){
+                			break;
+                		}
+                			              		
+                		
                 		String exam_dt="";
                 		String[] arr = sresult.split("@"); // "8.4@2016-06-10";
                 		if (arr != null && arr.length >=2){
@@ -275,10 +281,11 @@ public class ExamResultServiceImpl implements ExamResultService{
                 		}
                 		
                 		Float fval = Utils.parseFloat(sval);
-                		if (fval == null){
-                			throw new ESchoolException(fname + ": invalid Float value: "+ sval, HttpStatus.BAD_REQUEST);
-                		}
-                		if ( fval.floatValue() < school_exam.getMin().floatValue() ){
+                	
+            			if ( fval.floatValue() < school_exam.getMin().floatValue() ){
+            				throw new ESchoolException(fname + ": invalid Float value: "+ sval, HttpStatus.BAD_REQUEST);
+            			}
+            			if ( fval.floatValue() < school_exam.getMin().floatValue() ){
             				throw new ESchoolException(fname +":"+sval+ " < MIN value = "+school_exam.getMin().floatValue(), HttpStatus.BAD_REQUEST);
             			}
             			if (fval.floatValue() > school_exam.getMax().floatValue() ){
@@ -286,7 +293,7 @@ public class ExamResultServiceImpl implements ExamResultService{
             			}
             			
             			sval = String.format("%.1f", fval);
-            			valid_exam = true;
+            			//valid_exam = true;
             			try {
             				examDetail.setSresult(sval);
             				ObjectMapper mapper = new ObjectMapper();
@@ -322,6 +329,8 @@ public class ExamResultServiceImpl implements ExamResultService{
             			{
             				point_terms2.add(fval);
             			}
+                		
+                		
             			// /////////////////////////////////////////////////////////////////////
             		}
         			break;
@@ -329,9 +338,9 @@ public class ExamResultServiceImpl implements ExamResultService{
             }
             
         }
-        if (!valid_exam){
-        	throw new ESchoolException("Must input atleat one exam value: M1 ~ M20", HttpStatus.BAD_REQUEST);
-        }
+//        if (!valid_exam){
+//        	throw new ESchoolException("Must input atleat one exam value: M1 ~ M20", HttpStatus.BAD_REQUEST);
+//        }
         
 		// Check existing Exam for merger
 		ArrayList<ExamResult> curr_list = (ArrayList<ExamResult>) examResultDao.findExamResultExt(
@@ -1036,7 +1045,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	                				throw new ESchoolException(fname + ": invalid date time format, should be YYYY-MM-DD value: "+ exam_dt, HttpStatus.BAD_REQUEST);
 	                			}
 	                		}
-	                		
+	                		if (sval == null || sval.trim().length() == 0){
+	                			break;
+	                		}
 	                		Float fval = Utils.parseFloat(sval);
 	                		if (fval == null){
 	                			throw new ESchoolException(fname + ": invalid Float value: "+ sval, HttpStatus.BAD_REQUEST);
@@ -1082,7 +1093,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			float total =0;
 			int cnt =0;
 			ExamDetail ex_detail = null;
-			ObjectMapper mapper = null;
+			ObjectMapper mapper = new ObjectMapper();;
 			if (point_months1.size() > 0){
 				total =0;
 				cnt =0;
@@ -1096,7 +1107,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 				ex_detail.setExam_dt(Utils.now());
 				ex_detail.setNotice("AUTO");
 				ex_detail.setSresult(String.format("%.1f", m5));
-				mapper = new ObjectMapper();
+				//mapper = new ObjectMapper();
 				try {
 					examResult.setM5(mapper.writeValueAsString(ex_detail));
 				} catch (JsonProcessingException e) {
@@ -1119,7 +1130,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 					ex_detail.setExam_dt(Utils.now());
 					ex_detail.setNotice("AUTO");
 					ex_detail.setSresult(String.format("%.1f", m7));
-					mapper = new ObjectMapper();
+					//mapper = new ObjectMapper();
 					try {
 						examResult.setM7(mapper.writeValueAsString(ex_detail));
 					} catch (JsonProcessingException e) {
@@ -1128,6 +1139,19 @@ public class ExamResultServiceImpl implements ExamResultService{
 					}
 					// Add to calculate Ave of year
 					point_years.add(m7);
+				}
+			}else{
+				// Reset MONTH AVE
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM5(mapper.writeValueAsString(ex_detail));
+					examResult.setM7(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
 				}
 			}
 			// Calculate M12 ( Trung binh 4 thang HK2 )
@@ -1177,6 +1201,19 @@ public class ExamResultServiceImpl implements ExamResultService{
 					// Add to calculate Ave of year								
 					point_years.add(m14);
 				}
+			}else{
+				// Reset month HK 2
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM12(mapper.writeValueAsString(ex_detail));
+					examResult.setM14(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
 			}
 			
 			// Calculate M15 ( Trung binh ca nam )
@@ -1200,7 +1237,19 @@ public class ExamResultServiceImpl implements ExamResultService{
 					e.printStackTrace();
 					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
 				}			
-			}	        
+			}else{
+				// Reset month HK 2
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM15(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+			}
 		}
 	}
 		
