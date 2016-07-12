@@ -60,7 +60,7 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 
 	@Override
 	public int countBySchool(Integer school_id) {
-		int count = ((Long)getSession().createQuery("select count(*) from ExamMonth WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from ExamMonth WHERE actflg ='A' AND school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 		
 	}

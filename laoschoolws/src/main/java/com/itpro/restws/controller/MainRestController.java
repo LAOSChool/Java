@@ -58,8 +58,7 @@ public class MainRestController {
 	@Autowired
 	private MasterTblService masterTblService;
 	
-	@Autowired
-	private SysTblService sysTblService;
+
 	
 //	@Autowired
 //	private AuthenticationService authenticationService;
@@ -236,37 +235,18 @@ public class MainRestController {
 	    return "Request was successfully, delMaster:"+ tbl_name + " of id: "+id;
 	 }
 	
-	@RequestMapping(value="/api/sys/{tbl_name}",method = RequestMethod.GET)
+	@RequestMapping(value = "/api/masters/{tbl_name}/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getSys(
-			 @PathVariable String tbl_name			
-			) {
-		logger.info(" *** MainRestController.getSys");
+	 public MasterBase getMaster(
+			 @PathVariable String  tbl_name,
+			 @PathVariable int  id
+			 ) {
+		logger.info(" *** MainRestController.getMaster/{table}/{id}:"+tbl_name+"/"+id);
+
 		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;
-		ListEnt listResp = new ListEnt();
-		
-		
-    	// Count user
-    	total_row = sysTblService.countAll(tbl_name);
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
-    	}
-		logger.info("System Table:"+ tbl_name+ " count: total_row : "+total_row);
-		// Query class by school id
-		ArrayList<SysTemplate> list = (ArrayList<SysTemplate>) sysTblService.findAll(tbl_name, from_row, max_result);
-		
-		listResp.setList(list);
-		listResp.setFrom_row(from_row);
-		listResp.setTo_row(from_row + max_result);
-		listResp.setTotal_count(total_row);
-	    return listResp;
-	}
-	
+		MTemplate template = masterTblService.findById(tbl_name, id);
+	    return template;
+	 }
 	
 	public String currentMethod (	
 			@Context final HttpServletResponse response,

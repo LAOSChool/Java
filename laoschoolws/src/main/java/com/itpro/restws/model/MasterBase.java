@@ -11,6 +11,9 @@ public class MasterBase extends AbstractModel{
 	@Column(name="sval")
 	protected String sval;
 	
+	@Column(name="lval")
+	protected String lval;
+	
 	
 	@Column(name="fval1")
 	protected Float fval1;
@@ -78,7 +81,10 @@ public class MasterBase extends AbstractModel{
 		
 		temp.fval1 = this.fval1;
 		temp.fval2 = this.fval2;
+		
 		temp.sval = this.sval;
+		temp.lval = this.lval;
+		
 		temp.school_id = this.school_id;
 		temp.notice = this.notice;
 		return temp;
@@ -97,10 +103,21 @@ public void saveFromTemplate(MTemplate temp){
 	
 	this.fval1 = temp.fval1;
 	this.fval2 = temp.fval2;
+	
 	this.sval = temp.sval==null?this.sval:temp.sval;
+	this.lval = temp.lval==null?this.lval:temp.lval;
+	
 	this.school_id = temp.school_id;
 	this.notice = temp.notice==null?this.notice:temp.notice;
 	
 	}
+
+public String getLval() {
+	return lval;
+}
+
+public void setLval(String lval) {
+	this.lval = lval;
+}
 
 }

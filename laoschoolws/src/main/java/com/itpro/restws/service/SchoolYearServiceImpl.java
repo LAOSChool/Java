@@ -79,11 +79,18 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 	public SchoolYear findLatestYearBySchool(Integer school_id) {
 		ArrayList<SchoolYear> list = findBySchool(school_id);
 		SchoolYear max = null;
+		
+		int current_year = Utils.getCurrentYear();
 		if (list != null && list.size() > 0){
 			 max = list.get(0);
 			for (SchoolYear schoolYear: list){
-				if (max.getId().intValue() < schoolYear.getId().intValue()){
+//				if (max.getId().intValue() < schoolYear.getId().intValue()){
+//					max = schoolYear;
+//				}
+				if ((schoolYear.getFrom_year().intValue() <= current_year) &&
+						schoolYear.getTo_year().intValue() >= current_year){
 					max = schoolYear;
+					break;
 				}
 			}
 		}
@@ -96,11 +103,18 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 	public SchoolYear findLatestYearByStudent(Integer user_id) {
 		ArrayList<SchoolYear> list = findByStudent(user_id);
 		SchoolYear max = null;
+		int current_year = Utils.getCurrentYear();
+		
 		if (list != null && list.size() > 0){
 			 max = list.get(0);
 			for (SchoolYear schoolYear: list){
-				if (max.getId().intValue() < schoolYear.getId().intValue()){
+//				if (max.getId().intValue() < schoolYear.getId().intValue()){
+//					max = schoolYear;
+//				}
+				if ((schoolYear.getFrom_year().intValue() <= current_year) &&
+						schoolYear.getTo_year().intValue() >= current_year){
 					max = schoolYear;
+					break;
 				}
 			}
 		}

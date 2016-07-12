@@ -94,11 +94,11 @@ public class EduProfileController extends BaseController {
 		    return rsp;
 		}
 	
-	@Secured({"ROLE_ADMIN","ROLE_TEACHER"})
-	@RequestMapping(value="/api/edu_profile/school_years",method = RequestMethod.GET)
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_STUDENT"})
+	@RequestMapping(value="/api/edu_profiles/years",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo getSchoolYears(
-			@RequestParam(value="filter_user_id",required =true) Integer filter_user_id,
+			@RequestParam(value="filter_user_id",required =false) Integer filter_user_id,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -107,17 +107,27 @@ public class EduProfileController extends BaseController {
 			
 			User current_user = getCurrentUser();
 			
-			if (current_user.getId().intValue() != filter_user_id.intValue()){
-				if (current_user.hasRole(E_ROLE.STUDENT.getRole_short())){
-					throw new ESchoolException(" user:"+current_user.getId().intValue()+" is a STUDENT, cannot access to this data of other user_id: "+filter_user_id.intValue(), HttpStatus.BAD_REQUEST);
+			if (current_user.hasRole(E_ROLE.STUDENT.getRole_short())){
+//				throw new ESchoolException(" user:"+current_user.getId().intValue()+" is a STUDENT, cannot access to this data of other user_id: "+filter_user_id.intValue(), HttpStatus.BAD_REQUEST);
+				filter_user_id = current_user.getId();
+			}else{
+				if (filter_user_id == null){
+					throw new ESchoolException(" filter_user_id is required", HttpStatus.BAD_REQUEST);
 				}
 			}
+			
 			User filter_user= userService.findById(filter_user_id);
+			if (filter_user == null){
+				throw new ESchoolException(" filter_user_id is not existing:"+filter_user_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
 			if (filter_user.getSchool_id().intValue() != current_user.getSchool_id().intValue()){
 				throw new ESchoolException(" Current user school_id:"+current_user.getSchool_id().intValue()+" is differ from filter_user: "+filter_user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 			}
 			
-		
+			if (!filter_user.hasRole(E_ROLE.STUDENT.getRole_short())){
+				throw new ESchoolException(" user is not STUDENT:"+filter_user_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
+			
 			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(filter_user_id);
 				
 			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
@@ -125,5 +135,7 @@ public class EduProfileController extends BaseController {
 			rsp.setMessageObject(years);
 		    return rsp;
 		}
+
+	
 	
 }

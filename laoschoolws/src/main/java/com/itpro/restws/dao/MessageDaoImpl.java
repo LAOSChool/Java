@@ -24,7 +24,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	public int countByFromUser(Integer from_user) {
 		// Get row count
 		int count = ((Long) getSession()
-				.createQuery("select count(*) from Message WHERE from_user_id= '" + from_user + "' AND is_sent != 99").uniqueResult())
+				.createQuery("select count(*) from Message WHERE actflg ='A' AND from_user_id= '" + from_user + "' AND is_sent != 99").uniqueResult())
 						.intValue();
 		return count;
 
@@ -33,7 +33,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	@Override
 	public int countByToUser(Integer to_user) {
 		// Get row count
-		int count = ((Long) getSession().createQuery("select count(*) from Message WHERE to_user_id= '" + to_user + "' AND is_sent != 99")
+		int count = ((Long) getSession().createQuery("select count(*) from Message WHERE actflg ='A' AND to_user_id= '" + to_user + "' AND is_sent != 99")
 				.uniqueResult()).intValue();
 		return count;
 	}
@@ -74,7 +74,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	public int countBySchool(Integer school_id) {
 
 		int count = ((Long) getSession()
-				.createQuery("select count(*) from Message WHERE school_id= '" + school_id + "' AND is_sent != 99").uniqueResult())
+				.createQuery("select count(*) from Message WHERE actflg ='A' AND school_id= '" + school_id + "' AND is_sent != 99").uniqueResult())
 						.intValue();
 		return count;
 	}
@@ -82,7 +82,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	@Override
 	public int countByClass(Integer class_id) {
 
-		int count = ((Long) getSession().createQuery("select count(*) from Message WHERE class_id= '" + class_id + "' AND is_sent != 99")
+		int count = ((Long) getSession().createQuery("select count(*) from Message WHERE actflg ='A' AND class_id= '" + class_id + "' AND is_sent != 99")
 				.uniqueResult()).intValue();
 		return count;
 	}

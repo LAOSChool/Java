@@ -3,26 +3,21 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 import java.util.Set;
 
-import javax.management.remote.SubjectDelegationPermission;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.EduProfileDao;
 import com.itpro.restws.dao.SchoolDao;
-import com.itpro.restws.dao.SchoolYearDao;
-import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.EduProfile;
 import com.itpro.restws.model.ExamResult;
-import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
@@ -31,7 +26,11 @@ import com.itpro.restws.model.User;
 @Transactional
 public class EduProfileServiceImpl implements EduProfileService{
 	private static final Logger logger = Logger.getLogger(EduProfileServiceImpl.class);
-
+	
+	
+	@Autowired
+	protected SchoolYearService schoolYearService;
+	
 	@Autowired
 	protected EduProfileDao eduProfileDao;
 	@Autowired
@@ -45,17 +44,20 @@ public class EduProfileServiceImpl implements EduProfileService{
 	
 	@Autowired
 	protected UserService userService;
+	@Autowired
+	protected AttendanceService attendanceService;
 
 	
-	@Autowired
-	protected SchoolYearDao schoolYearDao;
+//	@Autowired
+//	protected SchoolYearDao schoolYearDao;
 	
 	@Override
 	public ArrayList<SchoolYear> findSchoolYearByStudentID(Integer student_id) {
+		logger.info("findSchoolYearByStudentID START");
 		ArrayList<SchoolYear> ret = new ArrayList<>();
 		ArrayList<EduProfile> profiles = eduProfileDao.findByStudentID(student_id);
 		for (EduProfile eduProfile: profiles){
-			SchoolYear schoolYear = schoolYearDao.findById(eduProfile.getSchool_year_id());
+			SchoolYear schoolYear = schoolYearService.findById(eduProfile.getSchool_year_id());
 			boolean insert_ok = true;
 			for (SchoolYear year : ret){
 				if (year.getId().intValue() == schoolYear.getId().intValue()){
@@ -74,7 +76,7 @@ public class EduProfileServiceImpl implements EduProfileService{
 	public ArrayList<EduProfile> getUserProfile(User student, Integer filter_year_id) {
 		
 		ArrayList<EduProfile> eduProfiles = new ArrayList<EduProfile>();
-		SchoolYear curr_year = schoolYearDao.findLastestOfSchoolId(student.getSchool_id());
+		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
 		
 		
 		if (filter_year_id== null || 
@@ -104,13 +106,19 @@ public class EduProfileServiceImpl implements EduProfileService{
 		for (EduProfile eduProfile: eduProfiles){
 			ArrayList<ExamResult> examResults = examResultService.getUserProfile(student, null, filter_year_id);
 			eduProfile.setExam_results(examResults);
+			// update attendace info
+			ArrayList<Attendance> attendances = attendanceService.findAttendanceExt(student.getSchool_id(), null, student.getId(), null, 0, 999999, null, null, null, null, null, eduProfile.getSchool_year_id());
+			if (attendances != null ){
+				eduProfile.setDay_absents(attendances.size());
+			}
+			
 		}
 		return eduProfiles; 
 	}
 
 	private EduProfile new_blank_edu_profile(User student, Integer year_id) {
 		School sch = schoolDao.findById(student.getSchool_id());
-		SchoolYear schoolYear = schoolYearDao.findById(year_id);
+		SchoolYear schoolYear = schoolYearService.findById(year_id);
 		
 		if (sch == null ){
 			throw new ESchoolException("Cannot get School for user.school_id:"+student.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);

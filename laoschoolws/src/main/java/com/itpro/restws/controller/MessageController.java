@@ -157,7 +157,8 @@ public class MessageController extends BaseController {
 		
 		
 		
-		return messageService.findById(Integer.valueOf(id));
+		Message msg =  messageService.findById(Integer.valueOf(id));
+		return msg;
 	 }
 	
 	

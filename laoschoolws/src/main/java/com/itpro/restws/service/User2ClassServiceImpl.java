@@ -10,18 +10,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ClassDao;
-import com.itpro.restws.dao.SchoolDao;
-import com.itpro.restws.dao.SchoolYearDao;
-import com.itpro.restws.dao.EduProfileDao;
 import com.itpro.restws.dao.User2ClassDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.School;
 import com.itpro.restws.model.SchoolYear;
-import com.itpro.restws.model.EduProfile;
 import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
 
@@ -36,20 +31,21 @@ public class User2ClassServiceImpl implements User2ClassService{
 	@Autowired
 	private UserDao userDao;
 	
-	@Autowired
-	private SchoolDao schoolDao;
+//	@Autowired
+//	private SchoolDao schoolDao;
 	
 	@Autowired
 	private ClassDao classesDao;
 	
-	@Autowired
-	private SchoolYearDao schoolYearDao;
+//	@Autowired
+//	private SchoolYearDao schoolYearDao;
 	
 
+//	@Autowired
+//	private EduProfileDao eduProfileDao;
+	
 	@Autowired
-	private EduProfileDao eduProfileDao;
-	
-	
+	protected SchoolYearService schoolYearService;
 	
 	@Override
 	public User2Class findById(Integer id) {
@@ -79,6 +75,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 	}
 	@Override
 	public User2Class assignUserToClass(User admin, Integer user_id, Integer class_id, String notice) {
+		logger.info("assignUserToClass START");
 		User user = userDao.findById(user_id);
 		EClass eclass = classesDao.findById(class_id);
 		
@@ -97,7 +94,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 			throw new ESchoolException("assigned user & current user are not in same School", HttpStatus.BAD_REQUEST);
 		}
 		// Get school_year
-		SchoolYear schoolYear = schoolYearDao.findLastestOfSchoolId(user.getSchool_id());
+		SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
 		if (schoolYear == null){
 			throw new ESchoolException("schoolYear of school_id is null, school_id =  "+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
@@ -236,9 +233,9 @@ public class User2ClassServiceImpl implements User2ClassService{
 //		}
 //					
 //	}
-	private void close_user_profile(User admin, Integer user_id, Integer class_id, String notice){
-		
-	}
+//	private void close_user_profile(User admin, Integer user_id, Integer class_id, String notice){
+//		//assignUserToClass.in
+//	}
 	
 
 	

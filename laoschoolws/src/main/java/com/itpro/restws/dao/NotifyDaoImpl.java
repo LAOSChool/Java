@@ -27,7 +27,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	@Override
 	public int countByFromUser(Integer from_user) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE from_user_id= '" + from_user+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from Notify WHERE actflg ='A' AND from_user_id= '" + from_user+ "'").uniqueResult()).intValue();
 		return count;
 
 	}

@@ -20,8 +20,6 @@ public class SysProvince extends SysBase{
 	@GeneratedValue
 	@Column(name="id")
 	private Integer id;
-	
-	
 	public Integer getId() {
 		return id;
 	}
@@ -29,43 +27,14 @@ public class SysProvince extends SysBase{
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	
-	public SysTemplate convert2ToTemplate(){
-		SysTemplate temp = new SysTemplate(); 
-		temp.actflg = this.actflg;
-		temp.ctddtm = this.ctddtm;
-		temp.ctdpgm = this.ctdpgm;
-		temp.ctdusr = this.ctdusr;
-		temp.ctdwks = this.ctdwks;
-		temp.lstmdf = this.lstmdf;
-		temp.mdfpgm = this.mdfpgm;
-		temp.mdfusr = this.mdfusr;
-		temp.mdfwks = this.mdfwks;
-		
-		temp.fval1 = this.fval1;
-		temp.fval2 = this.fval2;
-		temp.sval = this.sval;
-		temp.notice = this.notice;
+	public SysTemplate convertToTemplate(){
+		SysTemplate temp = super.convert2ToTemplate();
 		temp.setId(this.getId());
 		return temp;
 	}
-public void saveFromTemplate(MTemplate temp){
+	public void saveFromTemplate(SysTemplate temp){
 		
-		this.actflg = temp.actflg;
-		this.ctddtm = temp.ctddtm;
-		this.ctdpgm = temp.ctdpgm;
-		this.ctdusr = temp.ctdusr;
-		this.ctdwks = temp.ctdwks;
-		this.lstmdf = temp.lstmdf;
-		this.mdfpgm = temp.mdfpgm;
-		this.mdfusr = temp.mdfusr;
-		this.mdfwks = temp.mdfwks;
-		
-		this.fval1 = temp.fval1;
-		this.fval2 = temp.fval2;
-		this.sval = temp.sval;
-		this.notice = temp.notice;
-		
-		this.setId(temp.getId());
+	super.saveFromTemplate(temp);
+	this.setId(temp.getId());
 	}
 }

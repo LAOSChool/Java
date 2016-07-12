@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.faces.view.AttachedObjectHandler;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.AttendanceDao;
-
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.helper.Utils;
@@ -140,16 +137,16 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id,String att_dt,String from_dt, String to_dt,Integer session_id) {
+			Integer from_row_id,String att_dt,String from_dt, String to_dt,Integer session_id,Integer term_val, Integer year_id) {
 		
-		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt,session_id);
+		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt,session_id,term_val, year_id);
 	}
 
 	@Override
 	public ArrayList<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
-			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt,Integer session_id) {
+			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt,Integer session_id, Integer term_val,Integer year_id) {
 		
-		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt,session_id);
+		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt,session_id,term_val,year_id);
 	}
 
 	@Override
@@ -199,7 +196,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		}
 
 		
-		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null,null);
+		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null,null,null,null);
 		if (cnt > 0){
 			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
 			logger.error("Request already existing:"+curr_user.getId());
@@ -266,7 +263,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 	
 
 	private void valid_insert_attendance(User curr_user, Attendance attendace){
-		int cnt = countAttendanceExt(attendace.getSchool_id(), attendace.getClass_id(), attendace.getStudent_id(),null,attendace.getAtt_dt(),null,null,attendace.getSession_id());
+		int cnt = countAttendanceExt(attendace.getSchool_id(), attendace.getClass_id(), attendace.getStudent_id(),null,attendace.getAtt_dt(),null,null,attendace.getSession_id(),null,null);
 		if (cnt > 0){
 			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
 			logger.error("Request already existing:"+curr_user.getId());

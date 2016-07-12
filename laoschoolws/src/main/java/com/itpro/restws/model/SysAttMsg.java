@@ -11,11 +11,11 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 @Entity
-@Table(name="sys_role")
+@Table(name="sys_att_msg")
 @DynamicInsert(value=true)
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
-public class SysRole extends SysBase{
+public class SysAttMsg extends SysBase{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
@@ -37,6 +37,4 @@ public class SysRole extends SysBase{
 	super.saveFromTemplate(temp);
 	this.setId(temp.getId());
 	}
-	
-
 }

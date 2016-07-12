@@ -22,6 +22,7 @@ import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ErrInfo;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.RespInfo;
+import com.itpro.restws.model.ExamRank;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.User;
 /**
@@ -65,46 +66,6 @@ public class ExamResultController extends BaseController {
 		 
 	}
 
-//	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
-//	@RequestMapping(value = "/api/exam_results/delete/{id}", method = RequestMethod.POST)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	 public RespInfo delExamResult(
-//			 @Context final HttpServletRequest request,
-//				@Context final HttpServletResponse response,
-//			 @PathVariable int  id
-//			 ) {
-//		logger.info(" *** MainRestController.delExamResult/{id}:"+id);
-//		User teacher = getCurrentUser();
-//		
-//		ExamResult examresult = examResultService.findById(id);
-//		if (examresult == null ){
-//			throw new ESchoolException("Exam not found", HttpStatus.NOT_FOUND);
-//		}
-//		
-//		if (teacher.getSchool_id() != examresult.getSchool_id() ){
-//			throw new ESchoolException("Cannot access other school exam result", HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		if (!teacher.hasRole(E_ROLE.ADMIN.getRole_short())){
-//			
-//		}else{
-//			if (teacher.is_belong2class(examresult.getClass_id())){
-//				
-//			}else{
-//				throw new ESchoolException("Teacher cannot DEL the class_id not belong to,  Exam.class_id="+examresult.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
-//			}
-//			
-//		
-//		}
-//		examresult.setActflg("D");
-//		examResultService.deleteExamResult(examresult);
-//	    
-//		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-//		rsp.setMessageObject("Request was successfully, delete exam result of id: "+id);
-//	    return rsp;
-//	 }
-	
-
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
 	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -139,7 +100,7 @@ public class ExamResultController extends BaseController {
     	}
     	
 		
-		List<ExamResult> exam_results  = examResultService.getClassProfile(teacher,filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
+		List<ExamResult> exam_results  = examResultService.getClassProfile(teacher.getSchool_id(),filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
 		
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(exam_results);
@@ -328,4 +289,88 @@ public class ExamResultController extends BaseController {
 //	    return rsp;
 //
 //	}
+	
+	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@RequestMapping(value="/api/exam_results/ranks",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo getExamRanks(
+			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** MainRestController.getExamRanks");
+
+		User current_user = getCurrentUser();
+				
+		ArrayList<ExamRank> exam_ranks  = null;
+		
+		if (filter_class_id == null || filter_class_id.intValue() == 0)  {
+			throw new ESchoolException("filter_class_id required", HttpStatus.BAD_REQUEST);
+		}
+
+//		
+//		if (filter_year_id == null || filter_year_id.intValue() == 0)  {
+//				throw new ESchoolException("filter_year_id required", HttpStatus.BAD_REQUEST);
+//		}
+		
+		if (filter_student_id != null && filter_student_id.intValue() > 0){
+			User student = userService.findById(filter_student_id);
+			if (student != null && student.getSchool_id().intValue() == current_user.getSchool_id().intValue()){ 
+				exam_ranks = examResultService.getUserRank(student, filter_class_id, filter_year_id);
+			}else{
+				throw new ESchoolException("filter_student_id is not existing:"+filter_student_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}else {
+			exam_ranks = examResultService.getClassRank(filter_class_id, filter_year_id);
+		}
+		
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		rsp.setMessageObject(exam_ranks);
+	    return rsp;
+	}
+	
+	@RequestMapping(value="/api/exam_results/exec_rank",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo execRank(
+			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** MainRestController.execRank");
+
+		User current_user = getCurrentUser();
+				
+		ArrayList<ExamRank> exam_ranks  = null;
+		
+		if (filter_class_id == null || filter_class_id.intValue() == 0)  {
+			throw new ESchoolException("filter_class_id required", HttpStatus.BAD_REQUEST);
+		}
+
+//		
+//		if (filter_year_id == null || filter_year_id.intValue() == 0)  {
+//				throw new ESchoolException("filter_year_id required", HttpStatus.BAD_REQUEST);
+//		}
+		
+//		if (filter_student_id != null && filter_student_id.intValue() > 0){
+//			User student = userService.findById(filter_student_id);
+//			if (student != null && student.getSchool_id().intValue() == current_user.getSchool_id().intValue()){ 
+//				exam_ranks = examResultService.calUserAve(student, filter_year_id);
+//			}else{
+//				throw new ESchoolException("filter_student_id is not existing:"+filter_student_id.intValue(), HttpStatus.BAD_REQUEST);
+//			}
+//		}else {
+//			exam_ranks = examResultService.execClassRank(filter_class_id, filter_year_id);
+//		}
+		
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		rsp.setMessageObject(exam_ranks);
+	    return rsp;
+	}
+	
 }

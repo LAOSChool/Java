@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,8 +28,10 @@ import com.itpro.restws.helper.RollUp;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
+import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.Timetable;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.SchoolYearService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -42,6 +45,9 @@ import com.itpro.restws.model.User;
 @RestController 
 public class AttendanceController extends BaseController {
 	
+	
+	@Autowired
+	private SchoolYearService schoolYearService;
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/attendances",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -51,6 +57,8 @@ public class AttendanceController extends BaseController {
 			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
 			@RequestParam(value="filter_from_dt", required =false) String filter_from_dt,
 			@RequestParam(value="filter_to_dt", required =false) String filter_to_dt,
+			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,
+			@RequestParam(value="filter_term_val", required =false) Integer filter_term_val,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -62,7 +70,8 @@ public class AttendanceController extends BaseController {
 		Integer school_id = user.getSchool_id();
 		Integer class_id =  Utils.parseInteger(filter_class_id);
 		Integer student_id = Utils.parseInteger(filter_user_id);
-		
+		Integer year_id = filter_year_id;
+		Integer term_val = filter_term_val;
 		
 		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
 			
@@ -91,12 +100,19 @@ public class AttendanceController extends BaseController {
 		int total_row = 0;
 		int from_row = 0;
 		int max_result = Constant.MAX_RESP_ROW;;
-		
+		if (year_id == null){
+			SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
+			if (schoolYear == null ){
+				throw new ESchoolException("Cannot get schoolyear of school_id: "+user.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);
+			}
+			year_id= schoolYear.getId();
+		}
 				
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
-	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),null,filter_from_dt,filter_to_dt,null);
+	    	
+	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),null,filter_from_dt,filter_to_dt,null,term_val,year_id);
 	    	if (total_row > Constant.MAX_RESP_ROW){
 	    		max_result = Constant.MAX_RESP_ROW;
 	    	}else{
@@ -105,7 +121,7 @@ public class AttendanceController extends BaseController {
 	    		
 			logger.info("Attendance count: total_row : "+total_row);
 			// Query class by school id
-			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,null,filter_from_dt,filter_to_dt,null);
+			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,null,filter_from_dt,filter_to_dt,null,term_val,year_id);
 		    rspEnt.setList(attendances);
 		    rspEnt.setFrom_row(from_row);
 		    rspEnt.setTo_row(from_row + max_result);
@@ -329,7 +345,13 @@ public class AttendanceController extends BaseController {
 		Integer school_id = user.getSchool_id();
 		Integer class_id =  Utils.parseInteger(filter_class_id);
 		Integer session_id =  Utils.parseInteger(filter_session_id);
+		// Get current school year
+		SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
+		if (schoolYear == null ){
+			throw new ESchoolException("Cannot get schoolyear of school_id: "+user.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);
+		}
 		
+	
 		Date att_dt = Utils.parsetDate(filter_date);// YYYY-MM-DD
 		if (att_dt == null){
 			throw new ESchoolException("Invalide filter_date ",HttpStatus.BAD_REQUEST);
@@ -358,7 +380,7 @@ public class AttendanceController extends BaseController {
 		RollUp rollup = new RollUp();
 		
 		ArrayList<Timetable> timetables = timetableService.findByDate(class_id, filter_date);
-		ArrayList<Attendance> attendances = attendanceService.findAttendanceExt(school_id, class_id, null, null, 0,99999,null,filter_date,filter_date,session_id);
+		ArrayList<Attendance> attendances = attendanceService.findAttendanceExt(school_id, class_id, null, null, 0,99999,null,filter_date,filter_date,session_id,null,schoolYear.getId());
 		ArrayList<User> students = userService.findUserExt(school_id, 0, 99999, class_id, E_ROLE.STUDENT.getRole_short(), null, null);
 		
 		

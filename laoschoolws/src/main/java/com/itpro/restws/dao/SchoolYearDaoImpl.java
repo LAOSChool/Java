@@ -59,18 +59,18 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 
 
 
-	@Override
-	public SchoolYear findLastestOfSchoolId(Integer school_id) {
-		Criteria crit_list = createEntityCriteria();
-		crit_list.add(Restrictions.eq("school_id", school_id));
-		crit_list.addOrder(Order.desc("id"));
-		@SuppressWarnings("unchecked")
-		List<SchoolYear> ret = crit_list.list();
-		if (ret != null && ret.size() >0){
-			return ret.get(0);
-		}
-		return null;
-	}
+//	@Override
+//	public SchoolYear findLastestOfSchoolId(Integer school_id) {
+//		Criteria crit_list = createEntityCriteria();
+//		crit_list.add(Restrictions.eq("school_id", school_id));
+//		crit_list.addOrder(Order.desc("id"));
+//		@SuppressWarnings("unchecked")
+//		List<SchoolYear> ret = crit_list.list();
+//		if (ret != null && ret.size() >0){
+//			return ret.get(0);
+//		}
+//		return null;
+//	}
 
 
 

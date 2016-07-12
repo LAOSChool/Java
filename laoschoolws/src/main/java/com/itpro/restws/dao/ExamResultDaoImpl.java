@@ -20,7 +20,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	public int countExamBySchool(Integer school_id) {
 		// Get row count
 		int count = ((Long) getSession()
-				.createQuery("select count(*) from ExamResult WHERE school_id= '" + school_id + "'").uniqueResult())
+				.createQuery("select count(*) from ExamResult WHERE actflg ='A' AND school_id= '" + school_id + "'").uniqueResult())
 						.intValue();
 		return count;
 
@@ -30,7 +30,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	public int countExamBySclass(Integer class_id) {
 		// Get row count
 		int count = ((Long) getSession()
-				.createQuery("select count(*) from ExamResult WHERE class_id= '" + class_id + "'").uniqueResult())
+				.createQuery("select count(*) from ExamResult WHERE actflg ='A' AND class_id= '" + class_id + "'").uniqueResult())
 						.intValue();
 		return count;
 	}
@@ -38,7 +38,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	@Override
 	public int countExamByUser(Integer student_user_id) {
 		int count = ((Long) getSession()
-				.createQuery("select count(*) from ExamResult WHERE student_id= '" + student_user_id + "'")
+				.createQuery("select count(*) from ExamResult WHERE actflg ='A' AND student_id= '" + student_user_id + "'")
 				.uniqueResult()).intValue();
 		return count;
 	}

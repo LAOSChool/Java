@@ -98,7 +98,7 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.school.create");
-		 //school = schoolService.findById(1);
+
 		 return schoolService.insertSchool(school);
 		 
 	}
@@ -111,9 +111,16 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.schools.update");
-			 school = schoolService.findById(Integer.valueOf(1));
+		User user = getCurrentUser();
+		
+		if (user.getSchool_id().intValue() != school.getId().intValue()){
+			throw new ESchoolException("school.id is not belong to current user - current_user.school_id:"+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
 		 return schoolService.updateSchool(school);
 	}
+	
+	
+	
 	
 	@Secured({ "ROLE_SYS_ADMIN" })
 	@RequestMapping(value = "/api/schools/delete/{id}", method = RequestMethod.POST)
@@ -124,7 +131,9 @@ public class SchoolController extends BaseController {
 			 
 			 ) {
 		logger.info(" *** MainRestController.delSchool/{school_id}:"+id);
-
+		School school = schoolService.findById(id);
+		school.setActflg("D");
+		schoolService.updateSchool(school);
 	    return "Request was successfully, delete school of id: "+id;
 	 }
 	

@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,7 +17,8 @@ public class MainRestExceptionProcessor {
 //	private ResourceBundleMessageSource messageSource;
 
 	Locale msgLocate = Locale.US;
-
+	protected static final Logger logger = Logger.getLogger(MainRestExceptionProcessor.class);
+	
 	// Hand all UnknownMatchException
 	@ExceptionHandler(ESchoolException.class)
 	public ResponseEntity<RespInfo> handleUnknowException(HttpServletRequest req, ESchoolException ex) {
@@ -39,6 +41,12 @@ public class MainRestExceptionProcessor {
 		
 		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, httpSts);
 
+		StackTraceElement[] elems = ex.getStackTrace();
+		if (elems != null ){
+			for (StackTraceElement e: elems){
+				logger.error("    "+ e.toString());
+			}
+		}
 		return response;
 	 }
 

@@ -12,6 +12,8 @@ public interface TimetableService {
 	ArrayList<Timetable> findBySchool(Integer school_id,int from_num, int max_result);
 	ArrayList<Timetable> findByClass(Integer class_id,int from_num, int max_result);
 	
+	
+	
 	ArrayList<MSubject> findSubjectOfClass(Integer class_id);
 	
 	

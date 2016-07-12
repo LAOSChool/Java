@@ -18,7 +18,7 @@ public class ActionLogDaoImpl extends AbstractDao<Integer, ActionLog> implements
 
 	@Override
 	public int countBySchool(Integer school_id) {
-		int count = ((Long)getSession().createQuery("select count(*) from ActionLog WHERE school_id= '" + school_id+ "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from ActionLog WHERE  actflg ='A' AND  school_id= '" + school_id+ "'").uniqueResult()).intValue();
 		return count;
 	}
 

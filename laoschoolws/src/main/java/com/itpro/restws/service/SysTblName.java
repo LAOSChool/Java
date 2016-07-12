@@ -1,9 +1,16 @@
 package com.itpro.restws.service;
 
 public enum SysTblName {
-	TBLNAME_SYS_DEGREE("sys_degree","SysDegree"),
+	TBLNAME_SYS_DEGREE("sys_degree","SysDegree"),// tbl_name,model_name
 	TBLNAME_SYS_PROVINCE("sys_province","SysProvince"),
+	TBLNAME_SYS_DIST("sys_dist","SysDist"),
+	
 	TBLNAME_SYS_ROLE("sys_role","SysRole"),
+	
+	TBLNAME_SYS_ATT_REASON("sys_att_reason","SysAttReason"),
+	TBLNAME_SYS_LATE_REASON("sys_late_reason","SysLateReason"),
+	TBLNAME_SYS_ATT_MSG("sys_att_msg","SysAttMsg"),
+	
 	TBLNAME_SYS_WEEKDAY("sys_weekday","SysWeekday");
 	
 	   public String toString() { return tbl_name; }

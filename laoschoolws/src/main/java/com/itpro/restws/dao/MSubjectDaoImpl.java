@@ -25,7 +25,7 @@ public class MSubjectDaoImpl extends AbstractDao<Integer, MSubject> implements M
 	@Override
 	public int countBySchool(Integer school_id) {
 		// Get row count
-		int count = ((Long)getSession().createQuery("select count(*) from " + ModelName+  " WHERE school_id = '" + school_id + "'").uniqueResult()).intValue();
+		int count = ((Long)getSession().createQuery("select count(*) from " + ModelName+  " WHERE actflg ='A' AND  school_id = '" + school_id + "'").uniqueResult()).intValue();
 		return count;
 	}
 

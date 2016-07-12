@@ -150,6 +150,10 @@ public class Timetable extends AbstractModel{
 	@Formula("(SELECT t.sval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String weekday;
 	
+	@Formula("(SELECT t.lval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String weekday_laos;
+	
+	
 	// Teacher Name
 	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String teacher_name;
@@ -183,6 +187,18 @@ public class Timetable extends AbstractModel{
 
 	public void setWeekday(String weekday) {
 		this.weekday = weekday;
+	}
+
+	public String getWeekday_laos() {
+		return weekday_laos;
+	}
+
+	public void setWeekday_laos(String weekday_laos) {
+		this.weekday_laos = weekday_laos;
+	}
+
+	public void setTeacher_name(String teacher_name) {
+		this.teacher_name = teacher_name;
 	}
 
 }

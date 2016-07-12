@@ -41,14 +41,22 @@ public class TimeTableController extends BaseController {
 
 	@RequestMapping(value="/api/timetables",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt  getTimetables() {
+	public ListEnt  getTimetables(
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
 		logger.info(" *** MainRestController.getTimetables");
 		
 		int total_row = 0;
 		int from_row = 0;
 		int max_result = Constant.MAX_RESP_ROW;;
-		int school_id = 1;//TODO: get from token => user info
+		
 		ListEnt listResp = new ListEnt();
+		
+		User current_user =getCurrentUser();
+		Integer school_id = current_user.getSchool_id();
 		
     	// Count user
     	total_row = timetableService.countBySchoolID(school_id);
@@ -59,10 +67,20 @@ public class TimeTableController extends BaseController {
     	}
     		
 		logger.info("Timetable count: total_row : "+total_row);
+		ArrayList<Timetable> timetables = null;
 		// Query class by school id
-		ArrayList<Timetable> examResults = timetableService.findBySchool(school_id, from_row, max_result);
+		if (filter_class_id == null ){
+			timetables = timetableService.findBySchool(school_id, from_row, max_result);
+		}else{
+			EClass eclass = classService.findById(filter_class_id);
+			if (eclass == null || 
+					(eclass.getSchool_id().intValue() != school_id.intValue())){
+				throw new ESchoolException("filter_class_id is required or not belont to current school", HttpStatus.BAD_REQUEST);
+			}
+			timetables = timetableService.findByClass(filter_class_id, from_row, max_result);
+		}
 		
-		listResp.setList(examResults);
+		listResp.setList(timetables);
 		listResp.setFrom_row(from_row);
 		listResp.setTo_row(from_row + max_result);
 		listResp.setTotal_count(total_row);
