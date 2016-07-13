@@ -1,11 +1,15 @@
 package com.itpro.restws.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
+import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,8 +38,16 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class NotifyController extends BaseController {
-	
-	
+	/***
+	 * It will convert String to String[] without using separator (null param), 
+	 * with Spring class org.springframework.beans.propertyeditors.StringArrayPropertyEditor. 
+	 * If someone in same project will use new default conversion way, it will be ok.
+	 * @param binder
+	 */
+	@InitBinder
+	public void initBinder(WebDataBinder binder) {
+	    binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
+	}	
 	
 	@RequestMapping(value="/api/notifies",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -185,6 +197,13 @@ public class NotifyController extends BaseController {
 			 {
 		logger.info(" *** MainRestController.createNotify");
 		logger.info(" *** json_in_string:"+json_in_string);
+		
+		try {
+			request.setCharacterEncoding("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		String err_msg = "";
 		if (orders == null ){

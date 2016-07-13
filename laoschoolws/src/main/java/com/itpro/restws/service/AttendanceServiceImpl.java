@@ -18,6 +18,7 @@ import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
+import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
@@ -38,6 +39,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 	
 	@Autowired
 	private ClassService classService;
+	
+	@Autowired
+	private MessageService messageService;
 	
 	
 	@Override
@@ -168,6 +172,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 			request.setRequested_dt(Utils.now());
 			
 			attendanceDao.saveAttendance(request);
+			// Send Message
+			
+			sendAttendRequestMessage(request);
 			return request;
 		}
 		return null;
@@ -344,5 +351,19 @@ public class AttendanceServiceImpl implements AttendanceService{
 		}
 		
 		
+	}
+	void sendAttendRequestMessage(Attendance request){
+		Integer class_id = request.getClass_id();
+		EClass eclass = classService.findById(class_id);
+		if (eclass == null){
+			throw new ESchoolException("request.class_id is not existing", HttpStatus.BAD_REQUEST);
+		}
+		Integer head_teacher_id = eclass.getHead_teacher_id();
+		if (head_teacher_id == null){
+			throw new ESchoolException("class_id:"+class_id.intValue()+" dont have head_teacher_id to send message", HttpStatus.BAD_REQUEST);
+		}
+		Message msg = messageService.newMessage(request.getStudent_id(), head_teacher_id, request.getNotice()==null?"- Request Attendance -  ":"- Request Attendance -  "+request.getNotice());
+		
+		messageService.insertMessageExt(msg);
 	}
 }

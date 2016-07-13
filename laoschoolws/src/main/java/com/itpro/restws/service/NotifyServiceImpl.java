@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itpro.restws.dao.NotifyDao;
 import com.itpro.restws.dao.NotifyImgDao;
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_DEST_TYPE;
 import com.itpro.restws.helper.E_ENTITY;
@@ -329,7 +331,11 @@ public class NotifyServiceImpl implements NotifyService{
 		ObjectMapper mapper = new ObjectMapper();
 		Notify notify=null;
 		try {
-			notify = mapper.readValue(json_str_notify, Notify.class);
+			//Charset.forName("UTF-8").encode(json_str_notify);
+			byte ptext[] = json_str_notify.getBytes(Constant.ISO_8859_1); 
+			String value = new String(ptext, Constant.UTF_8); 
+			notify = mapper.readValue(value, Notify.class);
+			//notify = mapper.readValue(json_str_notify, Notify.class);
 			notify.setSent_dt(Utils.now());
 			notify.setIs_sent(99);// Will not sent this
 			notifyDao.saveNotify(notify);
@@ -351,6 +357,12 @@ public class NotifyServiceImpl implements NotifyService{
 			
 			MultipartFile file = files[i];
 			String caption = captions[i];
+			// convert to UTF-8
+			byte ptext[] = caption.getBytes(Constant.ISO_8859_1); 
+			String value = new String(ptext, Constant.UTF_8);
+			
+			caption =value;
+			
 			int order =Utils.parseInteger(orders[i]).intValue();
 			if (file.isEmpty() ){
 				throw new ESchoolException("File is emtpy", HttpStatus.BAD_REQUEST);

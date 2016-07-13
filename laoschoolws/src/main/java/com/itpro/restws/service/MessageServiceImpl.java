@@ -625,6 +625,23 @@ public class MessageServiceImpl implements MessageService{
 		return message;
 	}
 
+	@Override
+	public Message newMessage(Integer from_user_id, Integer to_user_id, String content) {
+		Message msg = new Message();
+		User frm_user = userService.findById(from_user_id);
+		User to_user = userService.findById(to_user_id);
+		
+		if (frm_user == null || to_user == null ){
+			throw new ESchoolException("newMessage() from_user_id or to_user_id is not exsiting", HttpStatus.BAD_REQUEST);
+		}
+		msg.setSchool_id(frm_user.getSchool_id());
+		msg.setFrom_user_id(from_user_id);
+		msg.setTo_user_id(to_user_id);
+		msg.setContent(content);
+		
+		return msg;
+	}
+
 	
 	
 }

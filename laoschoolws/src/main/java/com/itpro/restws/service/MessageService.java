@@ -54,4 +54,5 @@ public interface MessageService {
 	Message updateMessage(Message message);
 	//void broadcastMessage(User user, Message msg, String filter_class_list, String filter_roles);
 	ArrayList<Message> broadcastMessage(User user, Message message, String filter_roles) ;
+	Message newMessage(Integer from_user,Integer to_user, String content);
 }

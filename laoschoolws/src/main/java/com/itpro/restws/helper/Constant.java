@@ -1,5 +1,5 @@
 package com.itpro.restws.helper;
-
+import java.nio.charset.Charset;
 public class Constant {
 	public static final int MAX_RESP_ROW=100;
 	public static final int MAX_STUDENT_SESSION=3;
@@ -16,6 +16,9 @@ public class Constant {
 	public static final String HEADER_PASSWORD = "password";
 	public static final int ActionLogMaxLength = 65535;//64 Kilobytes
 	
+	public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
+    public static final Charset UTF_8 = Charset.forName("UTF-8");
+    
 	public static final String[] exam_keys ={
 			  "m1", 
 			  "m2", 

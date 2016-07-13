@@ -1,9 +1,11 @@
 package com.itpro.restws.configuration;
 
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -32,6 +34,18 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 	      messageSource.setUseCodeAsDefaultMessage(true);
 	      return messageSource;
 	  }
+	
+	@Bean
+	public FilterRegistrationBean filterRegistrationBean() {
+	    CharacterEncodingFilter filter = new CharacterEncodingFilter();
+	    filter.setEncoding("UTF-8");
+
+	    FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+	    registrationBean.setFilter(filter);
+	    registrationBean.addUrlPatterns("/*");
+	    return registrationBean;
+	}
+	
 	/*
 	 * Configure ResourceHandlers to serve static resources like CSS/ Javascript
 	 * etc...
