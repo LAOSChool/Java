@@ -106,7 +106,7 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 
 
 	@Override
-	public List<User2Class> findByUserAndClass(Integer class_id, Integer user_id, boolean is_running) {
+	public List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, boolean is_running) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("user_id", user_id));
 		crit_list.add(Restrictions.eq("class_id", class_id));
@@ -117,6 +117,15 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 		List<User2Class> list = crit_list.list();
 	     
 		return  list;
+	}
+
+
+
+
+	@Override
+	public void deleteUser2Class(User2Class user2Class) {
+		delete(user2Class);
+		
 	}
 	
 

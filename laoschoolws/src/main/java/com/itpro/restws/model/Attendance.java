@@ -14,6 +14,8 @@ import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name="attendance")
 @DynamicInsert(value=true)
@@ -365,9 +367,8 @@ public class Attendance extends AbstractModel{
 		copy.setAuditor_name(this.auditor_name);
 		copy.setStudent_id(this.student_id);
 		copy.setStudent_name(this.student_name);
-			
-		
 		return copy;
 	}
+
 
 }

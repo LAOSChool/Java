@@ -87,5 +87,12 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		
 	}
 
+
+	@Override
+	public void delTimetable(Timetable timetable) {
+		delete(timetable);
+		
+	}
+
 	
 }

@@ -138,7 +138,8 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			) {
 		
 		//int count = ((Long)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id.intValue()+ "'").uniqueResult()).intValue();
-		String query = 	"select count(*)  from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		//String query = 	"select count(*)  from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		String query = 	"select count(*)  from User user LEFT JOIN user.classes as cls where  user.actflg = 'A' AND user.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and cls.id = '"+class_id.intValue()+"'"; 
 		}
@@ -168,7 +169,9 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			Integer from_row_id
 			) {
 		
-		String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		//String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		String str = 	"SELECT user from User as user left join FETCH user.classes as cls where user.actflg = 'A' AND user.school_id ='"+school_id +"'";
+		
 		if (class_id != null && class_id > 0){
 			str = str +" and cls.id = '"+class_id.intValue()+"'"; 
 		}
@@ -194,6 +197,38 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		List<User> users= query.list();
 		return users;
 
+	}
+
+	@Override
+	public Integer countAvailableUser(Integer school_id) {
+		
+		String query = 	"select count(*)  from User user LEFT JOIN user.classes as cls where  user.actflg = 'A' AND user.school_id ='"+school_id +"'";
+		query = query +" and cls is NULL "; 
+		query = query +" and user.roles != 'ADMIN' ";
+		query = query +" and user.roles != 'SYS_ADMIN' ";
+		
+		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
+		return count;
+	}
+
+	@Override
+	public List<User> findAvailableUser(Integer school_id, int from_row, int max_result) {
+
+		//String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
+		String str = 	"SELECT user from User as user left join FETCH user.classes as cls where user.actflg = 'A' AND user.school_id ='"+school_id +"'";
+		str = str +" and cls is NULL "; 
+		str = str +" and user.roles != 'ADMIN' ";
+		str = str +" and user.roles != 'SYS_ADMIN' ";
+		
+		Query query =  getSession().createQuery(str);
+		query.setMaxResults(max_result);
+		query.setFirstResult(from_row);
+		
+		
+		
+		@SuppressWarnings("unchecked")
+		List<User> users= query.list();
+		return users;
 	}
 
 }

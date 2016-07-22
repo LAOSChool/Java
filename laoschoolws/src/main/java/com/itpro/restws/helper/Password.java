@@ -1,5 +1,6 @@
 package com.itpro.restws.helper;
 
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
@@ -23,6 +24,8 @@ public class Password {
         byte[] salt = SecureRandom.getInstance("SHA1PRNG").generateSeed(saltLen);
         // store the salt with the password
         return Base64.encodeBase64String(salt) + "$" + hash(password, salt);
+//    	return getSaltedHashMD5(password);        
+        
     }
 
     /** Checks whether given plain text password corresponds 
@@ -35,6 +38,7 @@ public class Password {
         }
         String hashOfInput = hash(password, Base64.decodeBase64(saltAndPass[0]));
         return hashOfInput.equals(saltAndPass[1]);
+//    	return checkMD5(password,stored);
     }
 
     // using PBKDF2 from Sun, an alternative is https://github.com/wg/scrypt
@@ -52,4 +56,34 @@ public class Password {
     		int randomNum = 1111 + (int)(Math.random() * 8889);// >= 1111 <10000 
     		return randomNum+"";
     }
+    
+    public static String getMD5Salt(){
+    	return "ItPro";
+    }
+    
+    public static String getSaltedHashMD5(String password) throws Exception {
+    	byte[] bytesOfPass = password.getBytes("UTF-8");
+
+    	MessageDigest md = MessageDigest.getInstance("MD5");
+    	byte[] thedigest = md.digest(bytesOfPass);
+    	return convertByteToHexa(thedigest);
+    }
+    
+    private static String convertByteToHexa(byte[] mdbytes){
+    	  //convert the byte to hex format method 2
+        StringBuffer hexString = new StringBuffer();
+    	for (int i=0;i<mdbytes.length;i++) {
+    		String hex=Integer.toHexString(0xff & mdbytes[i]);
+   	     	if(hex.length()==1) hexString.append('0');
+   	     	hexString.append(hex);
+    	}
+    	return hexString.toString();
+    }
+    public static boolean checkMD5(String password, String stored) throws Exception{
+        
+        String hashOfInput = getSaltedHashMD5(password);
+        return hashOfInput.equals(stored);
+    }
+
+    
 }

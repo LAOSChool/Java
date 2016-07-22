@@ -105,6 +105,12 @@ public class Message extends AbstractModel{
 		return frm_user_photo;
 	}
 
+	@Formula("(SELECT t.photo FROM user t WHERE t.id = to_user_id)")
+	String to_user_photo;
+	public String getTo_user_photo() {
+		return to_user_photo;
+	}
+
 	
 
 	

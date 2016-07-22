@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.EscapedErrors;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -94,23 +96,33 @@ public class TimeTableController extends BaseController {
 	public Timetable getTimetable(@PathVariable int  id) 
 	{
 		logger.info(" *** MainRestController.getTimetable/{id}:"+id);
-		return timetableService.findById(id);
+		User user = getCurrentUser();
+		
+		Timetable tbl = timetableService.findById(id);
+		if (tbl == null ){
+			throw new ESchoolException("timetable.id is not existing", HttpStatus.BAD_REQUEST);
+		}
+		if (tbl.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			throw new ESchoolException("timetable.school_id != user.school_id", HttpStatus.BAD_REQUEST);
+		}
+		return tbl;
 	 }
 	
 	
-	
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/timetables/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Timetable createTimetable(
 			@RequestBody Timetable timetable
 			) {
 		logger.info(" *** MainRestController.ceateTimetable.create");
-		//timetable.setId(100);//TODO:Test
-		return timetableService.insertTimetable(timetable);
+		User user = getCurrentUser();
+				
+		return timetableService.insertTimetable(user,timetable);
 		 
 		 
 	}
-	
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/timetables/update",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Timetable updateTimetable(
@@ -118,17 +130,20 @@ public class TimeTableController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.updateTimetable.update");
 		 //return timetable;
-		return timetableService.updateTimetable(timetable);
+		User user = getCurrentUser();
+		return timetableService.updateTimetable(user,timetable);
 		 
 	}
-	
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value = "/api/timetables/delete/{id}", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public String delTimetable(
-			 @PathVariable int  id
+			 @PathVariable Integer  id
 			 ) {
 		logger.info(" *** MainRestController.delTimetable/{id}:"+id);
-
+		User user = getCurrentUser();
+		
+		timetableService.delTimetableById(user, id);
 	    return "Request was successfully, delete delTimetable of id: "+id;
 	 }
 	

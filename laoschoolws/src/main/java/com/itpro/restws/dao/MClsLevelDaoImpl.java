@@ -8,15 +8,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.MGrade;
+import com.itpro.restws.model.MClsLevel;
 
-@Repository("mgradeDao")
+@Repository("mclslevelDao")
 @Transactional
-public class MGradeDaoImpl extends AbstractDao<Integer, MGrade> implements MGradeDao {
+public class MClsLevelDaoImpl extends AbstractDao<Integer, MClsLevel> implements MClsLevelDao {
 	
 	
-	final String ModelName = "MGrade";
-	public MGrade findById(Integer id) {
+	final String ModelName = "MClsLevel";
+	public MClsLevel findById(Integer id) {
 		return getByKey(id.intValue());
 	}
 
@@ -28,41 +28,36 @@ public class MGradeDaoImpl extends AbstractDao<Integer, MGrade> implements MGrad
 	}
 
 	@Override
-	public List<MGrade> findBySchool(Integer school_id, int from_row, int max_result) {
+	public List<MClsLevel> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
 	     @SuppressWarnings("unchecked")
-		List<MGrade> result = crit_list.list();
+		List<MClsLevel> result = crit_list.list();
 	     return result;
 	}
 
 	@Override
-	public void saveGrade(MGrade mgrade) {
-		mgrade.setActflg("A");
-		mgrade.setCtdusr("HuyNQ-test");
-		mgrade.setCtddtm(Utils.now());
-		mgrade.setCtdpgm("RestWS");
-		mgrade.setCtddtm(Utils.now());
-		this.persist(mgrade);
+	public void saveLevel(MClsLevel mClsLevel) {
+		mClsLevel.setActflg("A");
+		mClsLevel.setCtdusr("HuyNQ-test");
+		mClsLevel.setCtddtm(Utils.now());
+		mClsLevel.setCtdpgm("RestWS");
+		mClsLevel.setCtddtm(Utils.now());
+		this.persist(mClsLevel);
 		
 	}
 
 	@Override
-	public void updateGrade(MGrade mgrade) {
-		mgrade.setMdfusr("HuyNQ-test");
-		mgrade.setLstmdf(Utils.now());
-		mgrade.setMdfpgm("RestWS");
-		update(mgrade);
+	public void updateLevel(MClsLevel mClsLevel) {
+		mClsLevel.setMdfusr("HuyNQ-test");
+		mClsLevel.setLstmdf(Utils.now());
+		mClsLevel.setMdfpgm("RestWS");
+		update(mClsLevel);
 		
 	}
 
-	@Override
-	public void delGrade(MGrade mgrade) {
-		delete(mgrade);
-		
-	}
 
 	
 }

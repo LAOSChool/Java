@@ -14,13 +14,13 @@ public interface SchoolExamDao {
 	
 	List<SchoolExam> findByMonth(Integer school_id,Integer ex_year, Integer ex_month) ;
 	
-	List<SchoolExam> findByEx(Integer school_id,Integer ex_type, Integer term_val) ;
+	List<SchoolExam> findByExamType(Integer school_id,Integer ex_type, Integer term_val) ;
 	
 	List<SchoolExam> findBySchool(Integer school_id,int from_row,int max_result) ;
 	
 	void saveSchoolExam(SchoolExam schoolExam);
 	void updateSchoolExam(SchoolExam schoolExam);
 	
-	
+		
 }
 

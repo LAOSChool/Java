@@ -154,7 +154,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 
 	@Override
-	public Attendance requestAttendance(User user, Attendance request,boolean in_range) {
+	public Attendance requestAttendance(User user, Attendance request,boolean in_range, boolean is_sent_msg) {
 		
 		// more valid
 		valid_insert_attendance(user, request);
@@ -173,8 +173,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 			
 			attendanceDao.saveAttendance(request);
 			// Send Message
-			
-			sendAttendRequestMessage(request);
+			if (!is_sent_msg){
+				sendAttendRequestMessage(request);
+			}
 			return request;
 		}
 		return null;
@@ -246,19 +247,20 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 			Calendar end = Calendar.getInstance();
 			end.setTime(endDate);
-
+			boolean is_sent_msg = false;
 			while( !start.after(end)){
 			    Date targetDay = start.getTime();
 			    String att_dt = Utils.dateToString(targetDay);
 			    Attendance new_request = request.clone();
 			    new_request.setAtt_dt(att_dt);
 			    // Request attendance for each day
-			    Attendance att = requestAttendance(user,new_request,true);
+			    Attendance att = requestAttendance(user,new_request,true,is_sent_msg);
 			    if (att != null ){
 			    	list.add(att);
 			    }
 			    
 			    // Next day
+			    is_sent_msg = true;
 			    start.add(Calendar.DATE, 1);
 			}
 			

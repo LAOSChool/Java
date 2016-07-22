@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.dao.SysStdMsgDao;
 import com.itpro.restws.dao.SysAttMsgDao;
 import com.itpro.restws.dao.SysAttReasonDao;
 import com.itpro.restws.dao.SysDegreeDao;
@@ -13,7 +14,9 @@ import com.itpro.restws.dao.SysDistDao;
 import com.itpro.restws.dao.SysLateReasonDao;
 import com.itpro.restws.dao.SysProvinceDao;
 import com.itpro.restws.dao.SysRoleDao;
+import com.itpro.restws.dao.SysStsDao;
 import com.itpro.restws.dao.SysWeekdayDao;
+import com.itpro.restws.model.SysStdMsg;
 import com.itpro.restws.model.SysAttMsg;
 import com.itpro.restws.model.SysAttReason;
 import com.itpro.restws.model.SysDegree;
@@ -21,6 +24,7 @@ import com.itpro.restws.model.SysDist;
 import com.itpro.restws.model.SysLateReason;
 import com.itpro.restws.model.SysProvince;
 import com.itpro.restws.model.SysRole;
+import com.itpro.restws.model.SysSts;
 import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.SysWeekday;
 @Service("sysTblService")
@@ -49,6 +53,11 @@ public class SysTblServiceImpl implements SysTblService{
 	private SysAttMsgDao sysAttMsgDao;
 	@Autowired
 	private SysDistDao sysDistDao;
+	@Autowired
+	private SysStsDao sysStsDao;
+	@Autowired
+	private SysStdMsgDao sysAbsentMsgDao;
+	
 	
 	@Override
 	public ArrayList<SysTemplate> findAll(String tbl_name,int from_num, int max_result) {
@@ -126,6 +135,24 @@ public class SysTblServiceImpl implements SysTblService{
 			}
 			
 		}
+		else if (SysTblName.TBLNAME_SYS_STS.equalsName(tbl_name) ){
+			list_ret = new ArrayList<>();;
+			ArrayList<SysSts> list =  (ArrayList<SysSts>)sysStsDao.findAll();
+			for (int i = 0;i<list.size(); i++){
+				SysSts e = list.get(i);
+				list_ret.add(e.convertToTemplate());
+			}
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_STD_MSG.equalsName(tbl_name) ){
+			list_ret = new ArrayList<>();;
+			ArrayList<SysStdMsg> list =  (ArrayList<SysStdMsg>)sysAbsentMsgDao.findAll();
+			for (int i = 0;i<list.size(); i++){
+				SysStdMsg e = list.get(i);
+				list_ret.add(e.convertToTemplate());
+			}
+			
+		}
 		return list_ret;
 	}
 
@@ -155,7 +182,12 @@ public class SysTblServiceImpl implements SysTblService{
 		if (SysTblName.TBLNAME_SYS_DIST.equalsName(tbl_name) ){
 			return sysDistDao.countAll();
 		}
-		
+		if (SysTblName.TBLNAME_SYS_STS.equalsName(tbl_name) ){
+			return sysStsDao.countAll();
+		}
+		if (SysTblName.TBLNAME_SYS_STD_MSG.equalsName(tbl_name) ){
+			return sysAbsentMsgDao.countAll();
+		}
 		return 0;
 	}
 	

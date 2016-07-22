@@ -27,6 +27,7 @@ import com.itpro.restws.model.School;
 import com.itpro.restws.model.SchoolExam;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.SchoolExamService;
 import com.itpro.restws.service.SchoolYearService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -44,6 +45,8 @@ public class SchoolController extends BaseController {
 	
 	@Autowired
 	protected SchoolExamDao schoolExamDao;
+	@Autowired
+	SchoolExamService schoolExamService;
 	
 	@Autowired
 	protected SchoolYearService schoolYearService;
@@ -191,7 +194,7 @@ public class SchoolController extends BaseController {
 	@RequestMapping(value="/api/schools/terms",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getCurrentTerm(
-			@RequestParam(value="filter_year_id",required =true) Integer filter_year_id,
+			@RequestParam(value="filter_year_id",required =false) Integer filter_year_id,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -200,13 +203,139 @@ public class SchoolController extends BaseController {
 		
 		logger.info(" *** getCurrentTerm Start");
 	    User user = getCurrentUser();
+	    ArrayList<SchoolTerm> terms = new ArrayList<SchoolTerm>();
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 	    
-	    ArrayList<SchoolTerm> terms = schoolYearService.findTermByYear(user.getSchool_id(), filter_year_id);
+	    if (filter_year_id == null || filter_year_id.intValue() <=0){
+	    	SchoolTerm schoolTerm = schoolYearService.findLatestTermBySchool(user.getSchool_id());
+	    	if (schoolTerm != null ){
+	    		terms.add(schoolTerm);
+	    	}
+	    }else{
+	    	terms = schoolYearService.findTermByYear(user.getSchool_id(), filter_year_id);
+	    }
 	    rsp.setMessageObject(terms);
 		
 	    return rsp;
 	    
 	 }
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/exams/create",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo createSchoolExam(
+			@RequestBody SchoolExam schoolExam,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		SchoolExam ret = schoolExamService.insertSchoolExam(user, schoolExam);
+		rsp.setMessageObject(ret);
+		
+	    return rsp;
+		 
+	}
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/exams/update",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo updateSchoolExam(
+			@RequestBody SchoolExam schoolExam,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		SchoolExam ret = schoolExamService.updateSchoolExam(user, schoolExam);
+		rsp.setMessageObject(ret);
+		
+	    return rsp;
+		 
+	}
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value = "/api/schools/exams/delete/{id}", method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public RespInfo deleteSchoolExam(
+			 @PathVariable Integer  id,
+			 @Context final HttpServletRequest request,
+				@Context final HttpServletResponse response
+			 
+			 ) {
+		
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		schoolExamService.delById(user, id);
+		rsp.setMessageObject("SUCCESS");
+		
+	    return rsp;
+	 }
+	
+	
+	
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/years/create",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo createSchoolYear(
+			@RequestBody SchoolYear schoolYear,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		SchoolYear ret = schoolYearService.insertSchoolYear(user, schoolYear);
+		rsp.setMessageObject(ret);
+		
+	    return rsp;
+		 
+	}
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/years/update",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo updateSchoolYear(
+			@RequestBody SchoolYear schoolYear,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		SchoolYear ret = schoolYearService.updateSchoolYear(user, schoolYear);
+		rsp.setMessageObject(ret);
+		
+	    return rsp;
+		 
+	}
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value = "/api/schools/years/delete/{id}", method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public RespInfo deleteSchoolYear(
+			 @PathVariable Integer  id,
+			 @Context final HttpServletRequest request,
+				@Context final HttpServletResponse response
+			 
+			 ) {
+		
+		
+		
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		User user = getCurrentUser();
+		schoolYearService.delSchoolYear(user, id);
+		rsp.setMessageObject("SUCCESS");
+		
+	    return rsp;
+	 }
+	
 	
 }

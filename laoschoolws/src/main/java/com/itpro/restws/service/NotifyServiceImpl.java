@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -156,10 +155,10 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	
-	private Notify insertNotify(Notify notify) {
-		notifyDao.saveNotify(notify);
-		return notify;
-	}
+//	private Notify insertNotify(Notify notify) {
+//		notifyDao.saveNotify(notify);
+//		return notify;
+//	}
 
 //	@Override
 //	public Notify saveUploadData(MultipartFile file, String jsonInString ) {
@@ -201,7 +200,7 @@ public class NotifyServiceImpl implements NotifyService{
 //			
 //			insertNotify(notify);
 //		} catch (IOException e) {
-//			// TODO Auto-generated catch block
+//			// 
 //			e.printStackTrace();
 //		}
 //		return notify;
@@ -583,7 +582,8 @@ public class NotifyServiceImpl implements NotifyService{
 	
 	
 	@Override
-	public int countNotifyExt(Integer school_id, int from_row, int max_result, 
+	public int countNotifyExt(Integer school_id,
+			//int from_row, int max_result, 
 			// Secure filter
 			  MessageFilter filter,
 					// User filter
@@ -598,9 +598,9 @@ public class NotifyServiceImpl implements NotifyService{
 		
 		Integer ret = notifyDao.countNotifyExt(
 				school_id, 
-				from_row, 
-				max_result, 
-				// Secure
+//				from_row, 
+//				max_result, 
+//				// Secure
 				filter.getClasses(),
 				filter.getUsers(), 
 				// User filter

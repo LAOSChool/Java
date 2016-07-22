@@ -3,18 +3,23 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.dao.MClsLevelDao;
 import com.itpro.restws.dao.MFeeDao;
 import com.itpro.restws.dao.MGradeDao;
 import com.itpro.restws.dao.MSessionDao;
 import com.itpro.restws.dao.MSubjectDao;
+import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.model.MClsLevel;
 import com.itpro.restws.model.MFee;
 import com.itpro.restws.model.MGrade;
 import com.itpro.restws.model.MSession;
 import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.MTemplate;
+import com.itpro.restws.model.User;
 
 
 @Service("masterTblService")
@@ -32,23 +37,38 @@ public class MasterTblServiceImpl implements MasterTblService{
 	@Autowired
 	private MSubjectDao msubjectDao;
 	
+	@Autowired
+	private MClsLevelDao mclslevelDao;
+	
 	
 
 	@Override
 	public MTemplate findById(String tbl_name, Integer id) {
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
-			return mfeeDao.findById(id).convertToTemplate();
+			MFee ret = mfeeDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
-			return mgradeDao.findById(id).convertToTemplate();
+			//return mgradeDao.findById(id).convertToTemplate();
+			MGrade ret = mgradeDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
+			
 		} 
 		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
-			return msessionDao.findById(id).convertToTemplate();
+			MSession ret = msessionDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
+			//return msessionDao.findById(id).convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
-			return msubjectDao.findById(id).convertToTemplate();
+			MSubject ret = msubjectDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
+			//return msubjectDao.findById(id).convertToTemplate();
 		} 
-		 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			//return mclslevelDao.findById(id).convertToTemplate();
+			MClsLevel ret = mclslevelDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
+		} 
 		 
 		 
 		return null;
@@ -56,7 +76,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public int countBySchool(String tbl_name, Integer school_id) {
-if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
+		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			return mfeeDao.countBySchool(school_id);
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
@@ -68,7 +88,9 @@ if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
 			return msubjectDao.countBySchool(school_id);
 		} 
-		 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			return mclslevelDao.countBySchool(school_id);
+		}
 		 
 		return 0;
 	}
@@ -111,12 +133,22 @@ if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			}
 			return list_ret;
 		} 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			ArrayList<MClsLevel> list = (ArrayList<MClsLevel>) mclslevelDao.findBySchool(school_id, from_num, max_result);
+			for (int i = 0;i<list.size(); i++){
+				MClsLevel e = list.get(i);
+				list_ret.add(e.convertToTemplate());
+			}
+			return list_ret;
+		} 
 	
 		return null;
 	}
 
 	@Override
-	public MTemplate insertMTemplate(String tbl_name, MTemplate temp) {
+	public MTemplate insertMTemplate(User user, String tbl_name, MTemplate temp) {
+		validMTemplate(user,tbl_name,temp);
+		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			MFee mfee = new MFee();
 			mfee.saveFromTemplate(temp);
@@ -141,38 +173,182 @@ if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			msubjectDao.saveSubject(msubject);
 			return msubject.convertToTemplate();
 		} 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			MClsLevel mclslevel = new MClsLevel();
+			mclslevel.saveFromTemplate(temp);
+			mclslevelDao.saveLevel(mclslevel);
+			return mclslevel.convertToTemplate();
+		} 
 		return null;
 	}
 
 	
 	@Override
-	public MTemplate updateMTemplate(String tbl_name, MTemplate temp) {
+	public MTemplate updateMTemplate(User user, String tbl_name, MTemplate temp) {
+		
+		validMTemplate(user, tbl_name, temp);
+		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			MFee mfee = mfeeDao.findById(temp.getId());
+			if (mfee == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (mfee.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}
+			
 			mfee.saveFromTemplate(temp);
 			mfeeDao.updateFee(mfee);
 			return mfee.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
 			MGrade mgrade = mgradeDao.findById(temp.getId());
+			if (mgrade == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (mgrade.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}
+			
 			mgrade.saveFromTemplate(temp);
 			mgradeDao.updateGrade(mgrade);
 			return mgrade.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
 			MSession msession = msessionDao.findById(temp.getId());
+			if (msession == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (msession.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}
+			
 			msession.saveFromTemplate(temp);
 			msessionDao.updateSession(msession);
 			return msession.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
 			MSubject msubject = msubjectDao.findById(temp.getId());
+			if (msubject == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (msubject.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}			
 			msubject.saveFromTemplate(temp);
 			msubjectDao.updateSubject(msubject);
 			return msubject.convertToTemplate();
 		} 
-		 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			MClsLevel mclslevel = mclslevelDao.findById(temp.getId());
+			if (mclslevel == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (mclslevel.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}				
+			mclslevel.saveFromTemplate(temp);
+			mclslevelDao.updateLevel(mclslevel);
+			return mclslevel.convertToTemplate();
+		} 
 		return null;
 	}
 
+	@Override
+	public void deleteMTemplate(User user, String tbl_name, Integer id) {
+		
+		MTemplate temp = findById(tbl_name, id);
+		if (temp == null ){
+			throw new ESchoolException("id is not existing: "+id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (temp.getSchool_id().intValue() != user.getSchool_id().intValue() ){
+			throw new ESchoolException("tbl_name:"+tbl_name+"/id:"+id.intValue()+" is not in same school_id with user", HttpStatus.BAD_REQUEST);
+		}
+			
+		
+		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
+			MFee mfee = mfeeDao.findById(id);
+			
+			//mfeeDao.delFee(mfee);
+			mfee.setActflg("D");
+			mfeeDao.updateFee(mfee);
+		} 
+		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
+			MGrade mgrade = mgradeDao.findById(id);
+			//mgradeDao.delGrade(mgrade);
+			mgrade.setActflg("D");
+			mgradeDao.updateGrade(mgrade);
+		} 
+		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
+			MSession msession = msessionDao.findById(id);
+			//msessionDao.delSession(msession);
+			msession.setActflg("D");
+			msessionDao.updateSession(msession);
+		} 
+		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
+			MSubject msubject = msubjectDao.findById(id);
+			//msubjectDao.delSubject(msubject);
+			msubject.setActflg("D");
+			msubjectDao.updateSubject(msubject);
+		} 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			MClsLevel mclslevel = mclslevelDao.findById(id);
+			//mclslevelDao.updateLevel(mclslevel);
+			mclslevel.setActflg("D");
+			mclslevelDao.updateLevel(mclslevel);
+		} 
+	}
+
+	@Override
+	public void validMTemplate(User user, String tbl_name, MTemplate template) {
+		// update school_id
+		template.setSchool_id(user.getSchool_id());
+		
+		
+		if (template.getId() != null && template.getId().intValue() >0){
+//			MTemplate tmpDB = findById(tbl_name, template.getId());
+//			if (tmpDB == null ){
+//				throw new ESchoolException("table:"+tbl_name+"/id:"+template.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+//			}
+//			if (tmpDB.getSchool_id().intValue() != user.getSchool_id().intValue()){
+//				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+template.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+//			}
+			
+		}
+		
+		if (template.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			throw new ESchoolException("table:"+tbl_name+"/id:"+template.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+		}
+		if (template.getSval() == null || template.getSval().trim().length() <= 0){
+			throw new ESchoolException("table:"+tbl_name+"/sval is required", HttpStatus.BAD_REQUEST);
+		}
+
+		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
+			
+		} 
+		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
+			
+		} 
+		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
+			if (template.getFval1() == null || template.getFval1().floatValue() <= 0){
+				throw new ESchoolException("table:"+tbl_name+"/fval1 is required (1:AM, 2:PM, 3: Evening)", HttpStatus.BAD_REQUEST);
+			}
+			if (template.getFval2() == null || template.getFval2().floatValue() <= 0){
+				throw new ESchoolException("table:"+tbl_name+"/fval2 is required (Order of sessions)", HttpStatus.BAD_REQUEST);
+			}
+//			if (template.getNotice() == null || template.getNotice().trim().length() <= 0){
+//				throw new ESchoolException("table:"+tbl_name+"/notice is required (duration of sessions)", HttpStatus.BAD_REQUEST);
+//			}
+			
+		} 
+		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
+			
+		} 
+		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			
+		} 
+		
+	}
+
+	
 }

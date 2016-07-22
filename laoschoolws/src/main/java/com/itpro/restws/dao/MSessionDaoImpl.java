@@ -58,6 +58,12 @@ public class MSessionDaoImpl extends AbstractDao<Integer, MSession> implements M
 		
 	}
 
+	@Override
+	public void delSession(MSession msession) {
+		delete(msession);
+		
+	}
+
 
 	
 }

@@ -11,6 +11,9 @@ public enum SysTblName {
 	TBLNAME_SYS_LATE_REASON("sys_late_reason","SysLateReason"),
 	TBLNAME_SYS_ATT_MSG("sys_att_msg","SysAttMsg"),
 	
+	TBLNAME_SYS_STS("sys_sts","SysSts"),
+	TBLNAME_SYS_STD_MSG("sys_std_msg","SysStdMsg"),
+	
 	TBLNAME_SYS_WEEKDAY("sys_weekday","SysWeekday");
 	
 	   public String toString() { return tbl_name; }

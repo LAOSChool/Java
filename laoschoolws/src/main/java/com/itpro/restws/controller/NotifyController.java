@@ -52,16 +52,16 @@ public class NotifyController extends BaseController {
 	@RequestMapping(value="/api/notifies",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ListEnt getNotifies(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_from_user_id",required =false) String filter_from_user_id,			
-			@RequestParam(value="filter_to_user_id",required =false) String filter_to_user_id,
-			@RequestParam(value="filter_channel",required =false) String filter_channel,
-			@RequestParam(value="filter_is_read", defaultValue="Active",required =false) String filter_is_read,
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="filter_from_user_id",required =false) Integer filter_from_user_id,			
+			@RequestParam(value="filter_to_user_id",required =false) Integer filter_to_user_id,
+			@RequestParam(value="filter_channel",required =false) Integer filter_channel,
+			@RequestParam(value="filter_is_read", required=false) Integer filter_is_read,
 			@RequestParam(value="filter_from_dt",required =false) String filter_from_dt,			
 			@RequestParam(value="filter_to_dt",required =false) String filter_to_dt	,
-			@RequestParam(value="from_row",required =false) String filter_from_row,
-			@RequestParam(value="max_result",required =false) String filter_max_result,
-			@RequestParam(value="filter_from_id",required =false) String filter_from_id	
+			@RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
+			@RequestParam(value="filter_from_id",required =false) Integer filter_from_id	
 			) {
 		logger.info(" *** MainRestController.getNotifies");
 		
@@ -80,55 +80,22 @@ public class NotifyController extends BaseController {
 		MessageFilter secure_filter = notifyService.secureGetMessages(user);
 		
 		
-    	// Count messages
-//    	total_row = 100;//TODO:Test
-//    	if (total_row <=  0){
-//    		listResp.setList(null);
-//    		listResp.setFrom_row(0);
-//    		listResp.setTo_row(0);
-//    		listResp.setTotal_count(0);
-//    		return listResp;
-//    	}
-//    	
-//    	if (total_row > Constant.MAX_RESP_ROW){
-//    		max_result = Constant.MAX_RESP_ROW;
-//    	}else{
-//    		max_result = total_row;
-//    	}
-//    		
-//		logger.info("Notify count: total_row : "+total_row);
-//		// Query message
-//		//ArrayList<com.itpro.restws.model.Notify> notifies = notifyService.findBySchool(user.getSchool_id(), from_row, max_result);
-//		ArrayList<com.itpro.restws.model.Notify> notifies = notifyService.findTomUser(user.getId(), from_row, max_result);
-//		for (Notify notify : notifies){
-//			if (notify != null  && notify.getTask_id() != null && notify.getTask_id() > 0){
-//				notify.setNotifyImages(notifyService.findImgByTaskID(notify.getTask_id()));
-//			}
-//		}
-//		listResp.setList(notifies);
-//		listResp.setFrom_row(from_row);
-//		listResp.setTo_row(from_row + max_result);
-//		listResp.setTotal_count(total_row);
-	    
-		
-		
-		
 		// Count messages
     	total_row = notifyService.countNotifyExt(
     			user.getSchool_id(), 
-    			from_row, 
-    			max_result, 
+    			//from_row, 
+    			//max_result, 
     			// Security filter
     			secure_filter,
     			// User filter    			
-    			Utils.parseLong(filter_class_id),
+    			filter_class_id,
     			filter_from_dt, 
     			filter_to_dt, 
-    			Utils.parseLong(filter_from_user_id), 
-    			Utils.parseLong(filter_to_user_id),
-    			Utils.parseInteger(filter_channel), 
-    			Utils.parseInteger(filter_is_read),
-    			Utils.parseLong(filter_from_id)
+    			filter_from_user_id, 
+    			filter_to_user_id,
+    			filter_channel, 
+    			filter_is_read,
+    			filter_from_id
     			);
     	if (total_row <=  0){
     		listResp.setList(null);
@@ -137,11 +104,11 @@ public class NotifyController extends BaseController {
     		listResp.setTotal_count(0);
     		return listResp;
     	}
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
+    	
+    	if ((from_row + max_result) > total_row){
+    		max_result = total_row-from_row;
     	}
+    	 
     	logger.info("Notify count: total_row : "+total_row);
     	// Query message
 		ArrayList<com.itpro.restws.model.Notify> notifies = notifyService.findNotifyExt(
@@ -151,14 +118,14 @@ public class NotifyController extends BaseController {
     			// Security filter
     			secure_filter,
     			// User filter    			
-    			Utils.parseLong(filter_class_id),
+    			filter_class_id,
     			filter_from_dt, 
     			filter_to_dt, 
-    			Utils.parseLong(filter_from_user_id), 
-    			Utils.parseLong(filter_to_user_id),
-    			Utils.parseInteger(filter_channel), 
-    			Utils.parseInteger(filter_is_read),
-    			Utils.parseLong(filter_from_id)
+    			filter_from_user_id, 
+    			filter_to_user_id,
+    			filter_channel, 
+    			filter_is_read,
+    			filter_from_id
     			);
 	
 		
@@ -201,8 +168,8 @@ public class NotifyController extends BaseController {
 		try {
 			request.setCharacterEncoding("UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new ESchoolException("Cannot convert notify data to UTF-8"+e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 		
 		String err_msg = "";

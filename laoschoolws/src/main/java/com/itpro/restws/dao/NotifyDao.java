@@ -23,7 +23,8 @@ public interface NotifyDao {
 	
 	void saveNotify(Notify notify);
 	void updateNotify(Notify notify);
-	public Integer countNotifyExt(Integer school_id, int from_row, int max_result,
+	public Integer countNotifyExt(Integer school_id,
+			//int from_row, int max_result,
 			// Secure filter
 			List<Integer> classes, 
 			List<Integer> users,

@@ -15,6 +15,7 @@ public interface User2ClassService {
 	ArrayList<User2Class> findByClass(Integer class_id,int from_num, int max_result);
 	
 	User2Class assignUserToClass(User admin,Integer user_id, Integer class_id,String notice);
+	void removeUserToClass(User admin,Integer user_id, Integer class_id,String notice);
 	
 	
 	

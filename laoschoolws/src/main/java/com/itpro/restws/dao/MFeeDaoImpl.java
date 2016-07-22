@@ -54,6 +54,12 @@ public class MFeeDaoImpl extends AbstractDao<Integer, MFee> implements MFeeDao {
 		mfee.setMdfpgm("RestWS");
 		update(mfee);
 	}
+
+	@Override
+	public void delFee(MFee mfee) {
+		delete(mfee);
+		
+	}
 	
 
 	

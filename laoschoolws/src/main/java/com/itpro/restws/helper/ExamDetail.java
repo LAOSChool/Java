@@ -39,6 +39,9 @@ public class ExamDetail {
 	}
 	
 	public static ExamDetail strJson2ExamDetail(String json_str_examdetail){
+		if (json_str_examdetail == null || json_str_examdetail.trim().length() == 0){
+			throw new ESchoolException("strJson2ExamDetail(): Cannot convert JSON_STRING to Object - Input json_str_examdetail is NULL or BLANK",HttpStatus.BAD_REQUEST);
+		}
 		//Convert JSON from String to Object
 		ObjectMapper mapper = new ObjectMapper();
 		ExamDetail examDetail=null;

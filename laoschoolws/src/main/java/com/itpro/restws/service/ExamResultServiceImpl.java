@@ -19,10 +19,10 @@ import com.itpro.restws.dao.ExamRankDao;
 import com.itpro.restws.dao.ExamResultDao;
 import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.dao.SchoolExamDao;
-import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ExamDetail;
+import com.itpro.restws.helper.ExamRankDetail;
 import com.itpro.restws.helper.RankInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.EClass;
@@ -173,12 +173,18 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 		
 		if (student.getSchool_id().intValue() != school_id.intValue() ){
-			throw new ESchoolException("exam.student_id:"+ student.getId()+" is not belong to school_id:"+examResult.getSchool_id(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("exam.student_id:"+ student.getId().intValue()+" is not belong to school_id:"+examResult.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
 		if (!student.hasRole(E_ROLE.STUDENT.getRole_short())){
-			throw new ESchoolException("Exam Student is not Student role:"+examResult.getStudent_id(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("Exam Student is not Student role:"+examResult.getStudent_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
+		if (schoolExams == null || schoolExams.size() == 0){
+			throw new ESchoolException("There isn't any SchoolExam defined for school_id:"+school_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+
+		
 		examResult.setStudent_name(student.getSso_id());
 		examResult.setStd_nickname(student.getNickname());
 		examResult.setStd_photo(student.getPhoto());
@@ -245,14 +251,18 @@ public class ExamResultServiceImpl implements ExamResultService{
 //		
 		
 		java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
-		SchoolExam school_exam = null;
+		//SchoolExam school_exam = null;
 		
         for (Field field : fields) {
             field.setAccessible(true);
             String fname =field.getName();
             
-            for (String key: Constant.exam_keys){
-            	if (fname.equalsIgnoreCase(key)){ // m1 ~ m20
+        	// Init hash
+    		for (SchoolExam school_exam: schoolExams){
+    			String ex_key = school_exam.getEx_key();
+            //for (String key: Constant.exam_keys){
+            	//if (fname.equalsIgnoreCase(key)){ // m1 ~ m20
+    			if (fname.equalsIgnoreCase(ex_key)){ // m1 ~ m20
             		String sresult = null;
             		// Parse float value
             		try{
@@ -260,17 +270,17 @@ public class ExamResultServiceImpl implements ExamResultService{
             		}catch (Exception e){
             			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
             		}
-            		if (sresult != null ){
+            		if (sresult != null  && sresult.trim().length() > 0){
             			// Parsing JSON to Exam Detail
             			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
             			sresult = examDetail.getSresult();
             			
             			
                 		// Get Exam master information
-                		school_exam = schoolExamDao.findByExKey(school_id, fname);// school_id vs m1,m2,m3...m20
-                		if (school_exam == null ){
-                        	throw new ESchoolException("there is no master data declared for ex_key:"+fname, HttpStatus.BAD_REQUEST);
-                        }
+//                		school_exam = schoolExamDao.findByExKey(school_id, fname);// school_id vs m1,m2,m3...m20
+//                		if (school_exam == null ){
+//                        	throw new ESchoolException("there is no master data declared for ex_key:"+fname, HttpStatus.BAD_REQUEST);
+//                        }
                 		
                 		// Parsing float 
                 		String sval = sresult; // delete point
@@ -930,7 +940,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			}
 			examResults = examResultDao.findExamResultExt(student.getSchool_id(), null, student.getId(), null, filter_year_id);
 		}
-		proc_average(examResults);
+		proc_average(student,examResults);
 		return examResults; 
 		
 	}
@@ -1003,337 +1013,346 @@ public class ExamResultServiceImpl implements ExamResultService{
 		return examResults;
 	}
 
-//	@Override
-//	public void proc_average( ArrayList<ExamResult> examResults){
-//		if (examResults == null ){
-//			return;
-//		}
-//		for (ExamResult examResult : examResults){
-//			// To calculate average
-//			ArrayList<Float> point_months1 = new ArrayList<Float>();
-//			ArrayList<Float> point_months2 = new ArrayList<Float>();
-//			ArrayList<Float> point_terms1 = new ArrayList<Float>();
-//			ArrayList<Float> point_terms2 = new ArrayList<Float>();
-//			ArrayList<Float> point_years = new ArrayList<Float>();
-//
-//			// Scall to find m1,m2,m3...m20
-//			java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
-//			SchoolExam school_exam = null;
-//			
-//	        for (Field field : fields) {
-//	            field.setAccessible(true);
-//	            String fname =field.getName();
-//	            
-//	            for (String key: Constant.exam_keys){
-//	            	if (fname.equalsIgnoreCase(key)){ // m1 ~ m20
-//	            		String sresult = null;
-//	            		// Parse score value
-//	            		try{
-//	            			sresult = (String)field.get(examResult); // "8.4@2016-06-10";
-//	            		}catch (Exception e){
-//	            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
-//	            		}
-//	            		if (sresult != null ){
-//	            			// Parsing JSON to Exam Detail
-//	            			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
-//	            			sresult = examDetail.getSresult();
-//	            			
-//	                		// Get Exam master information
-//	                		school_exam = schoolExamDao.findByExKey(examResult.getSchool_id(), fname);// school_id vs m1,m2,m3...m20
-//	                		if (school_exam == null ){
-//	                        	throw new ESchoolException("there is no master data declared for ex_key:"+fname, HttpStatus.BAD_REQUEST);
-//	                		}
-//	                		// Parsing float 
-//	                		String sval = sresult;
-//	                		String exam_dt="";
-//	                		String[] arr = sresult.split("@"); // "8.4@2016-06-10";
-//	                		if (arr != null && arr.length >=2){
-//	                			sval = arr[0];
-//	                			exam_dt = arr[1];
-//	                			if (!Utils.checkDateFormat(exam_dt)){
-//	                				throw new ESchoolException(fname + ": invalid date time format, should be YYYY-MM-DD value: "+ exam_dt, HttpStatus.BAD_REQUEST);
-//	                			}
-//	                		}
-//	                		if (sval == null || sval.trim().length() == 0){
-//	                			break;
-//	                		}
-//	                		Float fval = Utils.parseFloat(sval);
-//	                		if (fval == null){
-//	                			throw new ESchoolException(fname + ": invalid Float value: "+ sval, HttpStatus.BAD_REQUEST);
-//	                		}
-//	                		if ( fval.floatValue() < school_exam.getMin().floatValue() ){
-//	            				throw new ESchoolException(fname +":"+sval+ " < MIN value = "+school_exam.getMin().floatValue(), HttpStatus.BAD_REQUEST);
-//	            			}
-//	            			if (fval.floatValue() > school_exam.getMax().floatValue() ){
-//	            				throw new ESchoolException(fname + ":"+sval+" > MAX value = "+school_exam.getMax().floatValue(), HttpStatus.BAD_REQUEST);
-//	            			}
-//	            			
-//	            			// /////////////////////////////////////////////////////////////////////
-//	            			// Save to calculate average
-//	            			if ((school_exam.getEx_type().intValue() == 1) &&// month point
-//	            					(school_exam.getTerm_val().intValue() == 1)) // Hoc ky 1
-//	            			{
-//	            				point_months1.add(fval);
-//	            			}
-//	            			else if ((school_exam.getEx_type().intValue() == 1) &&// month point
-//	            					(school_exam.getTerm_val().intValue() == 2)) // Hoc ky 2
-//	            			{
-//	            				point_months2.add(fval);
-//	            			}
-//	            			else if ((school_exam.getEx_type().intValue() == 2) &&// Thi Hoc Ky
-//	            					(school_exam.getTerm_val().intValue() == 1)) // Hoc ky 1
-//	            			{
-//	            				point_terms1.add(fval);
-//	            			}else if ((school_exam.getEx_type().intValue() == 2) &&// Thi Hoc Ky
-//	            					(school_exam.getTerm_val().intValue() == 2)) // Hoc ky 2
-//	            			{
-//	            				point_terms2.add(fval);
-//	            			}
-//	            			// /////////////////////////////////////////////////////////////////////
-//
-//	            		}
-//	            		break;// STOP to next field
-//	            	}
-//	            }
-//	        }
-//	        
-//	        /// Start calculate average
-//			////////Calculate M5 ( Trung binh 4 thang  HK 1)
-//			float total =0;
-//			int cnt =0;
-//			ExamDetail ex_detail = null;
-//			ObjectMapper mapper = new ObjectMapper();;
-//			if (point_months1.size() > 0){
-//				total =0;
-//				cnt =0;
-//				for (Float fval: point_months1){
-//					total += fval.floatValue();
-//					cnt++;
-//				}
-//				float m5 = total/cnt;
-//				// examResult.setM5(String.format("%.1f", m5));
-//				ex_detail = new ExamDetail();
-//				ex_detail.setExam_dt(Utils.now());
-//				ex_detail.setNotice("AUTO");
-//				ex_detail.setSresult(String.format("%.1f", m5));
-//				//mapper = new ObjectMapper();
-//				try {
-//					examResult.setM5(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}
-//				///
-//				// Calculate M7 (Trung Binh Hoc Ky 1)
-//				total =0;
-//				cnt =0;		
-//				if (point_terms1.size() > 0 ){  // Neu co diem thi HK1
-//					point_terms1.add(m5);
-//					for (Float fval: point_terms1){
-//						total += fval.floatValue();
-//						cnt++;
-//					}
-//					float m7 = total/cnt;
-//					// examResult.setM7(String.format("%.1f", m7));
-//					ex_detail = new ExamDetail();
-//					ex_detail.setExam_dt(Utils.now());
-//					ex_detail.setNotice("AUTO");
-//					ex_detail.setSresult(String.format("%.1f", m7));
-//					//mapper = new ObjectMapper();
-//					try {
-//						examResult.setM7(mapper.writeValueAsString(ex_detail));
-//					} catch (JsonProcessingException e) {
-//						e.printStackTrace();
-//						throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//					}
-//					// Add to calculate Ave of year
-//					point_years.add(m7);
-//				}
-//			}else{
-//				// Reset MONTH AVE
-//				try {
-//					ex_detail = new ExamDetail();
-//					ex_detail.setExam_dt(Utils.now());
-//					ex_detail.setNotice("AUTO");
-//					ex_detail.setSresult("");
-//					examResult.setM5(mapper.writeValueAsString(ex_detail));
-//					examResult.setM7(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}
-//			}
-//			// Calculate M12 ( Trung binh 4 thang HK2 )
-//			total =0;
-//			cnt =0;		
-//			if (point_months2.size() > 0){
-//				for (Float fval: point_months2){
-//					total += fval.floatValue();
-//					cnt++;
-//				}
-//				float m12 = total/cnt;
-//				// examResult.setM12(String.format("%.1f", m12));
-//				ex_detail = new ExamDetail();
-//				ex_detail.setExam_dt(Utils.now());
-//				ex_detail.setNotice("AUTO");
-//				ex_detail.setSresult(String.format("%.1f", m12));
-//				mapper = new ObjectMapper();
-//				try {
-//					examResult.setM12(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}
-//				
-//				// Calculate M14 (Trung Binh HK 2)
-//				total =0;
-//				cnt =0;		
-//				if (point_terms2.size() > 0 ){ // Neu co diem thi HK2
-//					point_terms2.add(m12);
-//					for (Float fval: point_terms2){
-//						total += fval.floatValue();
-//						cnt++;
-//					}
-//					float m14 = total/cnt;
-//					// examResult.setM14(String.format("%.1f", m14));
-//					ex_detail = new ExamDetail();
-//					ex_detail.setExam_dt(Utils.now());
-//					ex_detail.setNotice("AUTO");
-//					ex_detail.setSresult(String.format("%.1f", m14));
-//					mapper = new ObjectMapper();
-//					try {
-//						examResult.setM14(mapper.writeValueAsString(ex_detail));
-//					} catch (JsonProcessingException e) {
-//						e.printStackTrace();
-//						throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//					}
-//					// Add to calculate Ave of year								
-//					point_years.add(m14);
-//				}
-//			}else{
-//				// Reset month HK 2
-//				try {
-//					ex_detail = new ExamDetail();
-//					ex_detail.setExam_dt(Utils.now());
-//					ex_detail.setNotice("AUTO");
-//					ex_detail.setSresult("");
-//					examResult.setM12(mapper.writeValueAsString(ex_detail));
-//					examResult.setM14(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}
-//			}
-//			
-//			// Calculate M15 ( Trung binh ca nam )
-//			total =0;
-//			cnt =0;		
-//			if (point_years.size() > 0){
-//				for (Float fval: point_years){
-//					total += fval.floatValue();
-//					cnt++;
-//				}
-//				float m15 = total/cnt;
-//				// examResult.setM15(String.format("%.1f", m15));
-//				ex_detail = new ExamDetail();
-//				ex_detail.setExam_dt(Utils.now());
-//				ex_detail.setNotice("AUTO");
-//				ex_detail.setSresult(String.format("%.1f", m15));
-//				mapper = new ObjectMapper();
-//				try {
-//					examResult.setM15(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}			
-//			}else{
-//				// Reset month HK 2
-//				try {
-//					ex_detail = new ExamDetail();
-//					ex_detail.setExam_dt(Utils.now());
-//					ex_detail.setNotice("AUTO");
-//					ex_detail.setSresult("");
-//					examResult.setM15(mapper.writeValueAsString(ex_detail));
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
-//				}
-//			}
-//		}
-//	}
+	//@Override
+	private void proc_average( User student, ArrayList<ExamResult> examResults){
+		if (examResults == null ){
+			return;
+		}
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(student.getSchool_id(), 0, 999999);
+		if (schoolExams == null || schoolExams.size() == 0){
+			throw new ESchoolException("There isn't any SchoolExam defined for school_id:"+student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
 
-	
-	private ArrayList<RankInfo> rank_user_ave(User curr_user, ArrayList<ExamResult> exam_results) {
 		
-		Hashtable<String, RankInfo> hashtables= new Hashtable<String, RankInfo>(); 
-		
-		for (ExamResult examResult: exam_results){
-			String hash_key = "";
-			RankInfo rankInfo = null;
-			Integer student_id =examResult.getStudent_id();
-			hash_key = ""+student_id.intValue()+"_";
-			
-			// Scan to find m1,m2,m3...m20
+		for (ExamResult examResult : examResults){
+			// To calculate average
+			ArrayList<Float> point_months1 = new ArrayList<Float>();
+			ArrayList<Float> point_months2 = new ArrayList<Float>();
+			ArrayList<Float> point_terms1 = new ArrayList<Float>();
+			ArrayList<Float> point_terms2 = new ArrayList<Float>();
+			ArrayList<Float> point_years = new ArrayList<Float>();
+
+			// Scall to find m1,m2,m3...m20
 			java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
+			//SchoolExam school_exam = null;
+			
 	        for (Field field : fields) {
 	            field.setAccessible(true);
 	            String fname =field.getName();
 	            
-	            for (String ex_key: Constant.exam_keys){
-	            	if (fname.equalsIgnoreCase(ex_key)){
-	            		// Found m1 .. m 20 , create HashTable entry if need
-	            		hash_key = ""+student_id.intValue()+"_"+ex_key.toLowerCase();//user_id_m1, user_id_m2
-	            		if (!hashtables.containsKey(hash_key)){
-	            			
-	            			rankInfo = new RankInfo();
-	            			rankInfo.setEx_key(ex_key);
-	            			rankInfo.setMarks(new ArrayList<Float>());
-	            			rankInfo.setUser_id(student_id);
-	            			
-	            			hashtables.put(hash_key,rankInfo);
-	            		}else{
-	            			// Putting to array
-		            		rankInfo = hashtables.get(hash_key);	
-	            		}
-	            		// Parsing m1 ... m20 value
-	            		Float fval = null;
-	            		try {
-							fval = parseFval((String)field.get(examResult));
-						}catch (Exception e){
+	            //for (String key: Constant.exam_keys){
+	        	for (SchoolExam school_exam: schoolExams){
+	    			String ex_key = school_exam.getEx_key();	            
+	            	//if (fname.equalsIgnoreCase(key)){ // m1 ~ m20
+	    			if (fname.equalsIgnoreCase(ex_key)){ // m1 ~ m20
+	            		String sresult = null;
+	            		// Parse score value
+	            		try{
+	            			sresult = (String)field.get(examResult); // "8.4@2016-06-10";
+	            		}catch (Exception e){
 	            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
 	            		}
-	            		
-	            		if (fval != null ){
-	            			rankInfo.getMarks().add(fval);
+	            		if (sresult != null && sresult.trim().length() > 0){
+	            			// Parsing JSON to Exam Detail
+	            			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
+	            			sresult = examDetail.getSresult();
+	            			
+	                		// Get Exam master information
+//	                		school_exam = schoolExamDao.findByExKey(examResult.getSchool_id(), fname);// school_id vs m1,m2,m3...m20
+//	                		if (school_exam == null ){
+//	                        	throw new ESchoolException("there is no master data declared for ex_key:"+fname, HttpStatus.BAD_REQUEST);
+//	                		}
+	                		// Parsing float 
+	                		String sval = sresult;
+	                		String exam_dt="";
+	                		String[] arr = sresult.split("@"); // "8.4@2016-06-10";
+	                		if (arr != null && arr.length >=2){
+	                			sval = arr[0];
+	                			exam_dt = arr[1];
+	                			if (!Utils.checkDateFormat(exam_dt)){
+	                				throw new ESchoolException(fname + ": invalid date time format, should be YYYY-MM-DD value: "+ exam_dt, HttpStatus.BAD_REQUEST);
+	                			}
+	                		}
+	                		if (sval == null || sval.trim().length() == 0){
+	                			break;
+	                		}
+	                		Float fval = Utils.parseFloat(sval);
+	                		if (fval == null){
+	                			throw new ESchoolException(fname + ": invalid Float value: "+ sval, HttpStatus.BAD_REQUEST);
+	                		}
+	                		if ( fval.floatValue() < school_exam.getMin().floatValue() ){
+	            				throw new ESchoolException(fname +":"+sval+ " < MIN value = "+school_exam.getMin().floatValue(), HttpStatus.BAD_REQUEST);
+	            			}
+	            			if (fval.floatValue() > school_exam.getMax().floatValue() ){
+	            				throw new ESchoolException(fname + ":"+sval+" > MAX value = "+school_exam.getMax().floatValue(), HttpStatus.BAD_REQUEST);
+	            			}
+	            			
+	            			// /////////////////////////////////////////////////////////////////////
+	            			// Save to calculate average
+	            			if ((school_exam.getEx_type().intValue() == 1) &&// month point
+	            					(school_exam.getTerm_val().intValue() == 1)) // Hoc ky 1
+	            			{
+	            				point_months1.add(fval);
+	            			}
+	            			else if ((school_exam.getEx_type().intValue() == 1) &&// month point
+	            					(school_exam.getTerm_val().intValue() == 2)) // Hoc ky 2
+	            			{
+	            				point_months2.add(fval);
+	            			}
+	            			else if ((school_exam.getEx_type().intValue() == 2) &&// Thi Hoc Ky
+	            					(school_exam.getTerm_val().intValue() == 1)) // Hoc ky 1
+	            			{
+	            				point_terms1.add(fval);
+	            			}else if ((school_exam.getEx_type().intValue() == 2) &&// Thi Hoc Ky
+	            					(school_exam.getTerm_val().intValue() == 2)) // Hoc ky 2
+	            			{
+	            				point_terms2.add(fval);
+	            			}
+	            			// /////////////////////////////////////////////////////////////////////
+
 	            		}
-	            		// STOP to next field
-	            		break;
-	            	
+	            		break;// STOP to next field
 	            	}
 	            }
 	        }
+	        
+	        /// Start calculate average
+			////////Calculate M5 ( Trung binh 4 thang  HK 1)
+			float total =0;
+			int cnt =0;
+			ExamDetail ex_detail = null;
+			ObjectMapper mapper = new ObjectMapper();;
+			if (point_months1.size() > 0){
+				total =0;
+				cnt =0;
+				for (Float fval: point_months1){
+					total += fval.floatValue();
+					cnt++;
+				}
+				float m5 = total/cnt;
+				// examResult.setM5(String.format("%.1f", m5));
+				ex_detail = new ExamDetail();
+				ex_detail.setExam_dt(Utils.now());
+				ex_detail.setNotice("AUTO");
+				ex_detail.setSresult(String.format("%.1f", m5));
+				//mapper = new ObjectMapper();
+				try {
+					examResult.setM5(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+				///
+				// Calculate M7 (Trung Binh Hoc Ky 1)
+				total =0;
+				cnt =0;		
+				if (point_terms1.size() > 0 ){  // Neu co diem thi HK1
+					point_terms1.add(m5);
+					for (Float fval: point_terms1){
+						total += fval.floatValue();
+						cnt++;
+					}
+					float m7 = total/cnt;
+					// examResult.setM7(String.format("%.1f", m7));
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult(String.format("%.1f", m7));
+					//mapper = new ObjectMapper();
+					try {
+						examResult.setM7(mapper.writeValueAsString(ex_detail));
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+						throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+					}
+					// Add to calculate Ave of year
+					point_years.add(m7);
+				}
+			}else{
+				// Reset MONTH AVE
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM5(mapper.writeValueAsString(ex_detail));
+					examResult.setM7(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+			}
+			// Calculate M12 ( Trung binh 4 thang HK2 )
+			total =0;
+			cnt =0;		
+			if (point_months2.size() > 0){
+				for (Float fval: point_months2){
+					total += fval.floatValue();
+					cnt++;
+				}
+				float m12 = total/cnt;
+				// examResult.setM12(String.format("%.1f", m12));
+				ex_detail = new ExamDetail();
+				ex_detail.setExam_dt(Utils.now());
+				ex_detail.setNotice("AUTO");
+				ex_detail.setSresult(String.format("%.1f", m12));
+				mapper = new ObjectMapper();
+				try {
+					examResult.setM12(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+				
+				// Calculate M14 (Trung Binh HK 2)
+				total =0;
+				cnt =0;		
+				if (point_terms2.size() > 0 ){ // Neu co diem thi HK2
+					point_terms2.add(m12);
+					for (Float fval: point_terms2){
+						total += fval.floatValue();
+						cnt++;
+					}
+					float m14 = total/cnt;
+					// examResult.setM14(String.format("%.1f", m14));
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult(String.format("%.1f", m14));
+					mapper = new ObjectMapper();
+					try {
+						examResult.setM14(mapper.writeValueAsString(ex_detail));
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+						throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+					}
+					// Add to calculate Ave of year								
+					point_years.add(m14);
+				}
+			}else{
+				// Reset month HK 2
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM12(mapper.writeValueAsString(ex_detail));
+					examResult.setM14(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+			}
+			
+			// Calculate M15 ( Trung binh ca nam )
+			total =0;
+			cnt =0;		
+			if (point_years.size() > 0){
+				for (Float fval: point_years){
+					total += fval.floatValue();
+					cnt++;
+				}
+				float m15 = total/cnt;
+				// examResult.setM15(String.format("%.1f", m15));
+				ex_detail = new ExamDetail();
+				ex_detail.setExam_dt(Utils.now());
+				ex_detail.setNotice("AUTO");
+				ex_detail.setSresult(String.format("%.1f", m15));
+				mapper = new ObjectMapper();
+				try {
+					examResult.setM15(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}			
+			}else{
+				// Reset month HK 2
+				try {
+					ex_detail = new ExamDetail();
+					ex_detail.setExam_dt(Utils.now());
+					ex_detail.setNotice("AUTO");
+					ex_detail.setSresult("");
+					examResult.setM15(mapper.writeValueAsString(ex_detail));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+					throw new ESchoolException("Cannot cast ExamDeail object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+				}
+			}
 		}
-		 // 
-        ArrayList<RankInfo> arr_ranks = new ArrayList<RankInfo>();
-        
-        // Sorting by average
-        Enumeration<String> names = hashtables.keys();
-        
-        while(names.hasMoreElements()) {
-           String str = (String) names.nextElement();
-           RankInfo rank = hashtables.get(str);
-           ArrayList<Float> marks = rank.getMarks();
-           
-           rank.setAve(averageMarks(marks));
-           rank.setGrade(averageArade(marks));
-           // rank.Allocation only available with Class info
-           arr_ranks.add(rank);
-        }
-        
-		return arr_ranks;
-		
 	}
-	private String averageArade(ArrayList<Float> marks){
+
+	
+//	private ArrayList<RankInfo> rank_user_ave(User curr_user, ArrayList<ExamResult> exam_results) {
+//		
+//		Hashtable<String, RankInfo> hashtables= new Hashtable<String, RankInfo>(); 
+//		
+//		for (ExamResult examResult: exam_results){
+//			String hash_key = "";
+//			RankInfo rankInfo = null;
+//			Integer student_id =examResult.getStudent_id();
+//			hash_key = ""+student_id.intValue()+"_";
+//			
+//			// Scan to find m1,m2,m3...m20
+//			java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
+//	        for (Field field : fields) {
+//	            field.setAccessible(true);
+//	            String fname =field.getName();
+//	            
+//	            for (String ex_key: Constant.exam_keys){
+//	            	if (fname.equalsIgnoreCase(ex_key)){
+//	            		// Found m1 .. m 20 , create HashTable entry if need
+//	            		hash_key = ""+student_id.intValue()+"_"+ex_key.toLowerCase();//user_id_m1, user_id_m2
+//	            		if (!hashtables.containsKey(hash_key)){
+//	            			
+//	            			rankInfo = new RankInfo();
+//	            			rankInfo.setEx_key(ex_key);
+//	            			rankInfo.setMarks(new ArrayList<Float>());
+//	            			rankInfo.setUser_id(student_id);
+//	            			
+//	            			hashtables.put(hash_key,rankInfo);
+//	            		}else{
+//	            			// Putting to array
+//		            		rankInfo = hashtables.get(hash_key);	
+//	            		}
+//	            		// Parsing m1 ... m20 value
+//	            		Float fval = null;
+//	            		try {
+//							fval = parseFval((String)field.get(examResult));
+//						}catch (Exception e){
+//	            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
+//	            		}
+//	            		
+//	            		if (fval != null ){
+//	            			rankInfo.getMarks().add(fval);
+//	            		}
+//	            		// STOP to next field
+//	            		break;
+//	            	
+//	            	}
+//	            }
+//	        }
+//		}
+//		 // 
+//        ArrayList<RankInfo> arr_ranks = new ArrayList<RankInfo>();
+//        
+//        // Sorting by average
+//        Enumeration<String> names = hashtables.keys();
+//        
+//        while(names.hasMoreElements()) {
+//           String str = (String) names.nextElement();
+//           RankInfo rank = hashtables.get(str);
+//           ArrayList<Float> marks = rank.getMarks();
+//           
+//           rank.setAve(averageMarks(marks));
+//           rank.setGrade(averageArade(marks));
+//           // rank.Allocation only available with Class info
+//           arr_ranks.add(rank);
+//        }
+//        
+//		return arr_ranks;
+//		
+//	}
+	private String getRade(ArrayList<Float> marks){
 		float A_GRADE = 7;
 		float B_BRADE = 6;
 		int a_cnt =0;
@@ -1358,8 +1377,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 		
 		
-	private Float averageMarks(ArrayList<Float> marks) {
+	private String getAveMarks(ArrayList<Float> marks) {
 		float total = 0;
+		String sval=null;
 		int cnt = 0;
 		if (marks != null && marks.size() > 0) {
 			for (Float mark : marks) {
@@ -1369,30 +1389,31 @@ public class ExamResultServiceImpl implements ExamResultService{
 				}
 			}
 			if (cnt > 0) {
-				return new Float(total / cnt);
+				sval = String.format("%.1f", total / cnt);
+				
 			}
 		}
-		return null;
+		return sval;
 	}
-	private Float parseFval(String sresult) {
-		String sval = "";
-		if (sresult != null ){
-			// Parsing JSON to Exam Detail
-			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
-			sval = examDetail.getSresult();
-			
-    		if (sval == null || sval.trim().length() == 0){
-    			return null;
-    		}
-    		Float fval = Utils.parseFloat(sval);
-    		if (fval == null){
-    			throw new ESchoolException("Cannot parsing Float: "+ sval, HttpStatus.BAD_REQUEST);
-    		}
-    		return fval;
-
-		}
-		return null;
-	}
+//	private Float parseFval(String sresult) {
+//		String sval = "";
+//		if (sresult != null ){
+//			// Parsing JSON to Exam Detail
+//			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
+//			sval = examDetail.getSresult();
+//			
+//    		if (sval == null || sval.trim().length() == 0){
+//    			return null;
+//    		}
+//    		Float fval = Utils.parseFloat(sval);
+//    		if (fval == null){
+//    			throw new ESchoolException("Cannot parsing Float: "+ sval, HttpStatus.BAD_REQUEST);
+//    		}
+//    		return fval;
+//
+//		}
+//		return null;
+//	}
 
 
 	
@@ -1425,25 +1446,25 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 //	}
 
-	private void sortRankDesc(ArrayList<RankInfo> list) {
-		if (list == null || list.size() <=0){
-			return;
-		}
-		RankInfo tmp = null;
-		
-		for (int i = 0;i< list.size()-1 ; i++){
-			for (int j=i+1;j<list.size(); j++){
-				if (list.get(i).getAve() != null && list.get(j).getAve() != null && list.get(i).getAve().floatValue() < list.get(j).getAve().floatValue() ){
-					tmp = list.get(i);
-					list.set(i, list.get(j));
-					list.set(j, tmp);
-				}
-			}
-		}
-		for (int i = 0;i< list.size()-1 ; i++){
-			list.get(i).setAllocation(i+1);
-		}
-	}
+//	private void sortRankDesc(ArrayList<RankInfo> list) {
+//		if (list == null || list.size() <=0){
+//			return;
+//		}
+//		RankInfo tmp = null;
+//		
+//		for (int i = 0;i< list.size()-1 ; i++){
+//			for (int j=i+1;j<list.size(); j++){
+//				if (list.get(i).getAve() != null && list.get(j).getAve() != null && list.get(i).getAve().floatValue() < list.get(j).getAve().floatValue() ){
+//					tmp = list.get(i);
+//					list.set(i, list.get(j));
+//					list.set(j, tmp);
+//				}
+//			}
+//		}
+//		for (int i = 0;i< list.size()-1 ; i++){
+//			list.get(i).setAllocation(i+1);
+//		}
+//	}
 
 	@Override
 	public ArrayList<ExamRank> getUserRank(User student, Integer class_id, Integer year_id) {
@@ -1493,34 +1514,232 @@ public class ExamResultServiceImpl implements ExamResultService{
 		return ret;
 	}
 
-	private ArrayList<ExamRank>  calUserAve(ArrayList<ExamResult> examResults) {
-		
-		ExamRank examRank  = null;
-		ArrayList<ExamRank>  ret = new ArrayList<ExamRank>();
-		if (examResults == null  ||examResults.size() <= 0){
-			throw new ESchoolException("calUserAve(): input examResults() is required", HttpStatus.BAD_REQUEST);
+
+//	@Override
+//	public ArrayList<ExamRank> execMonthAllocation(User user, Integer filter_class_id, Integer filter_year_id) {
+//		 
+//
+//		Integer school_id = user.getSchool_id();
+//		
+//		EClass eclass = classService.findById(filter_class_id);
+//		if (filter_year_id == null ){
+//			throw new ESchoolException("filter_year_id is required", HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		if (eclass == null ){
+//			throw new ESchoolException("filter_class_id not existing:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+//		}
+//		if (eclass.getSchool_id().intValue() != school_id.intValue() ){
+//			throw new ESchoolException("class.school_id not the same with current school_id", HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		Set<User> students = eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
+//		if (students == null ){
+//			throw new ESchoolException("class_id have no students:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+//		}
+//		// Get ave data from DB
+//		ArrayList<ExamRank> exam_ranks = new ArrayList<ExamRank>();
+//		
+//		for (User student: students){
+//			ArrayList<ExamRank> user_rank = examRankDao.findExamRankExt(school_id, filter_class_id, user.getId(), filter_year_id);
+//			if (user_rank != null && user_rank.size() >0 ){
+//				exam_ranks.addAll(user_rank);
+//			}
+//		}
+//		if (exam_ranks == null || exam_ranks.size() <=0){
+//			throw new ESchoolException("class_id have no exam_ranks info:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+//		}
+//		
+//        return procAllocation(user, exam_ranks);
+//	}
+//	
+	
+
+	@Override
+	public ArrayList<ExamRank> execClassMonthAve(User curr_user, Integer filter_year_id, Integer filter_class_id) {
+		 ArrayList<ExamRank> ret = new ArrayList<ExamRank>();
+		EClass eclass = classService.findById(filter_class_id);
+		if (eclass == null){
+			throw new ESchoolException("filter_class_id is not existing"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (curr_user.getSchool_id().intValue() != eclass.getSchool_id().intValue()){
+			throw new ESchoolException("Class.school_id != current_user.school_id", HttpStatus.BAD_REQUEST);
 		}
 		
 		
-		Integer year_id = examResults.get(0).getSch_year_id();
-		if (year_id == null || year_id.intValue() <=0){
-			 throw new ESchoolException("calUserAve(): examResults.get(0).getSch_year_id() = NULL ", HttpStatus.BAD_REQUEST);
+		Set<User> users = eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
+		if (users == null || users.size() <= 0){
+			throw new ESchoolException("filter_class_id has not any user"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
-		Integer student_id = examResults.get(0).getStudent_id();
-		if (student_id == null || student_id.intValue() <=0){
-			 throw new ESchoolException("calUserAve(): examResults.get(0).getStudent_id() = NULL ", HttpStatus.BAD_REQUEST);
+		for (User user: users){
+			ExamRank exam_rank = execUserMonthAve(user.getId(),filter_year_id,filter_class_id);
+			if (exam_rank != null && exam_rank.getId() != null && exam_rank.getId().intValue() > 0){
+				ret.add(exam_rank);
+			}
 		}
-		User student = userService.findById(student_id);
-		if (student == null ){
-			 throw new ESchoolException("calUserAve(): cannot find User from examResult.getStudent_id():"+student_id.intValue(), HttpStatus.BAD_REQUEST);
+		return ret;
+	}
+	@Override
+	public ExamRank execUserMonthAve(Integer user_id, Integer filter_year_id, Integer filter_class_id) {
+		Integer school_id = null;
+		
+		Hashtable<String,RankInfo> hashtable = new Hashtable<String,RankInfo>();
+		if (user_id == null || user_id.intValue()==0 ){
+			throw new ESchoolException("user_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (filter_year_id == null || filter_year_id.intValue() == 0) {
+			SchoolYear schoolYear =  schoolYearService.findLatestYearBySchool(school_id);
+			if (schoolYear == null ){
+				throw new ESchoolException("SchoolYear of school_id is null", HttpStatus.BAD_REQUEST);
+			}	
+			filter_year_id = schoolYear.getId();
 		}
 		
-		Integer school_id = student.getSchool_id();
-		 
 		
 		
-		 Hashtable<String, RankInfo> hashtables= new Hashtable<String, RankInfo>();
+		User user = userService.findById(user_id);
+		if (user == null ){
+			throw new ESchoolException("user_id is not existing" + user_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (!user.hasRole(E_ROLE.STUDENT.getRole_short()) ){
+			throw new ESchoolException("user_id is not STUDENT" + user_id.intValue(), HttpStatus.BAD_REQUEST);		
+			
+		}
+		if (!user.is_belong2class(filter_class_id)){
+			throw new ESchoolException("user_id is not belong to class_id" + filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
+		ArrayList<ExamResult> examResults = findExamResultExt(user.getSchool_id(), null, user_id, null, filter_year_id);
+		if (examResults == null ){
+			throw new ESchoolException("There isn't any exam result for user_id:"+user_id.intValue()+" and year_id:"+filter_year_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		school_id = user.getSchool_id();
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
+		if (schoolExams == null || schoolExams.size() == 0){
+			return null;
+		}
+		// Init hash
+		for (SchoolExam schoolExam: schoolExams){
+			String ex_key = schoolExam.getEx_key();
+			RankInfo rank_info = new RankInfo();
+
+			/////////
+			rank_info.setAllocation(null);
+			rank_info.setAve(null);
+			rank_info.setGrade(null);
+			rank_info.setExam_rank_id(null);
+			rank_info.setMarks(new ArrayList<Float>());			
+			rank_info.setUser_id(user_id);
+			rank_info.setYear_id(filter_year_id);
+			rank_info.setEx_key(ex_key);			
+			// put to hash
+			hashtable.put(ex_key, rank_info);
+		}
+		
+		 // calculate average
+		ArrayList<ExamRank> exam_ranks  = examRankDao.findExamRankExt(school_id, null, user.getId(), filter_year_id);
+        ExamRank exam_rank = null;
+        if (exam_ranks == null ||exam_ranks.size() <=0){
+        	exam_rank = new ExamRank();
+        	
+        	exam_rank.setSchool_id(user.getSchool_id());
+        	exam_rank.setClass_id(filter_class_id);
+        	exam_rank.setStudent_id(user_id);
+        	exam_rank.setSch_year_id(filter_year_id);
+        	
+        }else{
+        	exam_rank = exam_ranks.get(0);
+        }
+        
+        Enumeration<String> keys = hashtable.keys();
+        
+        while(keys.hasMoreElements()) {
+           String ex_key = (String) keys.nextElement();
+           RankInfo rankInfo = hashtable.get(ex_key);
+           ArrayList<Float> marks = getMarkByExKeys(user,ex_key,examResults);
+           
+           rankInfo.setMarks(marks);
+           rankInfo.setAve(getAveMarks(marks));
+           rankInfo.setGrade(getRade(marks));
+
+           
+           // Merge rankInfo to Rank
+           ObjectMapper mapper = new ObjectMapper();
+           java.lang.reflect.Field[] fields = exam_rank.getClass().getDeclaredFields();
+	   		for (Field field : fields) {
+	   			field.setAccessible(true);
+	            String fname =field.getName();
+	            if (fname.equalsIgnoreCase(ex_key)){
+	            	try {
+						field.set(exam_rank,  mapper.writeValueAsString(rankInfo));
+					 } catch (IllegalArgumentException e) {
+						e.printStackTrace();
+						throw new ESchoolException("Cannot access field of rankInfo object:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+						throw new ESchoolException("Cannot access field of rankInfo object:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+						throw new ESchoolException("Cannot cast rankInfo object ot JSON String:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+					}
+	            }
+	            
+	   		}
+           
+           
+        }
+      // save db
+		if (exam_rank != null ){
+			examRankDao.saveExamRank(exam_rank);
+		}
+		return exam_rank;
+	}
+	
+	private ArrayList<Float> getMarkByExKeys(User user, String ex_key, ArrayList<ExamResult> examResults){
+		ArrayList<Float> marks = new ArrayList<>();
+		
+		
+		for (ExamResult examResult: examResults){
+			if (examResult.getStudent_id().intValue() != user.getId().intValue()){
+				continue;
+			}
+			java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
+			for (Field field : fields) {
+				field.setAccessible(true);
+	            String fname =field.getName();
+	            if (fname.equalsIgnoreCase(ex_key)){
+	            	String sresult = null;
+            		// Parse float value
+            		try{
+            			sresult = (String)field.get(examResult);// {"sresult":"4.5","notice":"test","exam_dt":"2016-07-05 15:36:07"}
+            		}catch (Exception e){
+            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
+            		}
+            		if (sresult != null && sresult.trim().length() > 0){
+            			// Parsing JSON to Exam Detail
+            			ExamDetail examDetail = ExamDetail.strJson2ExamDetail(sresult);
+                		Float fval = Utils.parseFloat(examDetail.getSresult());
+                		if (fval != null && fval >=0){
+                			marks.add(fval);
+                		}
+            		
+            		}
+	            	break;
+	            }
+			}
+		}
+		
+		
+		
+		return marks;
+	}
+	@Override
+	public ArrayList<ExamRank> procAllocation(User user,ArrayList<ExamRank> exam_ranks){
+		Integer school_id = user.getSchool_id();
+		// Initial hashtable
+		Hashtable<String, ArrayList<RankInfo>> hashtables= new Hashtable<String, ArrayList<RankInfo>>();
+		
 		 // List exam : m1 .. m20
 		 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
 		 for (SchoolExam schoolExam :schoolExams){
@@ -1529,124 +1748,162 @@ public class ExamResultServiceImpl implements ExamResultService{
 				 continue;
 			 }
 			 ex_key = ex_key.toLowerCase();
-			 RankInfo rankInfo = hashtables.get(ex_key);
-			 
-			 if (rankInfo == null ){
-				 rankInfo = new RankInfo();
-				 // rankInfo.setAllocation(allocation);// Later
-				 // rankInfo.setAve(ave);// Later
-				 rankInfo.setGrade("");// Later
-				 rankInfo.setUser_id(student.getId());
-				 rankInfo.setEx_key(ex_key.toLowerCase());
-				 // Put to hash table
-				 hashtables.put(ex_key, rankInfo);
-				 
-			 }
-			 // Scan all result
-			 // Put into marks array to calculate 
-			 for (ExamResult examResult :examResults){
-				 	if (year_id.intValue() != examResult.getSch_year_id().intValue()){
-				 		throw new ESchoolException("calUserAve(): input examResults have different year_id", HttpStatus.BAD_REQUEST); 
-				 	}
-					// Scan to find m1,m2,m3...m20
-					java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
-			        for (Field field : fields) {
-			            field.setAccessible(true);
-			            String fname =field.getName();
-			            if (fname.equalsIgnoreCase(ex_key)){
-		            		// Parsing m1 ... m20 value
-		            		Float fval = null;
-		            		try {
-								fval = parseFval((String)field.get(examResult));
-							}catch (Exception e){
-		            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
-		            		}
-		            		
-		            		if (fval != null ){
-		            			rankInfo.getMarks().add(fval);
-		            		}
-
-			            	
-			            	break;
-			            }
-			        }
-			 }
-			 
+			 // Put to hash table
+			 hashtables.put(ex_key,  new ArrayList<RankInfo>());
 		 }
-
-		 // Calculate Average & Grade		 
+				
+				
+		// Put DB to hashtable
+		for (ExamRank examRank : exam_ranks){
+			java.lang.reflect.Field[] fields = examRank.getClass().getDeclaredFields();
+	        for (Field field : fields) {
+	            field.setAccessible(true);
+	            String fname =field.getName();
+	            String sresult= "";
+	            ArrayList<RankInfo> arr_rankinfo = hashtables.get(fname.toLowerCase());// m1...m20
+	            if (arr_rankinfo != null ){
+					try {
+						sresult = (String) field.get(examRank);//{"ave":"4,5","grade":"A","allocation":1}
+					} catch (IllegalArgumentException e) {
+						
+						e.printStackTrace();
+						throw new ESchoolException(fname + ": cannot GET to field.get(examRank) :"+ e.getMessage(), HttpStatus.BAD_REQUEST);
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+						throw new ESchoolException(fname + ": cannot GET to field.get(examRank) :"+ e.getMessage(), HttpStatus.BAD_REQUEST);
+					}
+	            	if (sresult != null && !sresult.equals("")){
+	            		ExamRankDetail rank_detail = ExamRankDetail.strJson2ExamDetail(sresult);//{"ave":"4,5","grade":"A","allocation":1}
+	            		if (rank_detail != null && rank_detail.getAve() != null){
+	            			RankInfo rankinfo = new RankInfo();
+	            			
+	            			// Detail info from JSON String
+	            			rankinfo.setAllocation(rank_detail.getAllocation());
+	            			rankinfo.setAve(rank_detail.getAve());
+	            			rankinfo.setGrade(rank_detail.getGrade());
+	            			/// other info - may be used
+	            			rankinfo.setExam_rank_id(examRank.getId());
+	            			rankinfo.setEx_key(fname);
+	            			rankinfo.setUser_id(examRank.getStudent_id());
+	            			rankinfo.setYear_id(examRank.getSch_year_id());
+	            			// add to array to sort
+	            			arr_rankinfo.add(rankinfo);
+	            		}
+	            	}
+	            	
+	            }
+	        }
+		}
+				
+		// Scan hashtable => arraylist => sort
         Enumeration<String> names = hashtables.keys();
         while(names.hasMoreElements()) {
            String ex_key = (String) names.nextElement();
-           RankInfo rank = hashtables.get(ex_key);
-           rank.setAve(averageMarks(rank.getMarks()));
-           rank.setGrade(averageArade(rank.getMarks()));
-           // Adding to return list
-           
-        }
-        // Create examRank record
-        // ArrayList<ExamRank> examRanks = new ArrayList<ExamRank>();
-		examRank = new ExamRank();
-		examRank.setActflg("A");
-		examRank.setSchool_id(student.getSchool_id());
-		examRank.setStudent_id(student.getId());
-		examRank.setStudent_name(student.getSso_id());
-		examRank.setStd_fullname(student.getFullname());
-		examRank.setSch_year_id(year_id);
-		
-		java.lang.reflect.Field[] fields = examRank.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            String fname =field.getName();
-            RankInfo rankInfo = hashtables.get(fname.toLowerCase());// m1...m20
-            if (rankInfo != null ){
-            	ObjectMapper mapper = new ObjectMapper();
-            	String rankInfo_json_str="";
-				try {
-					rankInfo_json_str = mapper.writeValueAsString(rankInfo);
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
-					logger.error(e.getMessage());
-					throw new ESchoolException(fname + ": cannot convert RankInfo to JSON_STRING:"+ e.getMessage(), HttpStatus.BAD_REQUEST);
-				}
-            	try {
-					field.set(examRank,rankInfo_json_str);
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-					throw new ESchoolException(fname + ": cannot set to field.set(examRank,rankInfo_json_str) :"+ e.getMessage(), HttpStatus.BAD_REQUEST);
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-					throw new ESchoolException(fname + ": cannot set to field.set(examRank,rankInfo_json_str) :"+ e.getMessage(), HttpStatus.BAD_REQUEST);
-				}
-            }
-            
-        }
-        ret.add(examRank);
-        return ret;
-	}
+           ArrayList<RankInfo> arr_infos = hashtables.get(ex_key);
+           if (arr_infos != null && arr_infos.size() > 0){
+        	   if (arr_infos.size() > 1){
+        		   for (int i =0;i< arr_infos.size() -1;i++){
+            		   float ave_i = arr_infos.get(i).getAve() != null?Float.valueOf(arr_infos.get(i).getAve()):0;
+            			  // scan for max
+            		   for (int j=i+1;j < arr_infos.size();j++){
+            			   float ave_j = arr_infos.get(j).getAve() != null?Float.valueOf(arr_infos.get(j).getAve()):0;   
+                		   // found max
+                		   if (ave_i < ave_j ){
+                			   // Doi cho
+                			   RankInfo min = arr_infos.get(i);
+                			   RankInfo max = arr_infos.get(j);
+                			   arr_infos.set(i, max);
+                			   arr_infos.set(j, min);
+                		   }
+            		   }
+            		  
+            	    }
+        	   	  }
+        	   }
+           }
+		           
+		 
+        ArrayList<ExamRank> ret_list = new ArrayList<ExamRank>();
+		           
+        // Update allocation
+        names = hashtables.keys(); // m1,m2..
+           while(names.hasMoreElements()) {
+        	   String ex_key = (String) names.nextElement();
+        	   ArrayList<RankInfo> arr_infos = hashtables.get(ex_key);
+              if (arr_infos != null && arr_infos.size() > 0){
+           	   for (int i =0;i< arr_infos.size();i++){
+           		   
+           		   RankInfo rank_info = arr_infos.get(i);  // Subject: {"ave":"4,5","grade":"A","allocation":1 - and oher infor}
+           		   
+           		   RankInfo prev_info = null;
+           		   if (i> 0){
+           			prev_info = arr_infos.get(i-1);
+           		   }
 
-	@Override
-	public ArrayList<ExamRank> execClassRank(Integer school_id, Integer filter_class_id, Integer filter_year_id) {
-		EClass eclass = classService.findById(filter_class_id);
-		ArrayList<User> users = (ArrayList<User>) eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
-		ArrayList<ExamResult> examResults = new ArrayList<>();
-		for (User user: users){
-			ArrayList<ExamResult> user_examResults = getClassProfile(school_id, filter_class_id, user.getId(), null, filter_year_id);
-			// TBD: Update Average
-			examResults.addAll(user_examResults);
-		}
-		// Update Ranking
-		// rank(examResults)
-		
-		
-		return null;
+           		   // Reload Exam Rank
+           		   ExamRank examRank = examRankDao.findById(rank_info.getExam_rank_id());
+           		   
+           		   if (examRank != null ){
+           			   // New allocation 
+           			   rank_info.setAllocation(i+1);
+	           			if (prev_info != null ){
+	        				   if (		rank_info.getAve() != null && 
+	        						   	rank_info.getAve().trim().length() > 0 &&
+	        						   	// Compare with previous
+	        						   	prev_info != null  && 
+	        						   	prev_info.getAve() != null && 
+	        						   	prev_info.getAve().trim().length() > 0)
+	        				   {
+	        					   // Samve allocation
+	        					   if (Float.valueOf(rank_info.getAve()).floatValue() == Float.valueOf(prev_info.getAve()).floatValue()){
+	        						   rank_info.setAllocation(prev_info.getAllocation());   
+	        					   }
+	        				   }
+	        			   }
+           			
+           			   // Create ExamRankDetail
+               		   ExamRankDetail rank_detail = new ExamRankDetail();
+               		   
+               		   rank_detail.setAve(rank_info.getAve());
+               		   rank_detail.setGrade(rank_info.getGrade());
+               		   rank_detail.setAllocation(rank_info.getAllocation());
+               		   
+               		   ObjectMapper mapper = new ObjectMapper();
+               		   String jsonstr= null; 
+               		   try {
+               			   jsonstr =  mapper.writeValueAsString(rank_detail); //JSON STRING:  {"ave":"4,5","grade":"A","allocation":1}
+               		   } catch (JsonProcessingException e) {
+               			   e.printStackTrace();
+               			   throw new ESchoolException("Cannot convert Object (rank_detail) to JSON STRING:"+e.getMessage(), HttpStatus.BAD_REQUEST);
+               		   }
+               		   
+               		   // Save JSON to String and store into ExamRank           		   
+               		   if (jsonstr != null && jsonstr.length() > 0){
+               			java.lang.reflect.Field[] fields = examRank.getClass().getDeclaredFields();
+	                    for (Field field : fields) {
+	                        field.setAccessible(true);
+	                        String fname =field.getName();
+	                        	if (fname.equalsIgnoreCase(ex_key)){ // m1 ~ m20
+	                        		try {
+										field.set(examRank, jsonstr);
+									} catch (IllegalArgumentException e) {
+										e.printStackTrace();
+										throw new ESchoolException("Cannot update filed(examRank,jsonstr):"+e.getMessage(), HttpStatus.BAD_REQUEST);
+									} catch (IllegalAccessException e) {
+										e.printStackTrace();
+										throw new ESchoolException("Cannot update filed(examRank,jsonstr):"+e.getMessage(), HttpStatus.BAD_REQUEST);
+									}
+	                        		break;
+	                        	}
+	                        }
+               		   	}
+               		   // Update to DB
+               		   examRankDao.updateExamRank(examRank);
+               		   ret_list.add(examRank);
+           		   }
+           	   }
+           }
+        }
+        return ret_list;
 	}
-
-	@Override
-	public void proc_average(ArrayList<ExamResult> examResults) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-		
 }

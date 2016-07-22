@@ -316,7 +316,7 @@ public class AttendanceController extends BaseController {
 		if (from_dt != null || to_dt != null){
 			attendanceService.requestAttendanceEx(student,attendance,from_dt,to_dt);
 		}else{
-			attendanceService.requestAttendance(student,attendance,false);
+			attendanceService.requestAttendance(student,attendance,false,false);//inrange=false,is_sent_msg:false
 		}
     	
     	RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");

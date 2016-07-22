@@ -203,10 +203,17 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.users.create");
-		String random_pass = Password.getRandomPass();
+		String user_pass = user.getPassword() ;
+		if (user_pass == null ){
+			user_pass = Password.getRandomPass();
+		}else{
+			if (!userService.isValidPassword(user_pass)){
+				throw new ESchoolException("Invalid user password: please input password with length >=4 AND <= 20 characters", HttpStatus.BAD_REQUEST);
+			}
+		}
 		try {
-			user.setPassword(Password.getSaltedHash(random_pass));
-			user.setDefault_pass(random_pass);
+			user.setPassword(Password.getSaltedHash(user_pass));
+			user.setDefault_pass(user_pass);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -249,7 +256,7 @@ public class UserController extends BaseController {
 		}
 		
 		 if (userService.isValidState(user.getState())){
-			 return userService.updateUser(user);
+			 return userService.updateUser(user,true);
 		 }else{
 			 throw new RuntimeException("Invalid State="+user.getState());
 		 }
@@ -373,7 +380,7 @@ public class UserController extends BaseController {
 			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
 		}
 		del_user.setActflg("D");
-		userService.updateUser(del_user);
+		userService.updateUser(del_user,true);
 		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
 	    return "Request was successfully, deleted user of id:"+id;
 	 }
@@ -399,6 +406,26 @@ public class UserController extends BaseController {
 	 }
 	
 	
+
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value = "/api/users/remove_frm_class", method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)
+	 public RespInfo removeFrmClass(
+			@RequestParam(value="user_id",required=true) Integer user_id,
+			@RequestParam(value="class_id",required=true) Integer class_id,
+			@RequestParam(value="notice",required=false) String notice,
+			
+		    @Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			 
+			 ) {
+		User admin = getCurrentUser();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		
+		user2ClassService.removeUserToClass(admin, user_id, class_id, notice);
+		rsp.setMessageObject("Done");
+	    return rsp;
+	 }
 	
 	
 	@Secured({"ROLE_STUDENT"})
@@ -418,6 +445,59 @@ public class UserController extends BaseController {
 			rsp.setMessageObject(years);
 		    return rsp;
 		}
-	
+
+	@Secured({ "ROLE_ADMIN"})
+		@RequestMapping(value="/api/users/available",method = RequestMethod.GET)
+		@ResponseStatus(value=HttpStatus.OK)
+		public ListEnt getAvailableUsers(
+				@RequestHeader(value="auth_key",required =true) String auth_key,
+				
+				@Context final HttpServletResponse response,
+				@Context final HttpServletRequest request
+				) {
+			logger.info(" *** MainRestController.getAvailableUsers");
+			
+			List<User> users = null;
+			int total_row = 0;
+			int from_row = 0;
+			int max_result = Constant.MAX_RESP_ROW;
+			
+			User user = getCurrentUser();
+			Integer school_id = user.getSchool_id();
+			
+			ListEnt rspEnt = new ListEnt();
+			
+		    try {
+		    	// Count user
+		    	total_row = userService.countAvailableUser(school_id);
+		    	if (total_row > Constant.MAX_RESP_ROW){
+		    		max_result = Constant.MAX_RESP_ROW;    	
+		    	}else{
+		    		max_result = total_row;
+		    	}
+		    		
+				logger.info("user count: total_row : "+total_row);
+				// Query user
+				users = userService.findAvailableUser(school_id,from_row,max_result); 
+				rspEnt.setList(users);
+			    rspEnt.setFrom_row(from_row);
+			    rspEnt.setTo_row(from_row + max_result);
+			    rspEnt.setTotal_count(total_row);
+
+			    
+		    }catch(Exception e){
+		    	for ( StackTraceElement ste: e.getStackTrace()){
+		    		logger.error(ste);
+		    	}
+		    	logger.info(" *** MainRestController.getUsers() Message:"+e.getMessage());
+		    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		    }finally{
+		    	try{
+		    		response.flushBuffer();
+		    	}catch(Exception ex){}
+		    }
+		    
+		    return rspEnt;
+		}
 	
 }

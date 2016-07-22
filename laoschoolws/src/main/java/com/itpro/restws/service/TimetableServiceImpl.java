@@ -15,6 +15,7 @@ import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.Timetable;
+import com.itpro.restws.model.User;
 
 @Service("timetableService")
 @Transactional
@@ -24,6 +25,10 @@ public class TimetableServiceImpl implements TimetableService{
 	private TimetableDao timetableDao;
 	@Autowired
 	private MSubjectDao msubjectDao;
+	
+	@Autowired
+	private SchoolYearService schoolYearService;
+	
 	@Override
 	public Timetable findById(Integer id) {
 		
@@ -49,17 +54,37 @@ public class TimetableServiceImpl implements TimetableService{
 	}
 
 	@Override
-	public Timetable insertTimetable(Timetable timetable) {
+	public Timetable insertTimetable(User user, Timetable timetable) {
+		validateTimetable(user,timetable);
 		timetableDao.saveTimeTable(timetable);
 		return timetable;
 	}
 
 	@Override
-	public Timetable updateTimetable(Timetable timetable) {
-		Timetable timetableDB = timetableDao.findById(timetable.getId());
-		timetableDB = Timetable.updateChanges(timetableDB, timetable);
-		timetableDao.updateTimetable(timetableDB);
-		return timetableDB;
+	public Timetable updateTimetable(User user, Timetable timetable) {
+		validateTimetable(user,timetable);
+		
+//		Timetable timetableDB = timetableDao.findById(timetable.getId());
+//
+//		
+//		if (timetableDB == null ){
+//			throw new ESchoolException("Id:"+timetable.getId().intValue()+" is not exisiting", HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		if (user.getSchool_id().intValue() != timetable.getSchool_id().intValue()){
+//			throw new ESchoolException("User and timetable is not in same school", HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		if (user.getSchool_id().intValue() != timetableDB.getSchool_id().intValue()){
+//			throw new ESchoolException("User and timetableDB is not in same school", HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		
+//		timetableDB = Timetable.updateChanges(timetableDB, timetable);
+//		timetableDao.updateTimetable(timetableDB);
+//		return timetableDB;
+		timetableDao.updateTimetable(timetable);
+		return timetable;
 	}
 
 	@Override
@@ -94,6 +119,70 @@ public class TimetableServiceImpl implements TimetableService{
 			
 		}
 		return list_sub;
+	}
+
+	@Override
+	public void delTimetableById(User user, Integer id) {
+		Timetable timetable = findById(id);
+		
+		if (timetable == null ){
+			throw new ESchoolException("Id:"+id.intValue()+" is not exisiting", HttpStatus.BAD_REQUEST);
+		}
+		if (user.getSchool_id().intValue() != timetable.getSchool_id().intValue()){
+			throw new ESchoolException("User and timetable is not in same school", HttpStatus.BAD_REQUEST);
+		}
+		timetable.setActflg("D");
+		timetableDao.updateTimetable(timetable);
+		
+	}
+	private void validateTimetable(User user, Timetable timetable) {
+		
+		if (timetable.getId() != null && timetable.getId().intValue() > 0){
+			Timetable tblDb = timetableDao.findById(timetable.getId());
+			if (tblDb == null ){
+				throw new ESchoolException("timetable.id is not existing:"+timetable.getId().intValue(), HttpStatus.BAD_REQUEST);
+			}
+			if (tblDb.getSchool_id().intValue() != user.getSchool_id().intValue() ){
+				throw new ESchoolException("timetable.school_id is not the same with User", HttpStatus.BAD_REQUEST);
+			}
+			
+			timetable = Timetable.updateChanges(tblDb, timetable);
+		}
+		
+
+		// Update school_id
+		//if (timetable.getSchool_id() == null ){
+			timetable.setSchool_id(user.getSchool_id());
+		//}
+		if (timetable.getSession_id() == null || timetable.getSession_id().intValue() <= 0){
+			throw new ESchoolException("Session_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (timetable.getSubject_id() == null || timetable.getSubject_id().intValue() <= 0){
+			throw new ESchoolException("Subject_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (timetable.getTeacher_id() == null || timetable.getTeacher_id().intValue() <= 0){
+			throw new ESchoolException("Teacher_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (timetable.getTerm_val() == null || timetable.getTerm_val().intValue() <= 0){
+			throw new ESchoolException("TermVal is required", HttpStatus.BAD_REQUEST);
+		}
+		if (timetable.getWeekday_id() == null || timetable.getWeekday_id().intValue() <= 0){
+			throw new ESchoolException("Weekday_id is required", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (timetable.getYear_id() == null || timetable.getYear_id().intValue() <= 0){
+			throw new ESchoolException("Year_id is required", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (!schoolYearService.valid_year_id(user.getSchool_id(), timetable.getYear_id())){
+			throw new ESchoolException("Year_id is not belong to school_id", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (!schoolYearService.valid_term_val(user.getSchool_id(), timetable.getYear_id(),timetable.getTerm_val())){
+			throw new ESchoolException("TermVal is not belong to school_id/year_id"+user.getSchool_id().intValue()+"/"+timetable.getYear_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
+		
 	}
 
 

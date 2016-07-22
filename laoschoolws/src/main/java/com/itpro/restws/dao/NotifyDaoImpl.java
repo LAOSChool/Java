@@ -172,7 +172,8 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 	
 	
 	@Override
-	public Integer countNotifyExt(Integer school_id, int from_row, int max_result,
+	public Integer countNotifyExt(Integer school_id, 
+			//int from_row, int max_result,
 			// Secure filter
 			List<Integer> classes, 
 			List<Integer> users,
@@ -183,8 +184,6 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		// Filter by school
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		// Limit data return
-		crit_list.setMaxResults(max_result);
-		crit_list.setFirstResult(from_row);
 
 		// Filter by class
 		if (classes != null && !classes.isEmpty()) {

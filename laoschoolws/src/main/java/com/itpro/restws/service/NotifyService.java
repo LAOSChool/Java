@@ -39,7 +39,8 @@ public interface NotifyService {
 	ArrayList<Notify>  broadcastNotify(User user,Notify notify,String filter_roles);
 	public HashSet<NotifyImg> findImgByTaskID(Integer task_id);
 	
-	int countNotifyExt(Integer school_id, int from_row, int max_result, 
+	int countNotifyExt(Integer school_id, 
+			//int from_row, int max_result, 
 			// Secure filter
 			  MessageFilter filter,
 					// User filter

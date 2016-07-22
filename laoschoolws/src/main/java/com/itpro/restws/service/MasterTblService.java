@@ -3,6 +3,7 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 
 import com.itpro.restws.model.MTemplate;
+import com.itpro.restws.model.User;
 
 public interface MasterTblService {
 	
@@ -14,7 +15,10 @@ public interface MasterTblService {
 	
 	
 	ArrayList<MTemplate> findBySchool(String tbl_name,Integer school_id,int from_num, int max_result);
-	MTemplate insertMTemplate(String tbl_name,MTemplate template);
-	MTemplate updateMTemplate(String tbl_name,MTemplate template);
+	void validMTemplate(User user, String tbl_name,MTemplate template);
+	
+	MTemplate insertMTemplate(User user, String tbl_name,MTemplate template);
+	MTemplate updateMTemplate(User user, String tbl_name,MTemplate template);
+	void deleteMTemplate(User user, String tbl_name, Integer id);
 	 
 }

@@ -11,7 +11,8 @@ public interface MFeeDao {
 	MFee findById(Integer id);
 	List<MFee> findBySchool(Integer school_id,int from_row,int max_result) ;
 	void saveFee(MFee mfee);
-	public void updateFee(MFee mfee);
+	void updateFee(MFee mfee);
+	void delFee(MFee mfee);
 	
 }
 

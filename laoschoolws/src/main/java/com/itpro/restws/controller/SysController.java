@@ -2,6 +2,10 @@ package com.itpro.restws.controller;
 
 import java.util.ArrayList;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Context;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ListEnt;
+import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.service.SysTblService;
 /**
@@ -33,8 +38,11 @@ public class SysController {
 	
 	@RequestMapping(value="/api/sys/{tbl_name}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getSys(
-			 @PathVariable String tbl_name			
+	public RespInfo getSys(
+			 @PathVariable String tbl_name,
+			 
+			 @Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.getSys");
 		
@@ -59,7 +67,12 @@ public class SysController {
 		listResp.setFrom_row(from_row);
 		listResp.setTo_row(from_row + max_result);
 		listResp.setTotal_count(total_row);
-	    return listResp;
+	    //return listResp;
+	    
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		rsp.setMessageObject(listResp);
+		return rsp;
+		
 	}
 	
 	

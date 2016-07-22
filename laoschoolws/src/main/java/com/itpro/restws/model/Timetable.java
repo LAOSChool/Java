@@ -22,34 +22,34 @@ public class Timetable extends AbstractModel{
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private int id;
+	private Integer id;
 
 	
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public int getSchool_id() {
+	public Integer getSchool_id() {
 		return school_id;
 	}
 
-	public int getClass_id() {
+	public Integer getClass_id() {
 		return class_id;
 	}
 
-	public int getTeacher_id() {
+	public Integer getTeacher_id() {
 		return teacher_id;
 	}
 
-	public int getSubject_id() {
+	public Integer getSubject_id() {
 		return subject_id;
 	}
 
-	public int getSession_id() {
+	public Integer getSession_id() {
 		return session_id;
 	}
 
-	public int getWeekday_id() {
+	public Integer getWeekday_id() {
 		return weekday_id;
 	}
 
@@ -58,31 +58,31 @@ public class Timetable extends AbstractModel{
 	}
 
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
-	public void setSchool_id(int school_id) {
+	public void setSchool_id(Integer school_id) {
 		this.school_id = school_id;
 	}
 
-	public void setClass_id(int class_id) {
+	public void setClass_id(Integer class_id) {
 		this.class_id = class_id;
 	}
 
-	public void setTeacher_id(int teacher_id) {
+	public void setTeacher_id(Integer teacher_id) {
 		this.teacher_id = teacher_id;
 	}
 
-	public void setSubject_id(int subject_id) {
+	public void setSubject_id(Integer subject_id) {
 		this.subject_id = subject_id;
 	}
 
-	public void setSession_id(int session_id) {
+	public void setSession_id(Integer session_id) {
 		this.session_id = session_id;
 	}
 
-	public void setWeekday_id(int weekday_id) {
+	public void setWeekday_id(Integer weekday_id) {
 		this.weekday_id = weekday_id;
 	}
 
@@ -93,56 +93,70 @@ public class Timetable extends AbstractModel{
 	
 
 	@Column(name="school_id")
-	private int school_id;
+	private Integer school_id;
 
 	@Column(name="class_id")
-	private int class_id;
+	private Integer class_id;
 	
 	@Column(name="teacher_id")
-	private int teacher_id;
+	private Integer teacher_id;
 	
 	@Column(name="subject_id")
-	private int subject_id;
+	private Integer subject_id;
 	
 	@Column(name="session_id")
-	private int session_id;
+	private Integer session_id;
 	
 	@Column(name="weekday_id")
-	private int weekday_id;
+	private Integer weekday_id;
 	
 	
 
 	@Column(name="description")
 	private String description;
 	
-	public int getTerm_val() {
+	public Integer getTerm_val() {
 		return term_val;
 	}
 
-	public int getYear_id() {
+	public Integer getYear_id() {
 		return year_id;
 	}
 
-	public void setTerm_val(int term_val) {
+	public void setTerm_val(Integer term_val) {
 		this.term_val = term_val;
 	}
 
-	public void setYear_id(int year_id) {
+	public void setYear_id(Integer year_id) {
 		this.year_id = year_id;
 	}
 
 
 	@Column(name="term_val")
-	private int term_val;
+	private Integer term_val;
 	
 	@Column(name="year_id")
-	private int year_id;
+	private Integer year_id;
 	 
 
 
 	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String subject;
 	
+	@Formula("(SELECT t.lval FROM m_subject t WHERE t.id = subject_id)") // Ten tieng Lao
+	private String subject_lao;
+	
+	
+	public String getSubject_lao() {
+		return subject_lao;
+	}
+
+	public void setSubject_lao(String subject_lao) {
+		this.subject_lao = subject_lao;
+	}
+
+
+
 	@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@',t.fval1,'@',t.fval2) FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String session;
 	

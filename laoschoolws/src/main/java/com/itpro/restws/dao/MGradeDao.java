@@ -12,6 +12,7 @@ public interface MGradeDao {
 	List<MGrade> findBySchool(Integer school_id,int from_row,int max_result) ;
 	void saveGrade(MGrade mgrade);
 	
-	public void updateGrade(MGrade mgrade);
+	void updateGrade(MGrade mgrade);
+	void delGrade(MGrade mgrade);
 }
 

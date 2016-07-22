@@ -84,7 +84,7 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 
 
 	@Override
-	public List<SchoolExam> findByEx(Integer school_id, Integer ex_type, Integer term_val) {
+	public List<SchoolExam> findByExamType(Integer school_id, Integer ex_type, Integer term_val) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 

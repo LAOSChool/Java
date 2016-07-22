@@ -115,8 +115,8 @@ public class ClassController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.users.create");
 		// eclass = classService.findById(1);
-		
-		 return classService.insertClass(eclass);
+		User admin = getCurrentUser();
+		 return classService.newClass(admin, eclass);
 		 
 	}
 	
@@ -127,9 +127,9 @@ public class ClassController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.classes.update");
-		
+		User admin = getCurrentUser();
 		// eclass = classService.findById(1);
-		 return classService.updateClass(eclass);
+		 return classService.updateClass(admin,eclass);
 		 
 	}
 	

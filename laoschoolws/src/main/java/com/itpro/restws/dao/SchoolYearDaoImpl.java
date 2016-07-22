@@ -59,6 +59,43 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 
 
 
+	@Override
+	public List<SchoolYear> findBySchoolAndYear(Integer school_id, Integer year_id) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("school_id", school_id));
+		crit_list.add(Restrictions.eq("id", year_id));
+		@SuppressWarnings("unchecked")
+		List<SchoolYear> ret = crit_list.list();
+		return ret;
+
+	}
+
+
+
+
+	@Override
+	public List<SchoolYear> findFromOrTo(Integer school_id, Integer frm_year, Integer to_year) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("school_id", school_id));
+		
+		if (frm_year != null && frm_year.intValue() > 0){
+			crit_list.add(Restrictions.eq("from_year", frm_year));	
+		}
+		if (to_year != null && to_year.intValue() > 0){
+			crit_list.add(Restrictions.eq("to_year", to_year));	
+		}
+		
+		
+		
+		@SuppressWarnings("unchecked")
+		List<SchoolYear> ret = crit_list.list();
+		return ret;
+		
+	}
+
+
+
+
 //	@Override
 //	public SchoolYear findLastestOfSchoolId(Integer school_id) {
 //		Criteria crit_list = createEntityCriteria();

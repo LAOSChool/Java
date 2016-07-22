@@ -28,14 +28,18 @@ public interface ExamResultService {
 	ArrayList<ExamResult> findExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer subject_id,Integer year_id);
 	ArrayList<ExamResult>  getUserProfile(User student,Integer subject_id, Integer year_id);
 	ArrayList<ExamResult>  getClassProfile(Integer school_id,Integer filter_class_id,Integer filter_student_id, Integer filter_subject_id, Integer year_id);
-	void proc_average( ArrayList<ExamResult> examResults);
+	//void proc_average( User student,ArrayList<ExamResult> examResults);
 	
 	// Diem trung binh thang
 	//ArrayList<RankInfo> exec_ranking(User curr_user,ArrayList<ExamResult> exam_results);
 	ArrayList<ExamRank> getUserRank(User student,Integer class_id,Integer year_id);
 	ArrayList<ExamRank> getClassRank(Integer class_id,Integer year_id);
 	// Ranking
-	ArrayList<ExamRank> execClassRank(Integer school_id, Integer filter_class_id, Integer filter_year_id);
+	// Ranking
+	ExamRank execUserMonthAve(Integer user_id,Integer filter_year_id,Integer filter_class_id);
+	public ArrayList<ExamRank> execClassMonthAve(User curr_user, Integer filter_year_id, Integer filter_class_id);
+	//ArrayList<ExamRank> execMonthAllocation(User user,Integer school_id, Integer filter_class_id, Integer filter_year_id);
+	ArrayList<ExamRank> procAllocation(User user,ArrayList<ExamRank> ranks );
 	
 	
 	

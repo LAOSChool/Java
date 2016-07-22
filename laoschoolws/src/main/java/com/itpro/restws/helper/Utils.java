@@ -263,7 +263,7 @@ public class Utils {
 		    try{
 		       Calendar now = Calendar.getInstance();   // Gets the current date and time
 		       now.setTime(formater.parse(inputString));
-		       return now.get(Calendar.MONTH);
+		       return (now.get(Calendar.MONTH)+1);
 		    }
 		    catch(Exception e)
 		    {

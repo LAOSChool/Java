@@ -185,12 +185,20 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 			crit_list.add(Restrictions.eq("class_id", class_id));
 		}
 
+//		// Filter by date
+//		if (dateFrom != null && dateTo != null) {
+//			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
+//		} else if (dateFrom != null) {
+//			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+//		} else if (dateTo != null) {
+//			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+//		}
 		// Filter by date
-		if (dateFrom != null && dateTo != null) {
-			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
-		} else if (dateFrom != null) {
+				
+		if (dateFrom != null) {
 			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
-		} else if (dateTo != null) {
+		} 
+		if (dateTo != null) {
 			crit_list.add(Restrictions.lt("lstmdf", dateTo));
 		}
 
@@ -265,14 +273,21 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		}
 
 		// Filter by date
-		if (dateFrom != null && dateTo != null) {
-			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
-		} else if (dateFrom != null) {
+//		if (dateFrom != null && dateTo != null) {
+//			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
+//		} else if (dateFrom != null) {
+//			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+//		} else if (dateTo != null) {
+//			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+//		}
+		if (dateFrom != null) {
 			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
-		} else if (dateTo != null) {
+		} 
+		
+		if (dateTo != null) {
 			crit_list.add(Restrictions.lt("lstmdf", dateTo));
 		}
-
+		
 		// Filter by from user
 		if (fromUserID != null && fromUserID > 0) {
 			crit_list.add(Restrictions.eq("from_user_id", fromUserID));

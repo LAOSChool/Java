@@ -21,7 +21,7 @@ public interface UserService {
 	
 	
 	User insertUser(User user);
-	User updateUser(User user);
+	User updateUser(User user,boolean ignore_pass);
 	public boolean isValidState(int State);
 	public boolean isValidPassword(String pass);
 	public boolean isValidUserName(String username);
@@ -48,5 +48,8 @@ public interface UserService {
 	SchoolYear getLatestSchoolYear(User student);
 	ArrayList<SchoolYear> getSchoolYears(User student);
 	
+
+	int countAvailableUser(Integer school_id);
+	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result);
 	
 }

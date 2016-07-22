@@ -19,7 +19,7 @@ public interface ClassService {
 	
 	
 	
-	EClass insertClass(EClass eClass);
-	EClass updateClass(EClass eClass);
+	EClass newClass(User admin, EClass eClass);
+	EClass updateClass(User admin, EClass eClass);
 	SchoolYear getSchoolYear(EClass eClass);
 }

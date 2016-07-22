@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.itpro.restws.model.MSubject;
 import com.itpro.restws.model.Timetable;
+import com.itpro.restws.model.User;
 
 public interface TimetableService {
 	
@@ -17,8 +18,9 @@ public interface TimetableService {
 	ArrayList<MSubject> findSubjectOfClass(Integer class_id);
 	
 	
-	Timetable insertTimetable(Timetable timetable);
-	Timetable updateTimetable(Timetable timetable);
+	Timetable insertTimetable(User user,Timetable timetable);
+	Timetable updateTimetable(User user, Timetable timetable);
+	void delTimetableById(User user , Integer id);
 	
 	ArrayList<Timetable>  findByDate(Integer class_id,String dt);	
 	

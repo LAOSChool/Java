@@ -8,6 +8,8 @@ public enum MasterTblName {
 	TBLNAME_M_GRADE("m_grade","MGrade"),
 	TBLNAME_M_SESSION("m_session","MSession"),
 	TBLNAME_M_SUBJECT ("m_subject","MSubject"),
+	TBLNAME_M_CLSLEVEL ("m_clslevel","MClsLevel"),
+	
 	TBLNAME_M_USER2CLASS ("m_user2class","MUser2Class");
 	
 	  

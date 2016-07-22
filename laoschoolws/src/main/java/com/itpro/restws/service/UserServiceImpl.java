@@ -94,8 +94,11 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public User updateUser(User user) {
+	public User updateUser(User user,boolean ignore_pass) {
 		User userDB = userDao.findById(user.getId());
+		if (ignore_pass ){
+			user.setPassword(null);
+		}
 		userDB = User.updateChanges(userDB, user);
 		userDao.updateUser(userDB);
 		return userDB;	
@@ -167,7 +170,7 @@ public class UserServiceImpl implements UserService{
 				throw new ESchoolException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			user.setPassword(encryptPass(new_pass));
-			updateUser(user);
+			updateUser(user,false);
 		}else{
 			throw new RuntimeException("User is NULL, sso="+sso_id);
 		}
@@ -180,12 +183,13 @@ public class UserServiceImpl implements UserService{
 		String newPass = randomNum+ "";
 		User user = userDao.findBySSO(sso_id);
 		user.setPassword(encryptPass(newPass));
-		updateUser(user);
+		updateUser(user,false);
 		return newPass;
 	}
 
 	@Override
 	public User createUser(User user, E_ROLE role) {
+	
 		// Update Student sso_id to unique value
 		if (role == E_ROLE.STUDENT){
 			user.setSso_id(user.getSso_id()+Utils.now());
@@ -197,7 +201,8 @@ public class UserServiceImpl implements UserService{
 		// Change sso_id to DB ID
 		if (role == E_ROLE.STUDENT){
 			user.setSso_id(String.format("%08d", user.getId()));
-			updateUser(user);
+			//updateUser(user);
+			userDao.saveUser(user);
 		}
 		
 		return user;
@@ -417,6 +422,16 @@ public class UserServiceImpl implements UserService{
 		}else{
 			throw new ESchoolException("User must be student to access this API", HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@Override
+	public int countAvailableUser(Integer school_id) {
+		return userDao.countAvailableUser(school_id);
+	}
+
+	@Override
+	public ArrayList<User> findAvailableUser(Integer school_id, int from_num, int max_result) {
+		return (ArrayList<User>) userDao.findAvailableUser(school_id, from_num, max_result);
 	}
 
 	

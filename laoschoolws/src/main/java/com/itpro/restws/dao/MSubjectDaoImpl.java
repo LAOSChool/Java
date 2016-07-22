@@ -60,5 +60,11 @@ public class MSubjectDaoImpl extends AbstractDao<Integer, MSubject> implements M
 		
 	}
 
+	@Override
+	public void delSubject(MSubject msubject) {
+		delete(msubject);
+		
+	}
+
 	
 }

@@ -331,45 +331,62 @@ public class ExamResultController extends BaseController {
 		rsp.setMessageObject(exam_ranks);
 	    return rsp;
 	}
-	
-	@RequestMapping(value="/api/exam_results/exec_rank",method = RequestMethod.GET)
+
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@RequestMapping(value="/api/exam_results/month_ave",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo month_ave(
+			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
+			@RequestParam(value="filter_year_id", required =true) Integer filter_year_id,			
+			@RequestParam(value="filter_class_id", required =true) Integer filter_class_id,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** ExamResultController.month_ave");
+		User curr_user = getCurrentUser();
+		
+		if (curr_user.hasRole(E_ROLE.TEACHER.getRole_short())){
+			if (!curr_user.is_belong2class(filter_class_id)){
+				throw new ESchoolException("Current User is TEACHER - who not assigned to class_id:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		ArrayList<ExamRank> list = new ArrayList<ExamRank>();
+		if (filter_student_id == null  || filter_student_id.intValue() <= 0){
+			list = examResultService.execClassMonthAve(curr_user, filter_year_id, filter_class_id);
+		}else{
+			ExamRank examRank = examResultService.execUserMonthAve(filter_student_id, filter_year_id,filter_class_id);
+			if (examRank != null ){
+				list.add(examRank);
+			}
+		}
+		
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		rsp.setMessageObject("Done");
+		
+	    return rsp;
+	}
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@RequestMapping(value="/api/exam_results/month_rank",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo execRank(
-			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
-			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
-			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
+			@RequestParam(value="filter_year_id", required =true) Integer filter_year_id,			
+			@RequestParam(value="filter_class_id", required =true) Integer filter_class_id,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.execRank");
-
-		User current_user = getCurrentUser();
-				
-		ArrayList<ExamRank> exam_ranks  = null;
-		
-		if (filter_class_id == null || filter_class_id.intValue() == 0)  {
-			throw new ESchoolException("filter_class_id required", HttpStatus.BAD_REQUEST);
-		}
-
-//		
-//		if (filter_year_id == null || filter_year_id.intValue() == 0)  {
-//				throw new ESchoolException("filter_year_id required", HttpStatus.BAD_REQUEST);
-//		}
-		
-//		if (filter_student_id != null && filter_student_id.intValue() > 0){
-//			User student = userService.findById(filter_student_id);
-//			if (student != null && student.getSchool_id().intValue() == current_user.getSchool_id().intValue()){ 
-//				exam_ranks = examResultService.calUserAve(student, filter_year_id);
-//			}else{
-//				throw new ESchoolException("filter_student_id is not existing:"+filter_student_id.intValue(), HttpStatus.BAD_REQUEST);
-//			}
-//		}else {
-//			exam_ranks = examResultService.execClassRank(filter_class_id, filter_year_id);
-//		}
+		User user = getCurrentUser();
+	
+		// Update average value
+		ArrayList<ExamRank> examRanks = examResultService.execClassMonthAve(user, filter_year_id, filter_class_id);
+		examResultService.procAllocation(user,examRanks);
+//		// Update ranking
+//		ArrayList<ExamRank> examRanks = examResultService.execMonthAllocation(user.getSchool_id(), filter_class_id, filter_year_id);
 		
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-		rsp.setMessageObject(exam_ranks);
+		rsp.setMessageObject("DONE, to get result, plz call : /api/exam_results/ranks");
 	    return rsp;
 	}
 	

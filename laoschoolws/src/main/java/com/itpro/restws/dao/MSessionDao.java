@@ -12,5 +12,6 @@ public interface MSessionDao {
 	List<MSession> findBySchool(Integer school_id,int from_row,int max_result) ;
 	void saveSession(MSession msession);
 	void updateSession(MSession msession);
+	void delSession(MSession msession);
 }
 

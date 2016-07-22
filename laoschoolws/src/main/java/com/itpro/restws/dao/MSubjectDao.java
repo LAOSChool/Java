@@ -9,4 +9,5 @@ public interface MSubjectDao {
 	ArrayList<MSubject> findBySchool(Integer school_id,int from_row,int max_result) ;
 	void saveSubject(MSubject msubject);
 	void updateSubject(MSubject msubject);
+	void delSubject(MSubject msubject);
 }

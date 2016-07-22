@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.SchoolExamDao;
 import com.itpro.restws.dao.SchoolYearDao;
+import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolExam;
@@ -24,6 +26,8 @@ public class ClassServiceImpl implements ClassService{
 	@Autowired
 	private ClassDao classDao;
 	
+	@Autowired
+	private UserDao userDao;
 	
 	@Autowired
 	private SchoolExamDao schoolExamDao;
@@ -31,6 +35,10 @@ public class ClassServiceImpl implements ClassService{
 	@Autowired
 	protected SchoolYearDao schoolYearDao;
 
+	@Autowired
+	protected User2ClassService user2ClassService;
+	
+	
 	
 	@Override
 	public EClass findById(Integer id) {
@@ -56,20 +64,58 @@ public class ClassServiceImpl implements ClassService{
 		return (ArrayList<EClass>) classDao.findBySchool(school_id, from_num, max_result);
 	}
 	@Override
-	public EClass insertClass(EClass eClass) {
+	public EClass newClass(User admin, EClass eClass) {
 		classDao.saveClass(eClass);
+		// assign head teacher to class auto
+		assignHeadTeacher(admin,eClass);
 		return eClass;
 
 	}
 
 	@Override
-	public EClass updateClass(EClass eClass) {
+	public EClass updateClass(User admin,EClass eClass) {
+		
 		EClass eClassDB = classDao.findById(eClass.getId());
+		
+		Integer old_teacher_id = eClassDB.getHead_teacher_id();
+		Integer new_teacher_id = eClass.getHead_teacher_id();
+		
 		eClassDB = EClass.updateChanges(eClassDB, eClass);
 		classDao.updateClass(eClassDB);
+		
+		if (new_teacher_id == null || new_teacher_id.intValue() <=0) {
+			if (old_teacher_id != null && old_teacher_id.intValue() >0){
+				// Delete user2Class
+				// user2ClassService.removeUserToClass(admin, old_teacher_id, eClass.getId(), "AUTO-Update Class");
+				// Will not delete
+			}
+		}else {
+			if (old_teacher_id == null || old_teacher_id.intValue() != new_teacher_id.intValue()){
+				// update user2class
+				assignHeadTeacher(admin,eClass);
+			}
+		}
 		return eClassDB;
 
 		
+	}
+	
+	private void assignHeadTeacher(User admin, EClass eClass){
+		Integer teacher_id = eClass.getHead_teacher_id();
+		if (teacher_id != null && teacher_id.intValue() > 0){
+			User teacher = userDao.findById(teacher_id);
+			if (teacher==  null){
+				throw new ESchoolException("Head teacher_id is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (teacher.getSchool_id().intValue() != eClass.getSchool_id().intValue()){
+				throw new ESchoolException("Head teacher_id is not belong to same school_id", HttpStatus.BAD_REQUEST);
+			}
+			if (!teacher.hasRole((E_ROLE.TEACHER.getRole_short()))){
+				throw new ESchoolException("Head teacher_id do not have TEACHER ROLE", HttpStatus.BAD_REQUEST);
+			}
+			user2ClassService.assignUserToClass(admin, teacher_id, eClass.getId(), "AUTO - Create Class");
+			
+		}
 	}
 
 	@Override

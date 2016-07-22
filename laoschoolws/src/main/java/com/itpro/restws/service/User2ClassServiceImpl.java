@@ -83,6 +83,10 @@ public class User2ClassServiceImpl implements User2ClassService{
 		if (user == null ){
 			throw new ESchoolException("user_id is not existing:"+ user_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
+		
+//		if (user.getClasses() != null && user.getClasses().size() > 0){
+//			throw new ESchoolException("User already assigned to other class", HttpStatus.BAD_REQUEST);	
+//		}
 		if (eclass == null ){
 			throw new ESchoolException("class_id is not existing:"+ class_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
@@ -99,26 +103,30 @@ public class User2ClassServiceImpl implements User2ClassService{
 			throw new ESchoolException("schoolYear of school_id is null, school_id =  "+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
-		// find existing user 2 class
-		List<User2Class> list = user2ClassDao.findByUserAndClass(class_id, user_id,false);		
+//		// find existing user 2 class
+//		List<User2Class> list = user2ClassDao.findByUserAndClass(class_id, user_id,false);		
+//		if (list != null && list.size() > 0){
+//			//start_user_profile(user,eclass,schoolYear,notice);
+//			throw new ESchoolException("User already assigned to class", HttpStatus.BAD_REQUEST);
+//		}
+//				
+//				
+//		// Disable one user student assigned to many classes
+//		if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
+//			ArrayList<User2Class> existing_relations = (ArrayList<User2Class>) user2ClassDao.findByUserId(user.getId(),true);
+//			if (existing_relations != null && existing_relations.size() > 0){
+//				throw new ESchoolException("Cannot assigne one studen to many classes: student_id="+user.getId().intValue()+"///class_id="+class_id.intValue(), HttpStatus.BAD_REQUEST);
+//			}
+//		}
+//		
+		User2Class user2Class = null;
+		List<User2Class> list = user2ClassDao.findByUserId(user_id, true);
 		if (list != null && list.size() > 0){
-			//start_user_profile(user,eclass,schoolYear,notice);
-			throw new ESchoolException("User already assigned to class", HttpStatus.BAD_REQUEST);
-		}
-				
-				
-		// Disable one user student assigned to many classes
-		if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
-			ArrayList<User2Class> existing_relations = (ArrayList<User2Class>) user2ClassDao.findByUserId(user.getId(),true);
-			if (existing_relations != null && existing_relations.size() > 0){
-				throw new ESchoolException("Cannot assigne one studen to many classes: student_id="+user.getId().intValue()+"///class_id="+class_id.intValue(), HttpStatus.BAD_REQUEST);
-			}
+			user2Class = list.get(0);
+		}else{
+			user2Class = new User2Class();
 		}
 		
-		
-	
-		
-		User2Class user2Class = new User2Class();
 		user2Class.setSchool_id(admin.getSchool_id());
 		user2Class.setClass_id(class_id);
 		user2Class.setUser_id(user_id);
@@ -177,6 +185,40 @@ public class User2ClassServiceImpl implements User2ClassService{
 //			
 //		}
 		return user2Class;
+		
+	}
+	@Override
+	public void removeUserToClass(User admin, Integer user_id, Integer class_id, String notice) {
+		logger.info("revmoveUserToClass START,user_id:"+user_id.intValue()+"///+class_id:"+class_id.intValue());
+		User user = userDao.findById(user_id);
+		EClass eclass = classesDao.findById(class_id);
+		
+		
+		if (user == null ){
+			throw new ESchoolException("user_id is not existing:"+ user_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
+		if (eclass == null ){
+			throw new ESchoolException("class_id is not existing:"+ class_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (user.getSchool_id().intValue() != eclass.getSchool_id().intValue() ){
+			throw new ESchoolException("user assigned to class are not in same School", HttpStatus.BAD_REQUEST);
+		}
+		if (!admin.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			if (user.getSchool_id().intValue() != admin.getSchool_id().intValue() ){
+				throw new ESchoolException("assigned user & current user are not in same School", HttpStatus.BAD_REQUEST);
+			}
+		}
+		// Get school_year
+		SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
+		if (schoolYear == null){
+			throw new ESchoolException("schoolYear of school_id is null, school_id =  "+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		// Only one user2Class available		
+		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, class_id,true);
+		for (User2Class user2Class: list){
+			user2ClassDao.deleteUser2Class(user2Class);
+		}
 		
 	}
 	

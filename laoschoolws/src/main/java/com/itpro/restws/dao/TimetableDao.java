@@ -16,5 +16,6 @@ public interface TimetableDao {
 	
 	void saveTimeTable(Timetable timetable);
 	void updateTimetable(Timetable timetable);
+	void delTimetable(Timetable timetable);
 }
 
