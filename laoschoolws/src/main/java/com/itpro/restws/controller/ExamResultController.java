@@ -66,6 +66,18 @@ public class ExamResultController extends BaseController {
 		 
 	}
 
+	/***
+	 * Do phai tu dong generate ra Profile neu chua ton tai
+	 * Neu ko co filter from_row/max_result
+	 * 
+	 * @param filter_class_id
+	 * @param filter_year_id
+	 * @param filter_student_id
+	 * @param filter_subject_id
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
 	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -74,17 +86,11 @@ public class ExamResultController extends BaseController {
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,			
 			@RequestParam(value="filter_subject_id", required =false) Integer filter_subject_id,
-			//@RequestParam(value="filter_from_id", required =false) String filter_from_id,
-			//@RequestParam(value="filter_from_dt", required =false) String filter_from_dt,
-			//@RequestParam(value="filter_to_dt", required =false) String filter_to_dt,
-			//@RequestParam(value="filter_exam_month", required =false) String filter_exam_month,
-			//@RequestParam(value="filter_exam_dt", required =false) String filter_exam_dt,
-			//@RequestParam(value="filter_exam_type", required =false) String filter_exam_type,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getExamResultsExt");
+		logger.info(" *** MainRestController.getExamResults() START");
 		User teacher = getCurrentUser();
 
 		// check teacher
@@ -193,104 +199,7 @@ public class ExamResultController extends BaseController {
 		 
 	}
 	
-	
-	
-//	// Get 
-//	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
-//	@RequestMapping(value="/api/exam_results/marks",method = RequestMethod.GET)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	public RespInfo getExamResultMarks(
-//			@RequestParam(value="filter_class_id",required =true) String filter_class_id,
-//			@RequestParam(value="filter_subject_id", required =true) String filter_subject_id,
-//
-//			@Context final HttpServletRequest request,
-//			@Context final HttpServletResponse response
-//			) {
-//		logger.info(" *** MainRestController.getExamResultsExt");
-//		
-//		User user = getCurrentUser();
-//		Integer school_id = user.getSchool_id();
-//		Integer class_id =  Utils.parseInteger(filter_class_id);
-//		Integer subject_id = Utils.parseInteger(filter_subject_id);
-//		
-//		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
-//			
-//    	}else if (user.hasRole(E_ROLE.TEACHER.getRole_short()) || user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ){
-//    		if (class_id == null || class_id == 0 ){
-//    			throw new ESchoolException("User is not Admin, require filter_class_id to get Exam Info ",HttpStatus.BAD_REQUEST);
-//    		}
-//    		if (!userService.isBelongToClass(user.getId(), class_id)){
-//    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
-//    		}
-//    		
-//    		EClass eclass = classService.findById(class_id);
-//    		if (eclass.getSchool_id().intValue() != school_id.intValue()){
-//    			if (!userService.isBelongToClass(user.getId(), class_id)){
-//        			throw new ESchoolException("User ID="+user.getId()+" and Class are not in same school,class_id= "+class_id,HttpStatus.BAD_REQUEST);
-//        		}
-//    		}
-//    		
-//    	}else{
-//    		throw new ESchoolException("Invalid user role:"+user.getRoles(),HttpStatus.BAD_REQUEST);
-//    	}
-//		ListEnt rspEnt = new ListEnt();
-//		
-//		ArrayList<ExamResult> list  = examResultService.getClassResult_Mark(school_id,class_id, subject_id,false);
-//		
-//	    rspEnt.setFrom_row(0);
-//	    rspEnt.setTo_row(list.size());
-//		rspEnt.setTotal_count(list.size());
-//		rspEnt.setList(list);
-//		// Query class by school id
-//		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-//		rsp.setMessageObject(list);
-//	    return rsp;
-//
-//	}
-	
-	
-	
-// Get 
-//	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
-//	@RequestMapping(value="/api/exam_results/exe_ave",method = RequestMethod.GET)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	public RespInfo getExamResultMarks(
-//			@RequestParam(value="filter_class_id",required =true) Integer filter_class_id,
-//			@Context final HttpServletRequest request,
-//			@Context final HttpServletResponse response
-//			) {
-//		logger.info(" *** MainRestController.getExamResultsExt");
-//		
-//		User user = getCurrentUser();
-//		Integer school_id = user.getSchool_id();
-//		
-//		
-//		
-//		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
-//			
-//    	}else if (user.hasRole(E_ROLE.TEACHER.getRole_short()) || user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ){
-//    		if (!userService.isBelongToClass(user.getId(), filter_class_id)){
-//    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
-//    		}
-//    		
-//    	}else{
-//    		throw new ESchoolException("Invalid user role:"+user.getRoles(),HttpStatus.BAD_REQUEST);
-//    	}
-//		EClass eclass = classService.findById(filter_class_id);
-//		if (eclass.getSchool_id().intValue() != school_id.intValue()){
-//			if (!userService.isBelongToClass(user.getId(), filter_class_id)){
-//    			throw new ESchoolException("User ID="+user.getId()+" and Class are not in same school,class_id= "+filter_class_id,HttpStatus.BAD_REQUEST);
-//    		}
-//		}
-//
-//		examResultService.calAverage(eclass,filter_term_val.intValue());
-//		// Query class by school id
-//		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-//	    return rsp;
-//
-//	}
-	
-	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/exam_results/ranks",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getExamRanks(
@@ -311,10 +220,7 @@ public class ExamResultController extends BaseController {
 			throw new ESchoolException("filter_class_id required", HttpStatus.BAD_REQUEST);
 		}
 
-//		
-//		if (filter_year_id == null || filter_year_id.intValue() == 0)  {
-//				throw new ESchoolException("filter_year_id required", HttpStatus.BAD_REQUEST);
-//		}
+
 		
 		if (filter_student_id != null && filter_student_id.intValue() > 0){
 			User student = userService.findById(filter_student_id);

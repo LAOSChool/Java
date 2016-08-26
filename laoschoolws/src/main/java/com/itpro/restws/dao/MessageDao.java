@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.Message;
 
 
@@ -55,5 +57,11 @@ public interface MessageDao {
 	
 	void saveMessage(Message message);
 	void updateMessage(Message message);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
+	
+	List<Message> findUnProcSms() ;
+		
+	
 }
 

@@ -9,5 +9,6 @@ public interface SysDistDao {
 
 	List<SysDist> findAll() ;
 	int countAll();
+	SysDist findById(Integer id);
 }
 

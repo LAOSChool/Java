@@ -11,6 +11,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
+import com.itpro.restws.helper.Constant;
+
 @Entity
 @Table(name="timetable")
 @DynamicInsert(value=true)
@@ -24,6 +26,140 @@ public class Timetable extends AbstractModel{
 	@Column(name="id")
 	private Integer id;
 
+	@Column(name="school_id")
+	private Integer school_id;
+
+	@Column(name="class_id")
+	private Integer class_id;
+	
+	@Column(name="teacher_id")
+	private Integer teacher_id;
+	
+	@Column(name="subject_id")
+	private Integer subject_id;
+	
+	@Column(name="session_id")
+	private Integer session_id;
+	
+	@Column(name="weekday_id")
+	private Integer weekday_id;
+	
+	
+
+	@Column(name="description")
+	private String description;
+	
+	
+
+
+	@Column(name="term_val")
+	private Integer term_val;
+	
+	@Column(name="year_id")
+	private Integer year_id;
+	 
+
+
+	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String subject;
+	
+	@Formula("(SELECT t.lval FROM m_subject t WHERE t.id = subject_id)") // Ten tieng Lao
+	private String subject_lao;
+	
+	
+
+
+
+
+	//@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@',t.fval1,'@',t.fval2) FROM m_session t WHERE t.id = session_id)")
+	//@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@',CAST(t.fval1 AS CHAR CHARACTER SET utf8),'@',CAST(t.fval2 AS CHAR CHARACTER SET utf8)) FROM m_session t WHERE t.id = session_id)")
+	
+	// @Formula("(SELECT t.sval FROM m_session t WHERE t.id = session_id)") OK
+	@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@') FROM m_session t WHERE t.id = session_id)")
+	private String session;
+	
+
+	@Formula("(SELECT t.sval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String weekday;
+	
+	@Formula("(SELECT t.lval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String weekday_laos;
+	
+	
+	// Teacher Name
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String teacher_name;
+	
+	@Formula("(SELECT CONCAT( IFNULL(t.fval1, ''),'@',IFNULL(t.fval2, '')) FROM m_session t WHERE t.id = session_id)")
+	private String session_fvals;
+	
+//	 @ManyToOne(optional = true)
+//	 @JoinColumn(name="weekday_id")
+//	 private SysWeekday wysWeekday;
+//	
+//	
+//	public SysWeekday getWysWeekday() {
+//		return wysWeekday;
+//	}
+//
+//
+//
+//	public void setWysWeekday(SysWeekday wysWeekday) {
+//		this.wysWeekday = wysWeekday;
+//	}
+
+
+
+	public String getTeacher_name() {
+		return teacher_name;
+	}
+
+
+
+	public String getSubject() {
+		return subject;
+	}
+
+	
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	public String getSession() {
+		
+		if (session_fvals != null ){
+			byte ptext[] = session_fvals.getBytes(Constant.ISO_8859_1); 
+			String value = new String(ptext, Constant.UTF_8); 
+			return session + value;	
+		}else{
+			return session;
+		}
+		
+//		return session;
+	}
+	public void setSession(String session) {
+		this.session = session;
+	}
+
+	public String getWeekday() {
+		return weekday;
+	}
+
+	public void setWeekday(String weekday) {
+		this.weekday = weekday;
+	}
+
+	public String getWeekday_laos() {
+		return weekday_laos;
+	}
+
+	public void setWeekday_laos(String weekday_laos) {
+		this.weekday_laos = weekday_laos;
+	}
+
+	public void setTeacher_name(String teacher_name) {
+		this.teacher_name = teacher_name;
+	}
 	
 	public Integer getId() {
 		return id;
@@ -90,31 +226,6 @@ public class Timetable extends AbstractModel{
 		this.description = description;
 	}
 
-	
-
-	@Column(name="school_id")
-	private Integer school_id;
-
-	@Column(name="class_id")
-	private Integer class_id;
-	
-	@Column(name="teacher_id")
-	private Integer teacher_id;
-	
-	@Column(name="subject_id")
-	private Integer subject_id;
-	
-	@Column(name="session_id")
-	private Integer session_id;
-	
-	@Column(name="weekday_id")
-	private Integer weekday_id;
-	
-	
-
-	@Column(name="description")
-	private String description;
-	
 	public Integer getTerm_val() {
 		return term_val;
 	}
@@ -130,23 +241,6 @@ public class Timetable extends AbstractModel{
 	public void setYear_id(Integer year_id) {
 		this.year_id = year_id;
 	}
-
-
-	@Column(name="term_val")
-	private Integer term_val;
-	
-	@Column(name="year_id")
-	private Integer year_id;
-	 
-
-
-	@Formula("(SELECT t.sval FROM m_subject t WHERE t.id = subject_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String subject;
-	
-	@Formula("(SELECT t.lval FROM m_subject t WHERE t.id = subject_id)") // Ten tieng Lao
-	private String subject_lao;
-	
-	
 	public String getSubject_lao() {
 		return subject_lao;
 	}
@@ -154,65 +248,4 @@ public class Timetable extends AbstractModel{
 	public void setSubject_lao(String subject_lao) {
 		this.subject_lao = subject_lao;
 	}
-
-
-
-	@Formula("(SELECT CONCAT(t.sval,'@',t.notice,'@',t.fval1,'@',t.fval2) FROM m_session t WHERE t.id = session_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String session;
-	
-
-	@Formula("(SELECT t.sval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String weekday;
-	
-	@Formula("(SELECT t.lval FROM sys_weekday t WHERE t.id = weekday_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String weekday_laos;
-	
-	
-	// Teacher Name
-	@Formula("(SELECT t.fullname FROM user t WHERE t.id = teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String teacher_name;
-	
-	
-	public String getTeacher_name() {
-		return teacher_name;
-	}
-
-
-
-	public String getSubject() {
-		return subject;
-	}
-
-	
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
-
-	public String getSession() {
-		return session;
-	}
-	public void setSession(String session) {
-		this.session = session;
-	}
-
-	public String getWeekday() {
-		return weekday;
-	}
-
-	public void setWeekday(String weekday) {
-		this.weekday = weekday;
-	}
-
-	public String getWeekday_laos() {
-		return weekday_laos;
-	}
-
-	public void setWeekday_laos(String weekday_laos) {
-		this.weekday_laos = weekday_laos;
-	}
-
-	public void setTeacher_name(String teacher_name) {
-		this.teacher_name = teacher_name;
-	}
-
 }

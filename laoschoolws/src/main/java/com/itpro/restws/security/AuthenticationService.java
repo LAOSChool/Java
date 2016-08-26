@@ -33,5 +33,9 @@ public interface AuthenticationService {
 	/** Returns current user or {@code null} if there is no authentication or user is anonymous. */
 	UserDetails currentUser();
 	
-	boolean checkApiKey(String api_key);
+	void loginApiKeySuccess(String sso_id, String api_key,String auth_key);
+	void logoutAuthKeySuccess( String api_key, String auth_key);
+	
+	boolean checkActivedApiKey(String api_key,String auth_key);
+	
 }

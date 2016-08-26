@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,8 @@ public class User2ClassServiceImpl implements User2ClassService{
 		EClass eclass = classesDao.findById(class_id);
 		
 		
-		if (user == null ){
+		
+		if (user == null  ){
 			throw new ESchoolException("user_id is not existing:"+ user_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
@@ -102,6 +104,30 @@ public class User2ClassServiceImpl implements User2ClassService{
 		if (schoolYear == null){
 			throw new ESchoolException("schoolYear of school_id is null, school_id =  "+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
+		// Check CLASS level if is STUDENT 
+		if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
+			if (eclass.getLevel() == null ||  
+					eclass.getLevel().intValue()== 0 
+					){
+				throw new ESchoolException("class.level is NULL or Zero, please initial this value before assign", HttpStatus.BAD_REQUEST);
+			}
+			if (
+					user.getCls_level()== null ||
+					user.getCls_level().intValue() == 0
+					
+					){
+				throw new ESchoolException("user.cls_level is NULL or Zero, please initial this value before assign", HttpStatus.BAD_REQUEST);
+			}
+			
+			if (eclass.getLevel().intValue() != user.getCls_level().intValue()){
+				throw new ESchoolException("Cannot assign STUDENT to class due to: class.level("+eclass.getLevel().intValue()+") != user.cls_levlel("+user.getCls_level().intValue()+")", HttpStatus.BAD_REQUEST);
+			}
+		}
+		// 20160822 Disable oneuser multiple class
+		if (user.getClasses() != null && user.getClasses().size() > 0){
+			EClass tmp =user.getClasses().iterator().next();
+			throw new ESchoolException("User already assigned to class_id:"+tmp.getId().intValue(), HttpStatus.BAD_REQUEST);
+		}
 		
 //		// find existing user 2 class
 //		List<User2Class> list = user2ClassDao.findByUserAndClass(class_id, user_id,false);		
@@ -120,12 +146,15 @@ public class User2ClassServiceImpl implements User2ClassService{
 //		}
 //		
 		User2Class user2Class = null;
-		List<User2Class> list = user2ClassDao.findByUserId(user_id, true);
+		// Find active connections
+		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, class_id, 0);
 		if (list != null && list.size() > 0){
 			user2Class = list.get(0);
-		}else{
-			user2Class = new User2Class();
+			return user2Class;
 		}
+		
+		user2Class = new User2Class();
+		
 		
 		user2Class.setSchool_id(admin.getSchool_id());
 		user2Class.setClass_id(class_id);
@@ -134,61 +163,15 @@ public class User2ClassServiceImpl implements User2ClassService{
 		
 		user2Class.setAssigned_dt(Utils.now());
 		user2Class.setNotice(notice);
+		user2Class.setClosed(0);
 		
 		user2ClassDao.saveUser2Class(user2Class);
 		
-//		// Start new Student Profile
-//		start_user_profile(user,eclass,schoolYear,notice);
-//		if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
-//			// Get school info
-//			School school = schoolDao.findById(user.getSchool_id());
-//				
-//			EduProfile eduProfile = new EduProfile();
-//			
-//			eduProfile.setSchool_id(user.getSchool_id());
-//			eduProfile.setSchool_name(school.getTitle());
-//			eduProfile.setCls_id(class_id);
-//			eduProfile.setCls_name(eclass.getTitle());
-//			eduProfile.setCls_level(eclass.getLevel());
-//			eduProfile.setCls_location(eclass.getLocation());
-//			eduProfile.setTeacher_id(eclass.getHead_teacher_id());
-//			eduProfile.setTeacher_name(eclass.getHeadTeacherName());
-//			eduProfile.setStudent_id(user.getId());
-//			eduProfile.setStudent_name(user.getFullname());
-//						
-//			eduProfile.setSchool_year_id(schoolYear.getId());
-//			
-//			eduProfile.setSchool_years(schoolYear.getYears());
-//			eduProfile.setStart_dt(Utils.now());
-//			eduProfile.setNotice(notice);
-//
-//			// Check existing profile
-//			boolean is_existing = false;
-//			ArrayList<EduProfile> std_prof_list = eduProfileDao.findByStudentID(user.getId());
-//			if (std_prof_list != null ){
-//				for (EduProfile db_profile: std_prof_list){
-//					if ((db_profile.getSchool_id().intValue() == user.getSchool_id().intValue()) &&
-//					   (db_profile.getCls_id().intValue() == class_id.intValue()) &&
-//					   (db_profile.getStudent_id().intValue() == user.getId().intValue()) &&
-//					   (db_profile.getSchool_year_id().intValue() == schoolYear.getId().intValue()) && 
-//					   (db_profile.getClosed().intValue() == 0)){
-//						// Do nothing
-//						logger.info("already exising Student profile, do nothing.");
-//						is_existing = true;
-//						break;
-//					}
-//				}
-//			}
-//			if (!is_existing){
-//				eduProfileDao.saveStudentProfile(eduProfile);
-//			}
-//			
-//		}
 		return user2Class;
 		
 	}
 	@Override
-	public void removeUserToClass(User admin, Integer user_id, Integer class_id, String notice) {
+	public void removeUserToClass(User me, Integer user_id, Integer class_id, String notice) {
 		logger.info("revmoveUserToClass START,user_id:"+user_id.intValue()+"///+class_id:"+class_id.intValue());
 		User user = userDao.findById(user_id);
 		EClass eclass = classesDao.findById(class_id);
@@ -204,80 +187,103 @@ public class User2ClassServiceImpl implements User2ClassService{
 		if (user.getSchool_id().intValue() != eclass.getSchool_id().intValue() ){
 			throw new ESchoolException("user assigned to class are not in same School", HttpStatus.BAD_REQUEST);
 		}
-		if (!admin.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
-			if (user.getSchool_id().intValue() != admin.getSchool_id().intValue() ){
+		if (!me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			if (user.getSchool_id().intValue() != me.getSchool_id().intValue() ){
 				throw new ESchoolException("assigned user & current user are not in same School", HttpStatus.BAD_REQUEST);
 			}
 		}
-		// Get school_year
-		SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
-		if (schoolYear == null){
-			throw new ESchoolException("schoolYear of school_id is null, school_id =  "+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
-		}
-		// Only one user2Class available		
-		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, class_id,true);
-		for (User2Class user2Class: list){
-			user2ClassDao.deleteUser2Class(user2Class);
+		// Only running user2Class available		
+		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, class_id,0);
+		if (list == null || list.size() == 0){
+			throw new ESchoolException("user is not assigned to classed yet", HttpStatus.BAD_REQUEST);
 		}
 		
-	}
+		// Remove class head techer if need
+		if (eclass.getHead_teacher_id() != null && eclass.getHead_teacher_id().intValue() == user.getId().intValue()){
+			eclass.setHead_teacher_id(null);
+			eclass.setHeadTeacherName(null);
+			classesDao.updateClass(eclass);
+		}
+		// Remove relationship
+		for (User2Class user2Class: list){
+			user2Class.setClosed(1);
+			user2Class.setClosed_dt(Utils.now());
+			user2Class.setNotice("AUTO when class");
+			user2ClassDao.updateUser2Class(user2Class);
+		}
+		
 	
-//	private void start_user_profile(User student, EClass eclass, SchoolYear schoolYear, String notice){
-//		// Start new Student Profile
-//		if (student.hasRole(E_ROLE.STUDENT.getRole_short())){
-//			Integer school_id = student.getSchool_id();
-//			Integer class_id = eclass.getId();
-//			Integer school_year_id = schoolYear.getId();
-//			
-//			// Get school info
-//			School school = schoolDao.findById(student.getSchool_id());
-//				
-//			EduProfile eduProfile = new EduProfile();
-//			
-//			eduProfile.setSchool_id(school_id);
-//			eduProfile.setSchool_name(school.getTitle());
-//			eduProfile.setCls_id(class_id);
-//			eduProfile.setCls_name(eclass.getTitle());
-//			eduProfile.setCls_level(eclass.getLevel());
-//			eduProfile.setCls_location(eclass.getLocation());
-//			eduProfile.setTeacher_id(eclass.getHead_teacher_id());
-//			eduProfile.setTeacher_name(eclass.getHeadTeacherName());
-//			eduProfile.setStudent_id(student.getId());
-//			eduProfile.setStudent_name(student.getFullname());
-//						
-//			eduProfile.setSchool_year_id(school_year_id);
-//			
-//			eduProfile.setSchool_years(schoolYear.getYears());
-//			eduProfile.setStart_dt(Utils.now());
-//			eduProfile.setNotice(notice);
-//
-//			// Check existing profile
-//			boolean is_existing = false;
-//			ArrayList<EduProfile> std_prof_list = eduProfileDao.findByStudentID(student.getId());
-//			if (std_prof_list != null ){
-//				for (EduProfile db_profile: std_prof_list){
-//					if ((db_profile.getSchool_id().intValue() == student.getSchool_id().intValue()) &&
-////					   (db_profile.getCls_id().intValue() == class_id.intValue()) &&
-//					   (db_profile.getStudent_id().intValue() == student.getId().intValue()) &&
-//					   (db_profile.getSchool_year_id().intValue() == schoolYear.getId().intValue()))  
-////					   (db_profile.getClosed().intValue() == 0))
-//					{
-//						// Do nothing
-//						logger.info("already exising Student profile, do nothing.");
-//						is_existing = true;
-//						break;
-//					}
-//				}
-//			}
-//			if (!is_existing){
-//				eduProfileDao.saveStudentProfile(eduProfile);
-//			}
-//		}
-//					
-//	}
-//	private void close_user_profile(User admin, Integer user_id, Integer class_id, String notice){
-//		//assignUserToClass.in
-//	}
+
+		
+		
+	}
+	@Override
+	public void delUser(User me, Integer user_id) {
+		User user = userDao.findById(user_id);
+		
+		if (user == null ){
+			throw new ESchoolException("user_id is not existing:"+ user_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
+		if (!me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			if (user.getSchool_id().intValue() != me.getSchool_id().intValue() ){
+				throw new ESchoolException("assigned user & current user are not in same School", HttpStatus.BAD_REQUEST);
+			}
+		}
+		// Del head teacher
+		if (user.hasRole(E_ROLE.TEACHER.getRole_short())){
+			Set<EClass> classes = user.getClasses();
+			for (EClass  cls: classes){
+				if (cls.getHead_teacher_id() != null && cls.getHead_teacher_id().intValue() == user.getId().intValue()){
+					cls.setHead_teacher_id(null);
+					cls.setHeadTeacherName(null);
+					classesDao.updateClass(cls);
+				}
+			}
+		}
+				
+		// Only running user2Class available		
+		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, null,0);
+		if (list != null &&  list.size()  > 0){
+			for (User2Class user2Class: list){
+				user2Class.setActflg("D");
+				user2Class.setClosed(1);
+				user2Class.setClosed_dt(Utils.now());
+				user2Class.setNotice("AUTO when del_user");
+				user2ClassDao.updateUser2Class(user2Class);
+			}	
+		}
+		
+		
+		
+		
+	}
+	@Override
+	public void delClass(User me, Integer class_id) {
+		EClass eclass = classesDao.findById(class_id);
+		
+		if (eclass == null ){
+			throw new ESchoolException("class_id is not existing:"+ class_id.intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (!me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue() ){
+				throw new ESchoolException("eclass & current user are not in same School", HttpStatus.BAD_REQUEST);
+			}
+		}
+		// Only running user2Class available		
+		List<User2Class> list = user2ClassDao.findByUserAndClass(null, class_id,0);
+		if (list == null || list.size() == 0){
+			throw new ESchoolException("user is not assigned to classed yet", HttpStatus.BAD_REQUEST);
+		}
+		for (User2Class user2Class: list){
+			user2Class.setActflg("D");
+			user2Class.setClosed(1);
+			user2Class.setClosed_dt(Utils.now());
+			user2ClassDao.updateUser2Class(user2Class);
+		}
+		
+		
+	}
 	
 
 	

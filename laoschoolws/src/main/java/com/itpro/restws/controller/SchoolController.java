@@ -10,6 +10,7 @@ import javax.ws.rs.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,14 +18,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.dao.SchoolExamDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.RespInfo;
-import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.SchoolExam;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 import com.itpro.restws.service.SchoolExamService;
@@ -69,6 +71,44 @@ public class SchoolController extends BaseController {
 	@RequestMapping(value = "/api/schools/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public School getSchool(
+				@PathVariable int  id,
+				@Context final HttpServletResponse response) {
+		logger.info(" *** MainRestController.getSchool/{id}:"+id);
+		School school = null;
+
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	    	school = schoolService.findById(Integer.valueOf(id));
+			logger.info("Schoo : "+school.toString());
+	    }catch(Exception e){
+	    	for ( StackTraceElement ste: e.getStackTrace()){
+	    		logger.error(ste);
+	    	}
+	    	logger.info(" *** MainRestController.ERROR:"+e.getMessage());
+	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+	    }
+	    finally{
+	    	try{
+	    		response.flushBuffer();
+	    	}catch(Exception ex){}
+	    }
+	    return school;
+	 }
+	
+	//@Secured("ROLE_ANONYMOUS")
+	@RequestMapping("/non-secure/test")
+	public String test() {
+		System.out.println(" *** UserController.test");
+		// Spring Security dependency is unwanted in controller, typically some @Component (UserContext) hides it.
+		// Not that we don't use Spring Security annotations anyway...
+		return "SecurityContext: " + SecurityContextHolder.getContext();
+	}
+	
+	
+	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@RequestMapping(value = "/non-secure/schools/{id}", method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public School nonsecureGetSchool(
 				@PathVariable int  id,
 				@Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.getSchool/{id}:"+id);
@@ -170,8 +210,50 @@ public class SchoolController extends BaseController {
 		    return rsp;
 		}
 
+	@RequestMapping(value="/api/schools/exams/{id}",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)
+	public RespInfo getSchoolExam(
+			 @PathVariable Integer  id,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			
+			) {
+		//	 Get User info 
+			User user = getCurrentUser();
+			SchoolExam ret= schoolExamService.findById(id);
+			if (ret.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("SchooID of user is not same with SchoolID of exam", HttpStatus.BAD_REQUEST);
+			}
+			
+			
+			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+			rsp.setMessageObject(ret);
+		    return rsp;
+		}
 
-	
+	@RequestMapping(value="/api/schools/years/{id}",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)
+	public RespInfo getSchoolYear(
+			 @PathVariable Integer  id,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			
+			) {
+		//	 Get User info 
+			User user = getCurrentUser();
+			SchoolYear ret= schoolYearService.findById(id);
+			if (ret.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("SchooID of user is not same with SchoolID of exam", HttpStatus.BAD_REQUEST);
+			}
+			
+			
+			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+			rsp.setMessageObject(ret);
+		    return rsp;
+		}
+
 	
 	@RequestMapping(value="/api/schools/years",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -207,12 +289,12 @@ public class SchoolController extends BaseController {
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 	    
 	    if (filter_year_id == null || filter_year_id.intValue() <=0){
-	    	SchoolTerm schoolTerm = schoolYearService.findLatestTermBySchool(user.getSchool_id());
+	    	SchoolTerm schoolTerm = schoolTermService.findMaxActiveTermBySchool(user.getSchool_id());
 	    	if (schoolTerm != null ){
 	    		terms.add(schoolTerm);
 	    	}
 	    }else{
-	    	terms = schoolYearService.findTermByYear(user.getSchool_id(), filter_year_id);
+	    	terms = schoolTermService.findAllTermByYear(user.getSchool_id(), filter_year_id);
 	    }
 	    rsp.setMessageObject(terms);
 		
@@ -311,6 +393,12 @@ public class SchoolController extends BaseController {
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
+		if (schoolYear.getId() == null ){
+			throw new ESchoolException("schoolYear.id = NULL", HttpStatus.BAD_REQUEST);
+		}
+		if (schoolYear.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			throw new ESchoolException("schoolYear.school_id != user.schoool_id", HttpStatus.BAD_REQUEST);
+		}
 		SchoolYear ret = schoolYearService.updateSchoolYear(user, schoolYear);
 		rsp.setMessageObject(ret);
 		
@@ -337,5 +425,72 @@ public class SchoolController extends BaseController {
 	    return rsp;
 	 }
 	
+	@RequestMapping(value="/api/schools/upload_photo",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo createNotify(
+			@RequestParam(value = "file",required =false) MultipartFile[] files,
+			 @Context final HttpServletRequest request)
+			 {
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		User me = getCurrentUser();
+		
+		schoolService.saveUploadPhoto(me, files);
+		
+		return rsp;
+		 
+	}
+	
+
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/terms/create",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo createTerm(
+			@RequestBody SchoolTerm schoolTerm,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		User admin = getCurrentUser();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		schoolTermService.insertSchoolTerm(admin, schoolTerm);
+		rsp.setMessageObject(schoolTerm);
+		return rsp;
+	}
+	
+	@Secured({ "ROLE_ADMIN" })
+	@RequestMapping(value="/api/schools/terms/update",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo updateTerm(
+			@RequestBody SchoolTerm schoolTerm,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		
+		User admin = getCurrentUser();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		schoolTermService.updateSchoolTerm(admin, schoolTerm);
+		rsp.setMessageObject(schoolTerm);
+		return rsp;
+	}
+
+	@RequestMapping(value = "/api/schools/terms/{id}", method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	 public RespInfo getTerm(@PathVariable Integer  id,
+			 @Context final HttpServletRequest request,
+				@Context final HttpServletResponse response
+			 ) {
+		
+		User admin = getCurrentUser();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		SchoolTerm term = schoolTermService.findTermById(admin, id);;
+		rsp.setMessageObject(term);
+		return rsp;
+	 }
 	
 }

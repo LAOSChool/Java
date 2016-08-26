@@ -21,136 +21,126 @@ public class SchoolTerm extends AbstractModel{
 	@GeneratedValue
 	@Column(name="id")
 	private Integer id;
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
 	
 	@Column(name="school_id")
 	private Integer school_id;
+
+	@Column(name="year_id")
+	private Integer year_id;
+	
+	@Column(name="start_dt")
+	private String start_dt;
+	
+	@Column(name="end_dt")
+	private String end_dt;
 	
 	@Column(name="term_val")
 	private Integer term_val;
 	
-	@Column(name="term_name")
-	private String term_name;
+	@Column(name="actived")
+	private Integer actived;
 	
-	@Column(name="start_date")
-	private Integer start_date;
 	
-	@Column(name="start_month")
-	private Integer start_month;
-	
-	@Column(name="start_year")
-	private Integer start_year;
-	
-	@Column(name="end_date")
-	private Integer end_date;
-	
-	@Column(name="end_month")
-	private Integer end_month;
-	
-	@Column(name="end_year")
-	private Integer end_year;
 	
 	@Column(name="notice")
 	private String notice;
-	
-	@Column(name="school_year_id")
-	private Integer school_year_id;
-	
-	
+
+
+
+	public Integer getId() {
+		return id;
+	}
+
+
+
 	public Integer getSchool_id() {
 		return school_id;
 	}
 
-	public String getTerm_name() {
-		return term_name;
+
+
+	public Integer getYear_id() {
+		return year_id;
 	}
 
-	public Integer getStart_date() {
-		return start_date;
+
+
+	public String getStart_dt() {
+		return start_dt;
 	}
 
-	public Integer getStart_month() {
-		return start_month;
+
+
+	public String getEnd_dt() {
+		return end_dt;
 	}
 
-	public Integer getStart_year() {
-		return start_year;
-	}
 
-	public Integer getEnd_date() {
-		return end_date;
-	}
-
-	public Integer getEnd_month() {
-		return end_month;
-	}
-
-	public Integer getEnd_year() {
-		return end_year;
-	}
-
-	public String getNotice() {
-		return notice;
-	}
-
-	public void setSchool_id(Integer school_id) {
-		this.school_id = school_id;
-	}
-
-	public void setTerm_name(String term_name) {
-		this.term_name = term_name;
-	}
-
-	public void setStart_date(Integer start_date) {
-		this.start_date = start_date;
-	}
-
-	public void setStart_month(Integer start_month) {
-		this.start_month = start_month;
-	}
-
-	public void setStart_year(Integer start_year) {
-		this.start_year = start_year;
-	}
-
-	public void setEnd_date(Integer end_date) {
-		this.end_date = end_date;
-	}
-
-	public void setEnd_month(Integer end_month) {
-		this.end_month = end_month;
-	}
-
-	public void setEnd_year(Integer end_year) {
-		this.end_year = end_year;
-	}
-
-	public void setNotice(String notice) {
-		this.notice = notice;
-	}
-
-	public Integer getSchool_year_id() {
-		return school_year_id;
-	}
 
 	public Integer getTerm_val() {
 		return term_val;
 	}
 
+
+
+	public Integer getActived() {
+		return actived;
+	}
+
+
+
+	public String getNotice() {
+		return notice;
+	}
+
+
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+
+
+	public void setSchool_id(Integer school_id) {
+		this.school_id = school_id;
+	}
+
+
+
+	public void setYear_id(Integer year_id) {
+		this.year_id = year_id;
+	}
+
+
+
+	public void setStart_dt(String start_dt) {
+		this.start_dt = start_dt;
+	}
+
+
+
+	public void setEnd_dt(String end_dt) {
+		this.end_dt = end_dt;
+	}
+
+
+
 	public void setTerm_val(Integer term_val) {
 		this.term_val = term_val;
 	}
 
-	public void setSchool_year_id(Integer school_year) {
-		this.school_year_id = school_year;
-	}
-	
-	
-}
 
+
+	public void setActived(Integer actived) {
+		this.actived = actived;
+	}
+
+
+
+	public void setNotice(String notice) {
+		this.notice = notice;
+	}
+
+	
+
+}

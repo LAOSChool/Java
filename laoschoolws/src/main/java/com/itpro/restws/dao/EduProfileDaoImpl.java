@@ -3,6 +3,8 @@ package com.itpro.restws.dao;
 import java.util.ArrayList;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,8 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 	     ArrayList<EduProfile>results = (ArrayList<EduProfile>) crit_list.list();
 	     return  results;
@@ -66,6 +70,8 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 	public ArrayList<EduProfile> findByStudentID(Integer student_id) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("student_id", student_id));
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 	     ArrayList<EduProfile>results = (ArrayList<EduProfile>) crit_list.list();
 	     return  results;
@@ -90,7 +96,7 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 		if (school_year_id != null){
 			crit_list.add(Restrictions.eq("school_year_id", school_year_id));
 		}
-		
+		crit_list.addOrder(Order.asc("id"));
 		//crit_list.addOrder(Order.desc("id"));
 	     @SuppressWarnings("unchecked")
 	     ArrayList<EduProfile>results = (ArrayList<EduProfile>) crit_list.list();
@@ -116,5 +122,14 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 		return max_eduProfile;
 	}
 
-
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 }

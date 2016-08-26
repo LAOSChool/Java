@@ -9,5 +9,6 @@ public interface SysLateReasonDao {
 
 	int countAll();
 	List<SysLateReason> findAll() ;
+	SysLateReason findById(Integer id);
 }
 

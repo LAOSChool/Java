@@ -1,9 +1,9 @@
 package com.itpro.restws.dao;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
@@ -121,49 +121,29 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 	}
 
 
-	private Criteria getCriteria(Criteria criteria,Collection<Integer> ints, Integer longVal) {
-		  
-
-		   if( longVal != null ) {
-			   criteria.add( Restrictions.sqlRestriction( "{alias}.longField & ? = ?", 
-					   new Integer[]{ longVal,  longVal }, 
-					   new Type[]{ StandardBasicTypes.LONG, StandardBasicTypes.LONG } ) );
-		   }
-
-		
-		   return criteria;
-		 }
-
-//	
-//	private Criteria getCriteria(Collection<Integer> ints, Integer longVal,  Date dateFrom, Date dateTo) {
+//	private Criteria getCriteria(Criteria criteria,Collection<Integer> ints, Integer longVal) {
 //		  
 //
-//		   if( ints != null && !ints.isEmpty()) {
-//		   criteria.add( Restrictions.in( "intField", ints ) );
-//		  }
-//
 //		   if( longVal != null ) {
-//		   criteria.add( Restrictions.sqlRestriction( "{alias}.longField & ? = ?", new Integer[]{ longVal,  longVal }, new Type[]{ StandardBasicTypes.LONG, StandardBasicTypes.LONG } ) );
-//		  }
+//			   criteria.add( Restrictions.sqlRestriction( "{alias}.longField & ? = ?", 
+//					   new Integer[]{ longVal,  longVal }, 
+//					   new Type[]{ StandardBasicTypes.LONG, StandardBasicTypes.LONG } ) );
+//		   }
 //
-//		   if(dateFrom != null && dateTo != null) {
-//		   criteria.add( Restrictions.between( "dateField", dateFrom, dateTo ) );
-//		  } else if(dateFrom != null) {
-//		   criteria.add( Restrictions.gt( "dateField", dateFrom ) );
-//		  } else if(dateTo != null) {
-//		   criteria.add( Restrictions.lt( "dateField", dateTo ) );
-//		  }
-//
+//		
 //		   return criteria;
 //		 }
 
-	
-	
-//	public List<TimeSeriesPowerPK> getPowerUsageForUser(String minutes) {
-//		Query query = sessionFactory.getCurrentSession().createQuery("From TimeSeriesPowerPK where dateTime <=:param1 AND dateTime >= :parma2 ");
-//		query.setParameter("param1",currentDateObject);
-//		query.setParameter("param2",userEnteredDateObject);
-//		List<TimeSeriesPowerPK> powerUsedList=query.list();
-//		return powerUsedList;
-//	}
+//	
+
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 }

@@ -71,7 +71,17 @@ public class EduProfileController extends BaseController {
 		    return rsp;
 		}
 
-	// Get edu profiles ( chi lay DB de hien thi)
+	/***
+	 * Do tu dong Generate Profile neu ko ton tain
+	 * Neu ko co filter from_row/max_result
+	 * 
+	 * @param filter_student_id
+	 * @param filter_class_id
+	 * @param filter_year_id
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@Secured({ "ROLE_ADMIN","ROLE_TEACHER"})
 	@RequestMapping(value="/api/edu_profiles",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -81,7 +91,7 @@ public class EduProfileController extends BaseController {
 			@RequestParam(value="filter_year_id",required =false) Integer filter_year_id,
 			
 			 @Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
+			 @Context final HttpServletResponse response
 			
 			) {
 		

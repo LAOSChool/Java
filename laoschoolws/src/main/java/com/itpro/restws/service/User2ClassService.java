@@ -16,6 +16,8 @@ public interface User2ClassService {
 	
 	User2Class assignUserToClass(User admin,Integer user_id, Integer class_id,String notice);
 	void removeUserToClass(User admin,Integer user_id, Integer class_id,String notice);
+	void delUser(User admin,Integer user_id);
+	void delClass(User admin,Integer class_id);
 	
 	
 	

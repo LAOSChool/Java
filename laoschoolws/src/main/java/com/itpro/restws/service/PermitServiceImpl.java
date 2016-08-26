@@ -97,7 +97,7 @@ public class PermitServiceImpl implements PermitService{
 		Integer school_id = user.getSchool_id();
 		int scope = getScopeFromRequest(request);
 		int right = getRightsFromRequest(request);
-		String roles = user.getRoles();
+		//String roles = user.getRoles();
 		// Compare
 		//Permit request_permit = new Permit(school_id,entity.getValue(),right,roles,scope);
 		if (school_id.intValue() ==  permit_db.getSchool_id().intValue()){

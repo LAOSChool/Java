@@ -1,16 +1,23 @@
 package com.itpro.restws.service;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.dao.UserDao;
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.Password;
@@ -28,13 +35,15 @@ public class UserServiceImpl implements UserService{
 	private UserDao userDao;
 	@Autowired
 	private PermitService permitService;
-
+	@Autowired
+    private Environment environment;
 	@Autowired
 	private MessageService messageService;
 	
 	@Autowired
 	protected EduProfileService eduProfileService;
-	
+	@Autowired
+	protected ClassService classService;
 	
 	public User findById(Integer id) {
 		User user = userDao.findById(id);
@@ -87,21 +96,58 @@ public class UserServiceImpl implements UserService{
 		return list;
 	}
 
-	@Override
-	public User insertUser(User user) {
-		userDao.saveUser(user);
-		return user;
-	}
+//	@Override
+//	public User insertUser(User me, User user) {
+//		
+//		valid_user(user, true);
+//		userDao.saveUser(user);
+//		return user;
+//	}
 
 	@Override
-	public User updateUser(User user,boolean ignore_pass) {
+	public User updateUser(User me, User user,boolean ignore_pass) {
+		
+		if (user.getId() == null ){
+			throw new ESchoolException("user.id is null", HttpStatus.BAD_REQUEST);
+		}
 		User userDB = userDao.findById(user.getId());
+		if (userDB == null ){
+			throw new ESchoolException("user.id is not exising: "+user.getId().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
+		if (userDB.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("term_db.SchooId is not same with me.school_id", HttpStatus.BAD_REQUEST);
+		}
+		if (userDB.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			throw new ESchoolException("term_db.SchooId is not same with user.school_id", HttpStatus.BAD_REQUEST);
+		}
+		
 		if (ignore_pass ){
 			user.setPassword(null);
 		}
-		userDB = User.updateChanges(userDB, user);
-		userDao.updateUser(userDB);
-		return userDB;	
+
+		  try {
+			  userDao.setFlushMode(FlushMode.MANUAL);
+			  userDB = User.updateChanges(userDB, user);
+			  valid_user(userDB, false);
+	        } catch (Exception e){
+	        	userDao.clearChange();
+	        	throw e;
+	        }
+		   finally {
+			   userDao.setFlushMode(FlushMode.AUTO);
+	        }
+		  
+		
+		  userDao.updateUser(userDB);
+		return userDB;
+		
+		
+		
+		
+		
+		
+		
 	}
 
 	@Override
@@ -156,7 +202,7 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public String changePassword(String sso_id, String old_pass, String new_pass) {
+	public String changePassword(User me, String sso_id, String old_pass, String new_pass) {
 		if (!isValidPassword(new_pass) ){
 			throw new ESchoolException("Input Password length is not correct - expected length should be >= 4 AND <= 20",HttpStatus.BAD_REQUEST);
 		}
@@ -170,7 +216,7 @@ public class UserServiceImpl implements UserService{
 				throw new ESchoolException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			user.setPassword(encryptPass(new_pass));
-			updateUser(user,false);
+			updateUser(me,user,false);
 		}else{
 			throw new RuntimeException("User is NULL, sso="+sso_id);
 		}
@@ -178,12 +224,43 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public String resetPassword(String sso_id) {
+	public String resetPassword(User me, String sso_id, boolean is_forgot_request) {
+		logger.info("resetPassword START, sso_id="+sso_id);
+		
 		int randomNum = 1111 + (int)(Math.random() * 9999);
 		String newPass = randomNum+ "";
-		User user = userDao.findBySSO(sso_id);
-		user.setPassword(encryptPass(newPass));
-		updateUser(user,false);
+		User reset_user = userDao.findBySSO(sso_id);
+		if (reset_user == null ){
+			throw new RuntimeException("sso_id is not found");
+		}
+		// Check school
+		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			// not check
+		}else{
+			if (reset_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new RuntimeException("sso_id:"+sso_id+ " is not in same school with current admin");
+			}
+		}
+		
+		reset_user.setPassword(encryptPass(newPass));
+		updateUser(me,reset_user,false);
+		// Send message
+		 Message msg = new Message();
+
+		 msg.setFrom_usr_id(Integer.valueOf(1));
+		 msg.setFrom_user_name("SYS_ADMIN");
+		 msg.setTo_usr_id(reset_user.getId());
+		 String content = "[LaoSchool] Your password has been reset by Admin, new pass: "+newPass;
+		 if (is_forgot_request){
+			 content = "[LaoSchool]Your password has been reset due to forgot-pass request, new pass: "+newPass;	 
+		 }
+		 
+		 msg.setContent(content);
+		 
+		 msg.setChannel(Constant.SMS_CHANNEL);
+		 
+		 messageService.sendUserMessageWithCC(me, msg);
+		logger.info("resetPassword END, sso_id="+sso_id);
 		return newPass;
 	}
 
@@ -196,8 +273,9 @@ public class UserServiceImpl implements UserService{
 		}else if (!isValidUserName(user.getSso_id())){
 			throw new RuntimeException("Username is not in correct format ( Correct format: 4<= name.length<=20 and not start by a Number)");
 		}
+		valid_user(user,true);
 		// Insert into DB
-		user = insertUser(user);
+		userDao.saveUser(user);
 		// Change sso_id to DB ID
 		if (role == E_ROLE.STUDENT){
 			user.setSso_id(String.format("%08d", user.getId()));
@@ -209,25 +287,24 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public String forgotPassword(String sso_id, String phone) {
-		User user = userDao.findBySSO(sso_id);
-		if (user == null ){
-			return "FAILED, cannot find user for sso_id"+sso_id;
+	public String forgotPassword(User me, String sso_id, String phone) {
+		
+		User forgot_user = userDao.findBySSO(sso_id);
+		
+		if (forgot_user == null ){
+			throw new ESchoolException("FAILED, cannot find user for sso_id"+sso_id,HttpStatus.BAD_REQUEST);
 		}
-		if (user.getPhone() == null ){
-			return "FAILED, user's phone is not registered";
+		if (forgot_user.getPhone() == null ){
+			throw new ESchoolException("FAILED, user's phone is not registered,sso_id:"+sso_id,HttpStatus.BAD_REQUEST);
 		}
-		if (user.getPhone() != null && phone != null && phone.equalsIgnoreCase(user.getPhone())){
-			String newpass = resetPassword(sso_id);
-			 Message msg = new Message();
-			 msg.setFrom_usr_id(Integer.valueOf(1));
-			 msg.setTo_usr_id(user.getId());
-			 msg.setTitle("Thong bao forgot password");
-			 msg.setContent("You has been reset password due to forgot pass requirement, new pass: "+newpass);
-			 messageService.insertMessageExt(msg);
-			 return "SUCCESS,new pass="+newpass;
+		if (forgot_user.getPhone() != null && 
+				phone != null && 
+				phone.equalsIgnoreCase(forgot_user.getPhone())){
+			String newpass = resetPassword(me,sso_id,true);
+			 logger.info("forgotPass SUCCESS,sso_id="+sso_id+"///phone="+phone+"///new pass="+newpass);
+			 return "forgot_pass SUCCESS,sso_id="+sso_id+"///phone="+phone+"///new pass="+newpass;
 		}
-		return "FAILED, input phone is not mapped with user's phone";
+		throw new ESchoolException("FAILED, input phone is not mapped with registerd-phone,sso_id:"+sso_id,HttpStatus.BAD_REQUEST);
 	}
 
 	@Override
@@ -434,5 +511,112 @@ public class UserServiceImpl implements UserService{
 		return (ArrayList<User>) userDao.findAvailableUser(school_id, from_num, max_result);
 	}
 
+	@Override
+	public void updateClassTerm(User user) {
+		Set<EClass> classes = user.getClasses();
+		if (classes != null && classes.size() > 0){
+			for (EClass eclass : classes){
+				classService.updateTermVal(eclass);
+			}
+		}
+		
+	}
 	
+	
+		@Override
+		public void saveUploadPhoto(User me, Integer user_id,MultipartFile []files) {
+			String err_msg = "";
+			
+			// Validation Data
+			if (files == null  || files.length<=0 ){
+				err_msg = "file is mandatory";
+			}
+			if (files.length >1 ){
+				err_msg = "Cannot upload multiples files";
+			}
+			
+			if (err_msg.length() > 0){
+				throw new ESchoolException(err_msg,HttpStatus.BAD_REQUEST);
+			}
+		
+			
+			String upload_dir = environment.getRequiredProperty("avatar_upload_base");
+			Utils.ensureFolder(upload_dir);
+			String urlbase = environment.getRequiredProperty("avatar_file_url_base");
+			String fileName="";
+			String filePath ="";
+			
+			User user = userDao.findById(user_id);
+			if (user == null ){
+				throw new ESchoolException("user_id not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (user.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("user_id is not belong to current user school", HttpStatus.BAD_REQUEST);
+			}
+			try {
+				MultipartFile file = files[0];
+				byte[] bytes = file.getBytes();
+				String str_dir = Utils.makeFolderByTime(upload_dir);
+				//fileName = file.getOriginalFilename();
+				fileName = Utils.getFileName("USER"+user.getSso_id(),file.getOriginalFilename());            	
+	            filePath = str_dir+ "/" + fileName;
+	            
+				// Create the file on server
+				File serverFile = new File(filePath);
+				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
+				stream.write(bytes);
+				stream.close();
+				Utils.resizeImage(filePath, Constant.BIG_SIZE, Constant.BIG_SIZE);
+				Utils.resizeImage(filePath, Constant.SMALL_SIZE, Constant.SMALL_SIZE);
+				
+				// Save NotifyImg to DB
+				user.setPhoto(filePath.replaceFirst(upload_dir, urlbase));
+				
+				
+				userDao.updateUser(user);
+				
+				
+				
+			} catch (Exception e) {
+				throw new ESchoolException("You failed to upload " + fileName + " => " + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		
+		
+			
+		}
+
+		private void valid_user( User user, boolean is_new ) {
+			if (!is_new){
+				if (user.getId() == null ){
+					throw new ESchoolException("user.id is NULL",HttpStatus.BAD_REQUEST);
+				}
+			}
+			if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0){
+				throw new ESchoolException("User.school_id is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getFullname() == null || user.getFullname().trim().length()==0){
+				throw new ESchoolException("User.FullName is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getSso_id() == null || user.getSso_id().trim().length()==0){
+				throw new ESchoolException("User.sso_id is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getRoles() == null || user.getRoles().trim().length()==0){
+				throw new ESchoolException("User.roles is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getAddr1() == null || user.getAddr1().trim().length()==0){
+				throw new ESchoolException("User.addr1 is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getBirthday() == null || user.getBirthday().trim().length()==0){
+				throw new ESchoolException("User.birthday is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.getGender() == null || user.getGender().trim().length()==0){
+				throw new ESchoolException("User.gender is required",HttpStatus.BAD_REQUEST);
+			}
+			if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
+				if (user.getCls_level() == null || user.getCls_level() == 0){
+					throw new ESchoolException("cls_level (NUMBER TYPE) is required",HttpStatus.BAD_REQUEST);
+				}	
+			}
+			
+		}
 }

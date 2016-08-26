@@ -10,5 +10,6 @@ public interface SysStsDao {
 	int countAll();
 	List<SysSts> findAll() ;
 	List<SysSts>   findByFval(Integer sts);
+	SysSts findById(Integer id);
 }
 

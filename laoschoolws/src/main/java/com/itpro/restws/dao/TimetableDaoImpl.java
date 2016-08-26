@@ -3,6 +3,9 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,9 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<Timetable> ret = crit_list.list();
 		return ret;
@@ -41,6 +47,9 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<Timetable> ret = crit_list.list();
 		return ret;
@@ -80,6 +89,9 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.add(Restrictions.eq("weekday_id", weekday_id));
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<Timetable> ret = crit_list.list();
 		
@@ -94,5 +106,99 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 		
 	}
 
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
+
+
+	@Override
+	public int countTimetableExt(
+			Integer school_id, 
+	Integer class_id, 
+	Integer weekday_id, 
+	Integer session_id,
+	Integer year_id, 
+	Integer term_val) {
+		Criteria crit_list = createEntityCriteria();
+		// Filter by school
+		crit_list.add(Restrictions.eq("school_id", school_id));
+		// Limit data return
+
+
+		// Filter by class_id
+		if (class_id != null && class_id > 0) {
+			crit_list.add(Restrictions.eq("class_id", class_id));
+		}
+
 	
+		// Filter by from user
+		if (weekday_id != null && weekday_id > 0) {
+			crit_list.add(Restrictions.eq("weekday_id", weekday_id));
+		}
+		
+		// Filter by from user
+		if (session_id != null && session_id > 0) {
+			crit_list.add(Restrictions.eq("session_id", session_id));
+		}
+		// Filter by from user
+		if (year_id != null && year_id > 0) {
+			crit_list.add(Restrictions.eq("year_id", year_id));
+		}
+		if (term_val != null && term_val > 0) {
+			crit_list.add(Restrictions.eq("term_val", term_val));
+		}
+
+		//crit_list.setProjection(Projections.countDistinct("task_id"));
+		crit_list.setProjection(Projections.rowCount());
+		Number numRows = (Number) crit_list.uniqueResult();
+		return numRows == null ? 0 : numRows.intValue();
+	}	
+	@Override
+	public  List<Timetable> findTimetableExt(
+			Integer school_id, 
+			Integer class_id, 
+			Integer weekday_id, 
+			Integer session_id,
+			Integer year_id, 
+			Integer term_val) {
+		Criteria crit_list = createEntityCriteria();
+		// Filter by school
+		crit_list.add(Restrictions.eq("school_id", school_id));
+		// Limit data return
+
+
+		// Filter by class_id
+		if (class_id != null && class_id > 0) {
+			crit_list.add(Restrictions.eq("class_id", class_id));
+		}
+
+	
+		// Filter by from user
+		if (weekday_id != null && weekday_id > 0) {
+			crit_list.add(Restrictions.eq("weekday_id", weekday_id));
+		}
+		// Filter by from user
+		if (session_id != null && session_id > 0) {
+			crit_list.add(Restrictions.eq("session_id", session_id));
+		}
+		// Filter by from user
+		if (year_id != null && year_id > 0) {
+			crit_list.add(Restrictions.eq("year_id", year_id));
+		}
+		if (term_val != null && term_val > 0) {
+			crit_list.add(Restrictions.eq("term_val", term_val));
+		}
+		crit_list.addOrder(Order.asc("id"));
+		
+		@SuppressWarnings("unchecked")
+		List<Timetable> ret = crit_list.list();
+		return ret;
+	}	
 }

@@ -3,7 +3,9 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.Query;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -40,6 +42,9 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     List<User> users = crit_list.list();
 	     
 		return  users;
@@ -53,6 +58,9 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		crit_list.add(Restrictions.eq("classesAlias.id", class_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<User> users = crit_list.list();
 	     return users;
@@ -90,43 +98,6 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 	}
 
 
-	
-//	 public void setUser(User a) throws HibernateException {
-//		    try {
-//		    	User tmp = (User) session.get(User.class, a.getId());
-//		        tmp.setEmail(getNotNull(a.getEmail(), tmp.getEmail()));            
-//		        ...
-//		        tmp.setVersion(getNotNull(a.getVersion(), tmp.getVersion()));
-//		        session.beginTransaction();
-//		        session.update(tmp);
-//		        session.getTransaction().commit();
-//		    } catch (HibernateException e) {
-//		        logger.error(e.toString());
-//		        throw e;
-//		    }
-//		}
-//
-//		public static <T> T getNotNull(T a, T b) {
-//		    return b != null && a != null && !a.equals(b) ? a : b;
-//		}
-
-	
-//	oUp = Updated row with null fields & oDb = Row fetched from database at update time
-//	public static <T> T updateChanges(T oDb, T oUp) {
-//	    try {
-//	        java.lang.reflect.Field[] fields = oDb.getClass().getDeclaredFields();
-//	        for (Field field : fields) {
-//	            field.setAccessible(true);
-//	            if (field.get(oUp) != null) {
-//	                field.set(oDb, field.get(oUp));
-//	            }
-//	        }
-//	    } catch (IllegalAccessException e) {
-//	        e.printStackTrace();
-//	    }
-//	    return oDb;
-//	}
-	
 	@Override				
 	public Integer countUserExt(
 			Integer school_id, 
@@ -137,8 +108,6 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			Integer from_row_id
 			) {
 		
-		//int count = ((Long)getSession().createQuery("select count(*) from User WHERE school_id= '" + school_id.intValue()+ "'").uniqueResult()).intValue();
-		//String query = 	"select count(*)  from User user join user.classes cls where user.school_id ='"+school_id +"'";
 		String query = 	"select count(*)  from User user LEFT JOIN user.classes as cls where  user.actflg = 'A' AND user.school_id ='"+school_id +"'";
 		if (class_id != null && class_id > 0){
 			query = query +" and cls.id = '"+class_id.intValue()+"'"; 
@@ -169,7 +138,6 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			Integer from_row_id
 			) {
 		
-		//String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
 		String str = 	"SELECT user from User as user left join FETCH user.classes as cls where user.actflg = 'A' AND user.school_id ='"+school_id +"'";
 		
 		if (class_id != null && class_id > 0){
@@ -187,10 +155,11 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			str = str +" and user.id > '"+from_row_id.intValue()+"'";
 		}
 		
+		str = str +" order by user.id asc";
+		
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_row);
-		
 		
 		
 		@SuppressWarnings("unchecked")
@@ -220,6 +189,8 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		str = str +" and user.roles != 'ADMIN' ";
 		str = str +" and user.roles != 'SYS_ADMIN' ";
 		
+		str = str +" order by user.id asc";
+		
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_row);
@@ -231,4 +202,14 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		return users;
 	}
 
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 }

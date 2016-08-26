@@ -10,6 +10,7 @@ public interface AuthenKeyDao {
 	List<AuthenKey> getNonExpired();
 	List<AuthenKey> findBySsoID(String sso);
 	AuthenKey findByToken(String token);
+	
 	void saveToken(AuthenKey authenKey);
 	void deleteToken(AuthenKey authenKey);
 	int deleteBySso(String sso);

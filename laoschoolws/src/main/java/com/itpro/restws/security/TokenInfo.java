@@ -4,8 +4,6 @@ import java.util.Date;
 
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.itpro.restws.model.User;
-
 /** Contains information about a token. */
 public final class TokenInfo {
 

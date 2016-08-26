@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -54,6 +56,9 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<ExamRank> ret = crit_list.list();
 		return ret;
@@ -65,6 +70,8 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
 		@SuppressWarnings("unchecked")
 		List<ExamRank> ret = crit_list.list();
 		return ret;
@@ -76,6 +83,9 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 		crit_list.add(Restrictions.eq("student_id", user_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<ExamRank> ret = crit_list.list();
 		return ret;
@@ -129,7 +139,8 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 			crit_list.add(Restrictions.eq("sch_year_id", sch_year_id));
 		}
 		
-
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		ArrayList<ExamRank> list = (ArrayList<ExamRank>) crit_list.list();
 		return list;
@@ -164,5 +175,14 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 	}
 
 	
-
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 }

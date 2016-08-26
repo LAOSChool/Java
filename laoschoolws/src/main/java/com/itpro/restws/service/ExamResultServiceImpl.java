@@ -902,8 +902,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 		ArrayList<MSubject> subjects = new ArrayList<MSubject>();
 		
 		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
-		if (filter_year_id== null || 
-				(curr_year.getId().intValue() == filter_year_id.intValue())){
+		if (filter_year_id== null || filter_year_id.intValue()<=0){
+			if (curr_year == null ){
+				throw new ESchoolException("Cannot get Current SchoolYear of shcool_id: "+ student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+			}
 			filter_year_id = curr_year.getId();
 			// Current profile
 			if (filter_subject_id != null ){
@@ -959,7 +961,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 	@Override
-	public ArrayList<ExamResult> getClassProfile(Integer school_id, Integer filter_class_id, Integer filter_student_id, Integer subject_id, Integer year_id) {
+	public ArrayList<ExamResult> getClassProfile(
+			Integer school_id, 
+			Integer filter_class_id, 
+			Integer filter_student_id, 
+			Integer subject_id, 
+			Integer year_id) {
 		EClass filter_eclass = null;
 		User filter_student = null;
 		
@@ -973,9 +980,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 			if (!filter_student.hasRole(E_ROLE.STUDENT.getRole_short())){
 				throw new ESchoolException("filter_student_id is not STUDENT ROLE", HttpStatus.BAD_REQUEST);
 			}
-//			if (filter_student.getSchool_id().intValue() != teacher.getSchool_id().intValue()){
-//				throw new ESchoolException("filter_student_id is not in same school with teacher", HttpStatus.BAD_REQUEST);
-//			}
 			filter_users.add(filter_student);
 		}
 		// check class
@@ -985,11 +989,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 				throw new ESchoolException(" filter_class_id is not existing: "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
 			}
 			
-//			if (filter_eclass.getSchool_id().intValue() != school_id.intValue()){
-//				if (!userService.isBelongToClass(teacher.getId(), filter_class_id)){
-//	    			throw new ESchoolException("teacher ID="+teacher.getId()+" and Class are not in same school,class_id= "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
-//	    		}
-//			}
 			
 			Set<User> tmpUsers = filter_eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
 			if (tmpUsers == null || tmpUsers.size() <= 0){

@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.Permit;
 
 
@@ -14,6 +16,8 @@ public interface PermitDao {
 	
 	void savePermission(Permit permission);
 	void updatePermission(Permit permission);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 	
 }
 

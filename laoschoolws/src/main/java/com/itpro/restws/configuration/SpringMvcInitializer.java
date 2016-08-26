@@ -30,10 +30,11 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 	        return multipartConfigElement;
 	    }
 	 
-	 private static final String LOCATION = "/tmp/"; // Temporary location where files will be stored
-// private static final String LOCATION = "D:/tmp/"; // Temporary location where files will be stored
+private static final String LOCATION = "/tmp/"; // Temporary location where files will be stored
+				//	private static final String LOCATION = "D:/tmp/"; // Temporary location where files will be stored
 	 
-	    private static final long MAX_FILE_SIZE = 2097152;// 2M ///5242880; // 5MB : Max file size.
+//	    private static final long MAX_FILE_SIZE = 2097152;// 2M 
+	 private static final long MAX_FILE_SIZE = 5242880;//5MB : Max file size.
 	                                                        // Beyond that size spring will throw exception.
 	    private static final long MAX_REQUEST_SIZE =20971520;// 20MB : Total request size containing Multi part.
 	     

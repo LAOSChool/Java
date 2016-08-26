@@ -34,11 +34,11 @@ public class SchoolYear extends AbstractModel{
 	@Column(name="to_year")
 	private Integer to_year;
 	
-	@Column(name="term_num")
-	private Integer term_num;
-	
-	@Column(name="term_duration")
-	private Integer term_duration;
+//	@Column(name="term_num")
+//	private Integer term_num;
+//	
+//	@Column(name="term_duration")
+//	private Integer term_duration;
 	
 	@Column(name="start_dt")
 	private String  start_dt;
@@ -94,25 +94,25 @@ public class SchoolYear extends AbstractModel{
 		this.notice = notice;
 	}
 
-	public Integer getTerm_num() {
-		return term_num;
-	}
-
-	public Integer getTerm_duration() {
-		return term_duration;
-	}
+//	public Integer getTerm_num() {
+//		return term_num;
+//	}
+//
+//	public Integer getTerm_duration() {
+//		return term_duration;
+//	}
 
 	public String getStart_dt() {
 		return start_dt;
 	}
 
-	public void setTerm_num(Integer term_num) {
-		this.term_num = term_num;
-	}
-
-	public void setTerm_duration(Integer term_duration) {
-		this.term_duration = term_duration;
-	}
+//	public void setTerm_num(Integer term_num) {
+//		this.term_num = term_num;
+//	}
+//
+//	public void setTerm_duration(Integer term_duration) {
+//		this.term_duration = term_duration;
+//	}
 
 	public void setStart_dt(String start_dt) {
 		this.start_dt = start_dt;

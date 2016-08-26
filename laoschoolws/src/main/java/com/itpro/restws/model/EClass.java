@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -40,11 +41,6 @@ public class EClass extends AbstractModel{
 	@Column(name="location")
 	private String location;
 	
-	@Column(name="term")
-	private Integer term;
-	
-	@Column(name="years")
-	private String years;
 	
 	@Column(name="start_dt")
 	private String start_dt;
@@ -124,21 +120,6 @@ public class EClass extends AbstractModel{
 		this.location = location;
 	}
 
-	public Integer getTerm() {
-		return term;
-	}
-
-	public void setTerm(Integer term) {
-		this.term = term;
-	}
-
-	public String getYears() {
-		return years;
-	}
-
-	public void setYears(String years) {
-		this.years = years;
-	}
 
 	public String getStart_dt() {
 		return start_dt;
@@ -196,7 +177,14 @@ public class EClass extends AbstractModel{
 		this.head_teacher_id = head_teacher_id;
 	}
 	
-	@Formula("(SELECT t.fullname FROM user t WHERE t.id = head_teacher_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+
+	@Transient
+	private Integer term;
+	
+	@Formula("(SELECT t.years FROM school_year t WHERE t.id = year_id)") 
+	private String years;
+	
+	@Formula("(SELECT t.fullname FROM user t WHERE t.id = head_teacher_id)") 
 	private String headTeacherName;	
 	public String getHeadTeacherName() {
 		return headTeacherName;
@@ -223,6 +211,18 @@ public class EClass extends AbstractModel{
 	}
 	public void setHeadTeacherName(String headTeacherName) {
 		this.headTeacherName = headTeacherName;
+	}
+	public Integer getTerm() {
+		return term;
+	}
+	public String getYears() {
+		return years;
+	}
+	public void setTerm(Integer term) {
+		this.term = term;
+	}
+	public void setYears(String years) {
+		this.years = years;
 	}
 
 

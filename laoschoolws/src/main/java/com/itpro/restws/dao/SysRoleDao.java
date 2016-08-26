@@ -9,5 +9,6 @@ public interface SysRoleDao {
 
 	int countAll();
 	List<SysRole> findAll() ;
+	SysRole findById(Integer id);
 }
 

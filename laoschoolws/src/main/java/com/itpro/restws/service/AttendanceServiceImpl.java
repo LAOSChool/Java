@@ -1,5 +1,6 @@
 package com.itpro.restws.service;
 
+import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,19 +8,24 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.AttendanceDao;
+import com.itpro.restws.dao.MSessionDao;
+import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.helper.ESchoolException;
-import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
-import com.itpro.restws.model.Message;
+import com.itpro.restws.model.MSession;
+import com.itpro.restws.model.MSubject;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
+import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.User;
 
 @Service("attendanceService")
@@ -35,6 +41,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 	private SchoolYearService schoolYearService;
 	
 	@Autowired
+	private SchoolTermService schoolTermService;
+	
+	@Autowired
 	private UserService userService;
 	
 	@Autowired
@@ -43,6 +52,12 @@ public class AttendanceServiceImpl implements AttendanceService{
 	@Autowired
 	private MessageService messageService;
 	
+	@Autowired
+	private SysTblService sysTblService;
+	@Autowired
+	private MSessionDao  msessionDao; 
+	@Autowired
+	private MSubjectDao  msubjectDao;
 	
 	@Override
 	public Attendance findById(Integer id) {
@@ -80,17 +95,26 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 
 	@Override
-	public Attendance insertAttendance(User teacher,Attendance attendance) {
+	public Attendance insertAttendance(User me,Attendance attendance) {
 		
+		
+		if (attendance.getStudent_id() == null ){
+			throw new ESchoolException("student_id = NULL", HttpStatus.BAD_REQUEST);
+		}
 		User student = userService.findById(attendance.getStudent_id());
+		if (student.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("student.school_id is not similar with teacher school_id", HttpStatus.BAD_REQUEST);
+		}
 		
-		attendance.setAuditor(teacher.getId());
-		attendance.setAuditor_name(teacher.getFullname());
-		attendance.setStudent_name(student.getFullname());
+		attendance.setAuditor(me.getId());
+		attendance.setAuditor_name(me.getFullname());
+		attendance.setStudent_name(me.getFullname());
 		
-		valid_insert_attendance(teacher,attendance);
-		
+		valid_insert_attendance(me,attendance);
 		attendanceDao.saveAttendance(attendance);
+		// Send message 
+		send_msg_attendance(attendance);
+
 		return attendance;
 	}
 
@@ -117,26 +141,47 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public Attendance updateAttendance(User teacher, Attendance attendance) {
-		if (attendance.getId() == null){
-			throw new ESchoolException("attendance.ID = NULL", HttpStatus.BAD_REQUEST);
+		if (attendance == null || attendance.getId() == null){
+			throw new ESchoolException("attendance == null || attendance.id = NULL", HttpStatus.BAD_REQUEST);
 		}
-		User student = userService.findById(attendance.getStudent_id());
-		Attendance curr = findById(attendance.getId());
 		
-		if (curr != null ){
-			curr = Attendance.updateChanges(curr, attendance);
-			
-			curr.setAuditor(teacher.getId());
-			curr.setAuditor_name(teacher.getFullname());
-			curr.setStudent_name(student.getFullname());
-	
-			valid_attendance_info(teacher,attendance);
-			
-			attendanceDao.updateAttendance(curr);
+		if (attendance.getStudent_id() == null){
+			throw new ESchoolException("student_id is NULL", HttpStatus.BAD_REQUEST);
+		}
+		
+		User student = userService.findById(attendance.getStudent_id());
+
+		if (student == null){
+			throw new ESchoolException("student_id is not existing", HttpStatus.BAD_REQUEST);
+		}
+		
+		Attendance curr_db = findById(attendance.getId());
+		
+		if (curr_db != null ){
+
+		  try {
+			  attendanceDao.setFlushMode(FlushMode.MANUAL);
+			  curr_db = Attendance.updateChanges(curr_db, attendance);
+				
+			  curr_db.setAuditor(teacher.getId());
+			  curr_db.setAuditor_name(teacher.getFullname());
+			  curr_db.setStudent_name(student.getFullname());
+		
+				valid_attendance_info(teacher,curr_db);
+			  	
+	        } catch (Exception e){
+	        	attendanceDao.clearChange();
+	        	throw e;
+	        }
+		   finally {
+			   attendanceDao.setFlushMode(FlushMode.AUTO);
+	        }
+			  
+			attendanceDao.updateAttendance(curr_db);
 		}else{
 			throw new ESchoolException("Error: cannot find attendace_id:"+attendance.getId(), HttpStatus.BAD_REQUEST);
 		}
-		return curr;
+		return curr_db;
 	}
 
 	@Override
@@ -174,7 +219,8 @@ public class AttendanceServiceImpl implements AttendanceService{
 			attendanceDao.saveAttendance(request);
 			// Send Message
 			if (!is_sent_msg){
-				sendAttendRequestMessage(request);
+				// sendAttendMessage(request);
+				send_msg_request_ext(request, null);
 			}
 			return request;
 		}
@@ -197,7 +243,14 @@ public class AttendanceServiceImpl implements AttendanceService{
 		if (!in_range && request.getAtt_dt() == null ){
 			throw new ESchoolException("Must input mandatory att_dt", HttpStatus.BAD_REQUEST);
 		}
-		
+		// Attendance Date
+		Date att_dt = Utils.parsetDateAll(request.getAtt_dt());
+		if (att_dt == null ){
+			throw new ESchoolException("att_dt is not valide datetime format:"+request.getAtt_dt()+", plz correct to: yyyy-MM-dd HH:mm:ss", HttpStatus.BAD_REQUEST);
+		}else{
+			String correct_att_dt = Utils.dateToString(att_dt);// yyyy-MM-dd HH:mm:ss
+			request.setAtt_dt(correct_att_dt);
+		}
 		if (request.getState() == null  ){
 			request.setState(1);// 1: Absent, 2: Late
 			//throw new ESchoolException("Must input valid mandatory State", HttpStatus.BAD_REQUEST);
@@ -216,6 +269,28 @@ public class AttendanceServiceImpl implements AttendanceService{
 	@Override
 	public ArrayList<Attendance>  requestAttendanceEx(User user, Attendance request,String from_dt, String to_dt) {
 		 ArrayList<Attendance>  list = new ArrayList<Attendance>();
+		 
+		 if (	from_dt == null || 
+				 from_dt.trim().equals("") || 
+				 to_dt == null|| 
+				 to_dt.trim().equals("")) 
+		 {
+			 throw new ESchoolException("Both from_dt and to_dt are required", HttpStatus.BAD_REQUEST);
+		 }
+		 // Check from dt
+		 Date dt = Utils.parsetDateAll(from_dt);
+		 if (dt == null ){
+			 throw new ESchoolException("Cannot parsing from_dt", HttpStatus.BAD_REQUEST);
+		 }else{
+			 from_dt = Utils.dateToString(dt);
+		 }
+		 // check to dt
+		 dt = Utils.parsetDateAll(to_dt);
+		 if (dt == null ){
+			 throw new ESchoolException("Cannot parsing to_dt", HttpStatus.BAD_REQUEST);
+		 }else{
+			 to_dt = Utils.dateToString(dt);
+		 }
 		// Check from to
 		if (Utils.checkDateFormat(from_dt) &&
 				Utils.checkDateFormat(to_dt)
@@ -247,21 +322,27 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 			Calendar end = Calendar.getInstance();
 			end.setTime(endDate);
-			boolean is_sent_msg = false;
+			//boolean is_sent_msg = false;
+			String date_info = "";
 			while( !start.after(end)){
 			    Date targetDay = start.getTime();
-			    String att_dt = Utils.dateToString(targetDay);
+			    String att_dt = Utils.dateToStringDateOnly(targetDay);
+			    
 			    Attendance new_request = request.clone();
 			    new_request.setAtt_dt(att_dt);
 			    // Request attendance for each day
-			    Attendance att = requestAttendance(user,new_request,true,is_sent_msg);
+			    Attendance att = requestAttendance(user,new_request,true,true);
 			    if (att != null ){
 			    	list.add(att);
+			    	date_info += att_dt+"\n";
 			    }
 			    
 			    // Next day
-			    is_sent_msg = true;
+			    //is_sent_msg = true;
 			    start.add(Calendar.DATE, 1);
+			}
+			if (list.size() > 0){
+				send_msg_request_ext(request,date_info);
 			}
 			
 		}else{
@@ -271,16 +352,78 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 	
 
-	private void valid_insert_attendance(User curr_user, Attendance attendace){
+	private void send_msg_request_ext(Attendance request, String date_info) {
+		String msg_content = get_message_sample(true);
+		/***
+		 * Request Attendance
+			Date:
+			[DATE]
+			
+			Reason:
+			[REASON]
+			Thank you!
+		 */
+		if (date_info == null || date_info.trim().length() == 0){
+			date_info = request.getAtt_dt();
+			Date dt = Utils.parsetDateAll(date_info);
+			if (dt != null ){
+				date_info = Utils.dateToStringDateOnly(dt);
+			}
+		}
+		
+		msg_content = msg_content.replaceFirst("\\[DATE\\]", date_info==null?"":date_info);
+		msg_content = msg_content.replaceFirst("\\[REASON\\]", request.getNotice()==null?"":request.getNotice());
+		
+		Integer class_id = request.getClass_id();
+		EClass eclass = classService.findById(class_id);
+		if (eclass == null){
+			throw new ESchoolException("request.class_id is not existing", HttpStatus.BAD_REQUEST);
+		}
+		Integer head_teacher_id = eclass.getHead_teacher_id();
+		if (head_teacher_id == null){
+			throw new ESchoolException("class_id:"+class_id.intValue()+" dont have head_teacher_id to send message", HttpStatus.BAD_REQUEST);
+		}
+		
+//		Message msg = messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content);
+//		messageService.insertMessageExt(msg);
+		messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content);
+		
+	}
+
+	private void valid_insert_attendance(User me, Attendance attendace){
+		if (attendace.getId() != null ){
+			throw new ESchoolException("Cannot create new attendance, id != null", HttpStatus.BAD_REQUEST);
+		}
+		if (attendace.getSchool_id() == null || attendace.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("SchoolId is not correct", HttpStatus.BAD_REQUEST);
+		}
+		if (attendace.getClass_id() == null || attendace.getClass_id().intValue() == 0){
+			throw new ESchoolException("ClassID is NULL", HttpStatus.BAD_REQUEST);
+		}
+		if (attendace.getStudent_id() == null || attendace.getStudent_id().intValue() ==0){
+			throw new ESchoolException("SchoolId is not correct", HttpStatus.BAD_REQUEST);
+		}
+		if (attendace.getAtt_dt() == null ){
+			throw new ESchoolException("att_dt is not correct", HttpStatus.BAD_REQUEST);
+		}
+		String att_dt = attendace.getAtt_dt();
+		Date dt = Utils.parsetDateAll(att_dt);
+		if (dt == null ){
+			throw new ESchoolException("attt_dt is not correct format, plz input yyyy-MM-dd", HttpStatus.BAD_REQUEST);
+		}
+		att_dt = Utils.dateToString(dt);
+		attendace.setAtt_dt(att_dt);
+		// Count existing
 		int cnt = countAttendanceExt(attendace.getSchool_id(), attendace.getClass_id(), attendace.getStudent_id(),null,attendace.getAtt_dt(),null,null,attendace.getSession_id(),null,null);
 		if (cnt > 0){
 			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
-			logger.error("Request already existing:"+curr_user.getId());
-			throw new ESchoolException("Attendance already existing ! ", HttpStatus.BAD_REQUEST);
+			String err="Similar attendance already existing/// school_id:"+attendace.getSchool_id() + "///class_id:"+ attendace.getClass_id()+"///student_id:"+ attendace.getStudent_id()+"///att_dt:"+attendace.getAtt_dt();
+			logger.error(err);
+			throw new ESchoolException(err, HttpStatus.BAD_REQUEST);
 		}
-		valid_attendance_info(curr_user,attendace);
+		valid_attendance_info(me,attendace);
 	}
-	private void valid_attendance_info(User curr_user, Attendance attendace) {
+	private void valid_attendance_info(User me, Attendance attendace) {
 		if ((attendace.getSchool_id() == null || attendace.getSchool_id().intValue() == 0) ||
 			( attendace.getStudent_id() == null || attendace.getStudent_id().intValue() == 0) ||
 			( attendace.getClass_id() == null || attendace.getClass_id().intValue() == 0) ||
@@ -293,7 +436,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		// check user
 	
 		
-		if (curr_user.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
 			throw new ESchoolException("Current User.SchoolID() != Attendance.school_id ", HttpStatus.BAD_REQUEST);
 		}
 		
@@ -301,15 +444,15 @@ public class AttendanceServiceImpl implements AttendanceService{
 		User student = userService.findById(attendace.getStudent_id());
 		EClass eclass = classService.findById(attendace.getClass_id());
 		
-		if (curr_user.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != attendace.getSchool_id().intValue()){
 			throw new ESchoolException("Current User.SchoolID() != Attendance.school_id ", HttpStatus.BAD_REQUEST);
 		}
 		
-		if (curr_user.getSchool_id().intValue() != student.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != student.getSchool_id().intValue()){
 			throw new ESchoolException("Current User.SchoolID() != Student.school_id ", HttpStatus.BAD_REQUEST);
 		}
 		
-		if (curr_user.getSchool_id().intValue() != eclass.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != eclass.getSchool_id().intValue()){
 			throw new ESchoolException("Current User.SchoolID() != Eclass.school_id ", HttpStatus.BAD_REQUEST);
 		}
 		
@@ -333,13 +476,13 @@ public class AttendanceServiceImpl implements AttendanceService{
 		// TERM
 		
 		if (attendace.getTerm_val() == null) {
-			SchoolTerm term  = schoolYearService.findLatestTermBySchool(student.getSchool_id());
+			SchoolTerm term  = schoolTermService.findMaxActiveTermBySchool(student.getSchool_id());
 			if (term == null ){
 				throw new ESchoolException("Latest SchoolTerm is NULL ( school_id="+student.getSchool_id().intValue() +")", HttpStatus.BAD_REQUEST);
 			}
 			attendace.setTerm_val(term.getTerm_val());
 		}else{
-			ArrayList<SchoolTerm> terms = schoolYearService.findTermByYear(student.getSchool_id(), schoolYear.getId());
+			ArrayList<SchoolTerm> terms = schoolTermService.findAllTermByYear(student.getSchool_id(), schoolYear.getId());
 			boolean valid_term = false;
 			for (SchoolTerm term :  terms){
 				if (term.getTerm_val().intValue() == attendace.getTerm_val().intValue()){
@@ -351,11 +494,148 @@ public class AttendanceServiceImpl implements AttendanceService{
 				throw new ESchoolException("TermVal is not existing for year_id:"+schoolYear.getId().intValue(), HttpStatus.BAD_REQUEST);
 			}
 		}
+		// Attendance Date
+		Date att_dt = Utils.parsetDateAll(attendace.getAtt_dt());
+		if (att_dt == null ){
+			throw new ESchoolException("att_dt is not valide datetime format:"+attendace.getAtt_dt()+", plz correct to: yyyy-MM-dd HH:mm:ss", HttpStatus.BAD_REQUEST);
+		}else{
+			String correct_att_dt = Utils.dateToString(att_dt);// yyyy-MM-dd HH:mm:ss
+			attendace.setAtt_dt(correct_att_dt);
+		}
 		
 		
 	}
-	void sendAttendRequestMessage(Attendance request){
-		Integer class_id = request.getClass_id();
+	
+//	void sendAttendMessage(Attendance att){
+//		Integer class_id = att.getClass_id();
+//		EClass eclass = classService.findById(class_id);
+//		if (eclass == null){
+//			throw new ESchoolException("request.class_id is not existing", HttpStatus.BAD_REQUEST);
+//		}
+//		Integer head_teacher_id = eclass.getHead_teacher_id();
+//		if (head_teacher_id == null){
+//			throw new ESchoolException("class_id:"+class_id.intValue()+" dont have head_teacher_id to send message", HttpStatus.BAD_REQUEST);
+//		}
+//		String content =  att.getNotice()==null?"- Student is recorded a absence from class -  ":"- Student is recorded a absence from class -  "+att.getNotice();
+//		if (att.getIs_requested() != null && att.getIs_requested().intValue() == 1){
+//			content =  att.getNotice()==null?"- Request Attendance -  ":"- Request Attendance -  "+att.getNotice();	
+//		}
+//		Message msg = messageService.newMessage(att.getStudent_id(), head_teacher_id, content);
+//		
+//		messageService.insertMessageExt(msg);
+//	}
+	String get_message_sample(boolean is_request){
+		String notice_type = "-ATTENDANCE-";
+		if (is_request){
+			notice_type = "-REQUEST-";
+		}
+		String ret="New attendance default message";
+		ArrayList<SysTemplate> list = sysTblService.findAll("sys_msg_samp",0,99999);
+		for (SysTemplate samp: list){
+			if (samp.getNotice() != null && samp.getNotice().equalsIgnoreCase(notice_type)){
+				if (samp.getLval() != null && samp.getLval().trim().length() > 0){
+					ret = samp.getLval();
+				}else{
+					ret = samp.getSval();
+				}
+			}
+		}
+		return ret;
+	}
+	
+	private void send_msg_attendance(Attendance attendace) {
+		
+		String day_in_week_info= "";
+		String date_info = attendace.getAtt_dt();
+		
+		String session_name_info="";
+		String session_period_info="";
+		
+		String subject_info = "";
+		String auditor_info ="";
+		String reason_info = "";
+		// Thong tin ngay thang
+		Date dt = Utils.parsetDateAll(attendace.getAtt_dt());
+		if (dt != null ){
+			// Get day of week
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(dt);
+			Integer dayofWeek = cal.get(Calendar.DAY_OF_WEEK);
+			Integer id_sys_week_day = Utils.convertDayOfWeekToSyWeekDayID(dayofWeek);
+			
+			ArrayList<SysTemplate> list_dow = sysTblService.findAll("sys_weekday", 0, 99999);
+			for (SysTemplate stl:list_dow){
+				if (stl.getId().intValue() == id_sys_week_day.intValue()){
+					day_in_week_info = stl.getLval();
+					if (day_in_week_info == null || day_in_week_info.trim().length() == 0){
+						day_in_week_info = stl.getSval();	
+					}
+					break;
+				}
+			}
+			
+			// Change date format to dd-MM-yyyy
+			Format formatter = new SimpleDateFormat("dd-MM-yyyy");
+			date_info = formatter.format(dt);
+			
+		}
+		
+		// Thong tin tiet hoc
+		if (attendace.getSession_id() != null && attendace.getSession_id().intValue() > 0){
+			MSession session = msessionDao.findById(attendace.getSession_id() );
+			if (session != null ){
+				session_name_info= session.getLval();
+				if (session_name_info == null || session_name_info.trim().length() == 0){
+					session_name_info= session.getSval();
+				}
+				session_period_info = session.getNotice();
+			}
+		}
+		
+		// Thong tin mon hoc
+		
+		if (attendace.getSubject_id() != null && attendace.getSubject_id().intValue() > 0){
+			MSubject subject = msubjectDao.findById(attendace.getSubject_id() );
+			if (subject != null ){
+				subject_info= subject.getLval();
+				if (subject_info == null || subject_info.trim().length() == 0){
+					subject_info= subject.getSval();
+				}
+				
+			}
+		}
+		// Thong tin auditor
+		auditor_info = attendace.getAuditor_name();
+		// Thong tin auditor
+		reason_info = attendace.getNotice();
+	
+		String msg_content = get_message_sample(false);
+		/***
+		 * [DAY_OF_WEEK], [DATE]
+			[SESSION](PERIOD)
+			Subject:[SUBJECT]
+			Teacher: [AUDITOR]
+			
+			Absent
+			Reason: [REASON]
+		 */
+		
+		msg_content = msg_content.replaceFirst("\\[DAY_OF_WEEK\\]", day_in_week_info==null?"":day_in_week_info);
+		msg_content = msg_content.replaceFirst("\\[DATE\\]", date_info==null?"":date_info);
+		if (attendace.getSession_id() == null || attendace.getSession_id().intValue() == 0){
+			msg_content = msg_content.replaceFirst("\\[SESSION\\]","");
+			msg_content = msg_content.replaceFirst("\\(\\[PERIOD\\]\\)", "");
+			msg_content = msg_content.replaceFirst("\\[SUBJECT\\]","");
+		}else{
+			msg_content = msg_content.replaceFirst("\\[SESSION\\]", session_name_info==null?"":session_name_info);
+			msg_content = msg_content.replaceFirst("\\[PERIOD\\]", session_period_info==null?"":session_period_info);
+			msg_content = msg_content.replaceFirst("\\[SUBJECT\\]", subject_info==null?"":subject_info);	
+		}
+		
+		msg_content = msg_content.replaceFirst("\\[AUDITOR\\]", auditor_info==null?"":auditor_info);
+		msg_content = msg_content.replaceFirst("\\[REASON\\]", reason_info==null?"":reason_info);
+		
+		Integer class_id = attendace.getClass_id();
 		EClass eclass = classService.findById(class_id);
 		if (eclass == null){
 			throw new ESchoolException("request.class_id is not existing", HttpStatus.BAD_REQUEST);
@@ -364,8 +644,14 @@ public class AttendanceServiceImpl implements AttendanceService{
 		if (head_teacher_id == null){
 			throw new ESchoolException("class_id:"+class_id.intValue()+" dont have head_teacher_id to send message", HttpStatus.BAD_REQUEST);
 		}
-		Message msg = messageService.newMessage(request.getStudent_id(), head_teacher_id, request.getNotice()==null?"- Request Attendance -  ":"- Request Attendance -  "+request.getNotice());
 		
-		messageService.insertMessageExt(msg);
-	}
+//		Message msg = messageService.newMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
+//		messageService.insertMessageExt(msg);
+		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
+
+
+		
+	}	
+	
+	
 }

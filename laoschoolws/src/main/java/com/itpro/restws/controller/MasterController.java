@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,25 +46,39 @@ public class MasterController  extends BaseController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getMaster(
 			 @PathVariable String tbl_name,
-			 
+			 @RequestParam(value="from_row",required =false) String filter_from_row,
+			 @RequestParam(value="max_result",required =false) String filter_max_result,
+				
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.getMaster");
-		
+		 RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}	
 		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
 		
 		ListEnt listResp = new ListEnt();
 		User user = getCurrentUser();
     	// Count user
     	total_row = masterTblService.countBySchool(tbl_name,  user.getSchool_id());
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
+    
+    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
+    		listResp.setList(null);
+    		listResp.setFrom_row(0);
+    		listResp.setTo_row(0);
+    		listResp.setTotal_count(0);
+    		rsp.setMessageObject(listResp);
+    		return rsp;
     	}
+    	
+    	if ((from_row + max_result > total_row)){
+    		max_result = total_row-from_row;
+    	}	
+    	
 		logger.info("Master:"+ tbl_name+ " count: total_row : "+total_row);
 		// Query class by school id
 		ArrayList<MTemplate> masters = (ArrayList<MTemplate>) masterTblService.findBySchool(tbl_name, user.getSchool_id(), from_row, max_result);
@@ -74,7 +89,6 @@ public class MasterController  extends BaseController {
 		listResp.setTotal_count(total_row);
 	    //return listResp;
 		
-		 RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(listResp);
 		return rsp;
 	}

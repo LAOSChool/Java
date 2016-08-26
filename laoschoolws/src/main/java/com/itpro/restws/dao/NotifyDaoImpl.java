@@ -3,8 +3,10 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -47,6 +49,8 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.add(Restrictions.eq("from_user_id", from_user_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -59,6 +63,8 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.add(Restrictions.eq("to_user_id", to_user_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -90,6 +96,8 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -103,6 +111,8 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -133,18 +143,6 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		//getSession().flush() ;
 		
 	}
-
-
-
-//	@Override
-//	public int sendTask(String task_id_list) {
-//		getSession().getTransaction().begin();
-//		Query query = getSession().createSQLQuery("update Notify set is_set = 0 WHERE is_sent = 1 AND task_id in :list_id");
-//		query.setParameter("list_id", "task_id_list");
-//		int result = query.executeUpdate();
-//		getSession().getTransaction().commit();
-//		return result;
-//	}
 
 
 	@Override
@@ -207,11 +205,11 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 
 		// Filter by date
 		if (dateFrom != null && dateTo != null) {
-			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
+			crit_list.add(Restrictions.between("sent_dt", dateFrom, dateTo));
 		} else if (dateFrom != null) {
-			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+			crit_list.add(Restrictions.gt("sent_dt", dateFrom));
 		} else if (dateTo != null) {
-			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+			crit_list.add(Restrictions.lt("sent_dt", dateTo));
 		}
 
 		// Filter by from user
@@ -291,11 +289,11 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 
 		// Filter by date
 		if (dateFrom != null && dateTo != null) {
-			crit_list.add(Restrictions.between("lstmdf", dateFrom, dateTo));
+			crit_list.add(Restrictions.between("sent_dt", dateFrom, dateTo));
 		} else if (dateFrom != null) {
-			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+			crit_list.add(Restrictions.gt("sent_dt", dateFrom));
 		} else if (dateTo != null) {
-			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+			crit_list.add(Restrictions.lt("sent_dt", dateTo));
 		}
 
 		// Filter by from user
@@ -336,9 +334,21 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
         // Task_ID >0
         crit_list.add(Restrictions.gt("task_id", 0));
 		      
+        crit_list.addOrder(Order.asc("id"));
+        
 		@SuppressWarnings("unchecked")
 		List<Object> results = crit_list.list();
 		return results;
 
+	}
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
 	}
 }

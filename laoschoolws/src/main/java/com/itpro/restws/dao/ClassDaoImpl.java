@@ -3,6 +3,8 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,9 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<EClass> classes = crit_list.list();
 	     
@@ -46,6 +51,9 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 		crit_list.add(Restrictions.eq("usersAlias.id", user_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<EClass> classes = crit_list.list();
 	     
@@ -73,7 +81,16 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 
 		
 	}
-
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 	
 	
 }

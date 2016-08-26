@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.ArrayList;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.EduProfile;
 
 
@@ -18,5 +20,7 @@ public interface EduProfileDao {
 	
 	void saveStudentProfile(EduProfile profile);
 	void updateStudentProfile(EduProfile profile);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 }
 

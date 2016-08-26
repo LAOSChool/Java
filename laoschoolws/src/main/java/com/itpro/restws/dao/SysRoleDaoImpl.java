@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,8 @@ public class SysRoleDaoImpl extends AbstractDao<Integer, SysRole> implements Sys
 	public List<SysRole> findAll() {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("actflg","A"));
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SysRole> list = crit_list.list();
 	     return list;
@@ -31,6 +34,11 @@ public class SysRoleDaoImpl extends AbstractDao<Integer, SysRole> implements Sys
 		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_ROLE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
+	}
+
+	@Override
+	public SysRole findById(Integer id) {
+		return getByKey(id);
 	}
 
 	

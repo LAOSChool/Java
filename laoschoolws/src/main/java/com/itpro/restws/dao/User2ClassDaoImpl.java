@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -106,28 +107,52 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 
 
 	@Override
-	public List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, boolean is_running) {
+	public List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, Integer closed) {
 		Criteria crit_list = createEntityCriteria();
-		crit_list.add(Restrictions.eq("user_id", user_id));
-		crit_list.add(Restrictions.eq("class_id", class_id));
-		if (is_running){
-			crit_list.add(Restrictions.eq("closed", 0));
+		boolean is_valid = false;
+		if (user_id != null && user_id.intValue() >= 0){
+			crit_list.add(Restrictions.eq("user_id", user_id));
+			is_valid = true;
 		}
-	     @SuppressWarnings("unchecked")
-		List<User2Class> list = crit_list.list();
+		
+		
+		if (class_id != null && class_id.intValue() >= 0){
+			crit_list.add(Restrictions.eq("class_id", class_id));
+			is_valid = true;
+		}
+		
+		
+		if (closed != null && closed.intValue() >= 0){
+			crit_list.add(Restrictions.eq("closed", closed));
+		}
+		if (is_valid){
+			@SuppressWarnings("unchecked")
+			List<User2Class> list = crit_list.list();
+			return list;
+		}
 	     
-		return  list;
+	     
+		return  null;
 	}
-
 
 
 
 	@Override
 	public void deleteUser2Class(User2Class user2Class) {
-		delete(user2Class);
+		user2Class.setActflg("D");
+		update(user2Class);
 		
 	}
 	
 
-
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 }

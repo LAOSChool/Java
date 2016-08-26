@@ -1,6 +1,7 @@
 package com.itpro.restws.model;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -130,24 +131,49 @@ public class AbstractModel {
 	 * 
 	 * @param oDb: Row fetched from database at update time
 	 * @param oUp: Updated row with null fields
+	 * Merger cac truong khac NULL cua oUp =>vao => oDB sau do return oDB voi ID co san.
 	 * @return: changed oDB
 	 */
 	public static <T> T updateChanges(T oDb, T oUp) {
 	    try {
-	    	// Super class
+	    	// Update Super class
 	    	java.lang.reflect.Field[] fields = oDb.getClass().getSuperclass().getDeclaredFields();
 	        for (Field field : fields) {
 	            field.setAccessible(true);
 	            if (field.get(oUp) != null) {
-	                field.set(oDb, field.get(oUp));
+	            	// field.set(oDb, field.get(oUp));
+	            	if(field.get(oUp) instanceof Collection) {
+	                    //Do your thing
+	            		@SuppressWarnings("rawtypes")
+						Collection list = (Collection) field.get(oUp);
+	            		if (list.size() > 0){
+	            			field.set(oDb, field.get(oUp));
+	            		}
+	                }
+	            	else{
+	            		field.set(oDb, field.get(oUp));
+	            	}
+	            	
 	            }
 	        }
-	        // This class
+	        // Update this class
 	        fields = oDb.getClass().getDeclaredFields();
 	        for (Field field : fields) {
 	            field.setAccessible(true);
 	            if (field.get(oUp) != null) {
-	                field.set(oDb, field.get(oUp));
+	                //field.set(oDb, field.get(oUp));
+	            	if(field.get(oUp) instanceof Collection) {
+	                    //Do your thing
+	            		@SuppressWarnings("rawtypes")
+						Collection list = (Collection) field.get(oUp);
+	            		if (list.size() > 0){
+	            			field.set(oDb, field.get(oUp));
+	            		}
+	                }
+	            	else{
+	            		field.set(oDb, field.get(oUp));
+	            	}
+
 	            }
 	        }
 	    } catch (IllegalAccessException e) {
@@ -155,5 +181,7 @@ public class AbstractModel {
 	    }
 	    return oDb;
 	}
+	
+	
 // DEFAULT FIELDS End	
 }

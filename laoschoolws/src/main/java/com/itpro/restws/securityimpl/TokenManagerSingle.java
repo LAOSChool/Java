@@ -11,18 +11,17 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.codec.Base64;
 
 import com.itpro.restws.dao.AuthenKeyDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.Constant;
-import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.model.AuthenKey;
 import com.itpro.restws.model.User;
 import com.itpro.restws.security.TokenInfo;
 import com.itpro.restws.security.TokenManager;
+import com.itpro.restws.service.ApiKeyService;
 
 /**
  * Implements simple token manager, that keeps a single token for each user. If user logs in again,
@@ -36,6 +35,10 @@ public class TokenManagerSingle implements TokenManager {
 	
 	@Autowired
 	private AuthenKeyDao authenKeyDao;
+	
+	@Autowired
+	protected ApiKeyService apiKeyService;
+	
 	@Autowired
 	private UserDao userDao;;
 
@@ -101,6 +104,9 @@ public class TokenManagerSingle implements TokenManager {
 //		}
 		
 		int ret = authenKeyDao.deleteBySso(userDetails.getUsername());
+		
+		apiKeyService.logoutBySSoID(userDetails.getUsername());
+		
 		logger.info("delete: "+ret+" tokens for user:"+userDetails.getUsername());
 	}
 
@@ -116,6 +122,9 @@ public class TokenManagerSingle implements TokenManager {
 		AuthenKey authkey = authenKeyDao.findByToken(token);
 		User user = userDao.findBySSO(authkey.getSso_id());
 		authenKeyDao.deleteToken(authkey);
+		
+		apiKeyService.logoutByAuthKey(token);
+		
 		return new UserContext(user);
 	}
 

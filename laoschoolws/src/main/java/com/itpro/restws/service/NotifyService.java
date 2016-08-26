@@ -2,13 +2,11 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.helper.MessageFilter;
-import com.itpro.restws.model.Message;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.NotifyImg;
 import com.itpro.restws.model.User;
@@ -31,12 +29,9 @@ public interface NotifyService {
 	ArrayList<Notify> findTomUser(Integer to_userid,int from_num, int max_result);
 	
 	
-//	Notify insertNotify(Notify notify);
 	Notify updateNotify(Notify notify);
-	//Notify saveUploadData(MultipartFile file,String str_notify);
-	//Notify saveUploadData(User user,MultipartFile[] files,String[] captions, String content, String title,String json_str_notify);
 	Notify saveUploadData(User user,MultipartFile[] files,String[] captions, String[] orders,String json_str_notify);
-	ArrayList<Notify>  broadcastNotify(User user,Notify notify,String filter_roles);
+	
 	public HashSet<NotifyImg> findImgByTaskID(Integer task_id);
 	
 	int countNotifyExt(Integer school_id, 
@@ -61,4 +56,6 @@ public interface NotifyService {
 			Integer is_read, Integer from_row_id);
 	
 	MessageFilter secureGetMessages(User user);
+	
+	ArrayList<Notify>  broadcastNotify(User user,Notify notify,String filter_roles);
 }

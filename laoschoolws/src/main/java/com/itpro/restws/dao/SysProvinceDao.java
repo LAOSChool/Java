@@ -9,5 +9,6 @@ public interface SysProvinceDao {
 
 	List<SysProvince> findAll() ;
 	int countAll();
+	SysProvince findById(Integer id);
 }
 

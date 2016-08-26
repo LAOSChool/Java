@@ -31,6 +31,7 @@ import com.itpro.restws.service.MessageService;
 import com.itpro.restws.service.NotifyService;
 import com.itpro.restws.service.PermitService;
 import com.itpro.restws.service.SchoolService;
+import com.itpro.restws.service.SchoolTermService;
 import com.itpro.restws.service.SysTblService;
 import com.itpro.restws.service.TimetableService;
 import com.itpro.restws.service.UserService;
@@ -93,7 +94,8 @@ public class BaseController {
 	
 	@Autowired
 	protected ActionLogService actionLogService;
-	
+	@Autowired
+	protected SchoolTermService schoolTermService;
 	
 	@PostConstruct
 	public void init() {
@@ -113,6 +115,15 @@ public class BaseController {
 			String sso = principal.toString();
 			user = userService.findBySso(sso);
 		}
+//		String sso =null;
+//		
+//		if (principal instanceof UserContext) {
+//			 sso = ((UserContext) principal).getUsername();
+//	} else {
+//		sso = principal.toString();
+//		
+//	}
+//		user = userService.findBySso(sso);
 		return user;
 	}
 

@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.User;
 
 public interface UserDao {
@@ -20,6 +22,8 @@ public interface UserDao {
 	
 	Integer countAvailableUser(Integer school_id);
 	List<User>  findAvailableUser(Integer school_id,int from_row,int max_result);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 
 }
 

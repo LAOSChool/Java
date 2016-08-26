@@ -16,7 +16,6 @@ import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ActionLog;
 import com.itpro.restws.model.User;
-import com.mysql.jdbc.Constants;
 
 @Service("actionLogService")
 @Transactional
@@ -156,7 +155,27 @@ public class ActionLogServiceImpl implements ActionLogService{
 	@Override
 	public ActionLog start_trace(HttpServletRequest request,User user) {
 		ActionLog act = new ActionLog();
+		/// Log JSON 
+//		try {
+//			byte[] jsonBody = IOUtils.readFully(request.getInputStream(),-1,true);
+//			String x = new String(jsonBody);
+//			 System.out.println("Text Decryted : " + x);
+//
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		
 		
+//		 Map params = request.getParameterMap();
+//         Iterator i = params.keySet().iterator();
+//         while ( i.hasNext() )
+//           {
+//             String key = (String) i.next();
+//             String value = ((String[]) params.get( key ))[ 0 ];
+//            
+//           }
+     
+     
 		 Map<String, String> requestMap = this.getTypesafeRequestMap(request);
 		 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(request);
 	        final StringBuilder logMessage = new StringBuilder("--- REST Request ---\n")

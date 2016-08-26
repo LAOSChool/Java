@@ -3,6 +3,8 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,9 @@ public class MSessionDaoImpl extends AbstractDao<Integer, MSession> implements M
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<MSession> result = crit_list.list();
 	     return result;
@@ -65,5 +70,14 @@ public class MSessionDaoImpl extends AbstractDao<Integer, MSession> implements M
 	}
 
 
-	
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}	
 }

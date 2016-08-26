@@ -61,27 +61,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 	  
-//		http.authorizeRequests()
-//	    .antMatchers("/non-secure/**").permitAll()
-//	    .antMatchers("/secure/**").hasAuthority("user")
-//		.and().requiresChannel().antMatchers("/non-secure/**").requiresInsecure()
-//		.and().requiresChannel().antMatchers("/secure/**").requiresSecure() // REQURE HTTPS access
-//		.and().exceptionHandling().accessDeniedPage("/Access_Denied");
-//	  http.addFilterBefore(myTokenAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
-		
-		http.csrf().disable();//We don’t need CSRF and typical HTTP session.
-        //http.anonymous().disable();		
+		http.csrf().disable();//We donnot need CSRF and typical HTTP session.         
 		http.authorizeRequests()
-		.antMatchers("/non-secure/**").permitAll()
-		.antMatchers("/*").permitAll()
-		.antMatchers("/api/**").fullyAuthenticated()
-		.and().requiresChannel().antMatchers("/api/**").requiresSecure()   // REQURE HTTPS access        
-		.and().exceptionHandling().accessDeniedPage("/Access_Denied");
+				.antMatchers("/non-secure/**").permitAll()
+				.antMatchers("/*").permitAll()
+				.antMatchers("/api/**").fullyAuthenticated()
+				.and()
+			.requiresChannel()
+				.antMatchers("/api/**").requiresSecure()   // REQURE HTTPS access
+				.and()
+			.exceptionHandling().accessDeniedPage("/Access_Denied");
 		
         http.addFilterBefore(myTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
-
-	  
 	}
 	
 	

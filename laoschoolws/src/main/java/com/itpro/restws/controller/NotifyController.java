@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,12 +22,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.MessageFilter;
 import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.CommandService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -38,6 +42,9 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class NotifyController extends BaseController {
+	@Autowired
+	protected CommandService commandService;
+	
 	/***
 	 * It will convert String to String[] without using separator (null param), 
 	 * with Spring class org.springframework.beans.propertyeditors.StringArrayPropertyEditor. 
@@ -49,6 +56,7 @@ public class NotifyController extends BaseController {
 	    binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
 	}	
 	
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/notifies",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ListEnt getNotifies(
@@ -61,7 +69,9 @@ public class NotifyController extends BaseController {
 			@RequestParam(value="filter_to_dt",required =false) String filter_to_dt	,
 			@RequestParam(value="from_row",required =false) Integer filter_from_row,
 			@RequestParam(value="max_result",required =false) Integer filter_max_result,
-			@RequestParam(value="filter_from_id",required =false) Integer filter_from_id	
+			@RequestParam(value="filter_from_id",required =false) Integer filter_from_id,
+			@RequestParam(value="filter_from_time",required =false) Long filter_from_time,			
+			@RequestParam(value="filter_to_time",required =false) Long filter_to_time
 			) {
 		logger.info(" *** MainRestController.getNotifies");
 		
@@ -70,16 +80,30 @@ public class NotifyController extends BaseController {
 		ListEnt listResp = new ListEnt();
 		// Parsing params
 		int total_row = 0;
-		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
-		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
 		
 		// Load user
 		User user = getCurrentUser();
 		
 //		// Get data access right for entity
 		MessageFilter secure_filter = notifyService.secureGetMessages(user);
+		if (filter_from_time != null && filter_from_time.longValue() > 0){
+			if (filter_from_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+		}
+		if (filter_to_time != null && filter_to_time.longValue() > 0){
+			if (filter_to_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+		}
 		
-		
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}		
 		// Count messages
     	total_row = notifyService.countNotifyExt(
     			user.getSchool_id(), 
@@ -97,7 +121,7 @@ public class NotifyController extends BaseController {
     			filter_is_read,
     			filter_from_id
     			);
-    	if (total_row <=  0){
+    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
     		listResp.setList(null);
     		listResp.setFrom_row(0);
     		listResp.setTo_row(0);
@@ -105,9 +129,9 @@ public class NotifyController extends BaseController {
     		return listResp;
     	}
     	
-    	if ((from_row + max_result) > total_row){
+    	if ((from_row + max_result > total_row)){
     		max_result = total_row-from_row;
-    	}
+    	}	
     	 
     	logger.info("Notify count: total_row : "+total_row);
     	// Query message
@@ -137,7 +161,7 @@ public class NotifyController extends BaseController {
 
 	}
 	
-	
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/notifies/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Notify getNotify(@PathVariable int  id) 
@@ -150,6 +174,7 @@ public class NotifyController extends BaseController {
 		return notify;
 	 }
 	
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER"})
 	@RequestMapping(value="/api/notifies/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo createNotify(
@@ -197,14 +222,16 @@ public class NotifyController extends BaseController {
 		}
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		
 		//Notify notify =  notifyService.saveUploadData(user, files, captions, content, title, json_in_string);
-		Notify notify =  notifyService.saveUploadData(user, files, captions,orders, json_in_string);
+		Notify notify =  notifyService.saveUploadData(me, files, captions,orders, json_in_string);
 		// If upload success (task_id > 0)
 		if (notify.getTask_id() >0 && notify.getNotifyImages().size() > 0 ){
-			notifyService.broadcastNotify(user, notify, filter_roles);
-			rsp.setMessageObject("Done");
+			// notifyService.broadcastNotify(me, notify, filter_roles); //20160823
+			commandService.create_notify_cmd(me, notify, filter_roles);
+			
+			rsp.setMessageObject("Done, tasks created for background processing, task_id:"+notify.getTask_id().intValue());
 		}else{
 			rsp.setDeveloperMessage("cannot upload images");
 			rsp.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -216,75 +243,7 @@ public class NotifyController extends BaseController {
 		 
 	}
 	
-//	
-//	@RequestMapping(value="/api/notifies/update",method = RequestMethod.POST)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	public Notify updateNotify(
-//			@RequestBody Notify notify
-//			) {
-//		logger.info(" *** MainRestController.updateNotify.update");
-//		// return notify;
-//		return notifyService.updateNotify(notify);
-//		 
-//	}
-
-	@RequestMapping(value = "/api/notifies/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delNotify(
-			 @PathVariable int  id
-			 ) {
-		logger.info(" *** MainRestController.delNotify/{id}:"+id);
-
-	    return "Request was successfully, delNotify of id: "+id;
-	 }
-	
-//	/**
-//	 * Upload multiple file using Spring Controller
-//	 */
-//	@RequestMapping(value = "/api/notifies/uploadMultipleFile", method = RequestMethod.POST)
-//	public String uploadMultipleFileHandler(
-//			@RequestParam("title") String title,
-//			@RequestParam("content") String content,
-//			@RequestParam("caption") String[] captions,
-//			@RequestParam("file") MultipartFile[] files) {
-//		 String UPLOAD_LOCATION="/usr/local/src/apache-tomcat-8.0.0-RC1/webapps/eschool_content/";
-//
-//		if (files.length != captions.length)
-//			return "Mandatory information missing";
-//
-//		String message = "";
-//		for (int i = 0; i < files.length; i++) {
-//			MultipartFile file = files[i];
-//			String caption = captions[i];
-//			String filename = file.getOriginalFilename();
-//			try {
-//				byte[] bytes = file.getBytes();
-//
-//				// Creating the directory to store file
-//				String rootPath = UPLOAD_LOCATION;// System.getProperty("catalina.home");
-//				File dir = new File(rootPath + File.separator + "tmpFiles");
-//				if (!dir.exists())
-//					dir.mkdirs();
-//
-//				// Create the file on server
-//				File serverFile = new File(dir.getAbsolutePath() + File.separator + filename);
-//				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
-//				stream.write(bytes);
-//				stream.close();
-//
-//				logger.info("Server File Location="+ serverFile.getAbsolutePath());
-//
-//				message = message + "You successfully uploaded file=" + filename
-//						+ "<br />";
-//			} catch (Exception e) {
-//				return "You failed to upload " + filename + " => " + e.getMessage();
-//			}
-//		}
-//		return message;
-//	}
-	
-
-	
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/notifies/update/{id}",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo updateMessage(
@@ -296,16 +255,41 @@ public class NotifyController extends BaseController {
 		logger.info(" *** MainRestController.updateMessage");
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
-		
+		User me =getCurrentUser();
 		Notify notify = notifyService.findById(Integer.valueOf(id));
-		if (notify != null ){
-			if (is_read != null && Utils.parseInteger(is_read) != null ){
-				notify.setIs_read( Utils.parseInteger(is_read));
+		
+		if (notify == null ){
+			throw new ESchoolException("id is not existing:"+id, HttpStatus.BAD_REQUEST);
+		}
+		if (me.getSchool_id().intValue() != notify.getSchool_id().intValue()){
+			throw new ESchoolException("Current User- and notify not in same school", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
+			// ok
+		}
+		else if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+			if (notify.getTo_user_id() != null && notify.getTo_user_id().intValue() == me.getId().intValue()){
+				//OK
 			}
-			if (imp_flg != null && Utils.parseInteger(imp_flg) != null ){
-				notify.setImp_flg( Utils.parseInteger(imp_flg));
+			else if (notify.getFrom_user_id() != null && notify.getFrom_user_id().intValue() == me.getId().intValue()){
+				//OK
+			}else{
+				throw new ESchoolException("Users (TEACHER) cannot update notify not belong to himself", HttpStatus.BAD_REQUEST);
+			}
+		}else{
+			if (notify.getTo_user_id() != null && notify.getTo_user_id().intValue() != me.getId().intValue()){
+				throw new ESchoolException("Users (STUDENT) cannot update notify sent to other user", HttpStatus.BAD_REQUEST);
 			}
 		}
+			
+		if (is_read != null && Utils.parseInteger(is_read) != null ){
+			notify.setIs_read( Utils.parseInteger(is_read));
+		}
+		if (imp_flg != null && Utils.parseInteger(imp_flg) != null ){
+			notify.setImp_flg( Utils.parseInteger(imp_flg));
+		}
+		
 		notifyService.updateNotify(notify);
 		rsp.setMessageObject(notify);
 		

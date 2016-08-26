@@ -2,7 +2,6 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
-import com.itpro.restws.helper.RankInfo;
 import com.itpro.restws.model.ExamRank;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.User;

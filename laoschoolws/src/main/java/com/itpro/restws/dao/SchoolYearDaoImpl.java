@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -50,6 +51,8 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 	public List<SchoolYear> findBySchoolId(Integer school_id) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<SchoolYear> ret = crit_list.list();
 		return ret;
@@ -64,6 +67,8 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.add(Restrictions.eq("id", year_id));
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<SchoolYear> ret = crit_list.list();
 		return ret;
@@ -84,7 +89,7 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 		if (to_year != null && to_year.intValue() > 0){
 			crit_list.add(Restrictions.eq("to_year", to_year));	
 		}
-		
+		crit_list.addOrder(Order.asc("id"));
 		
 		
 		@SuppressWarnings("unchecked")
@@ -94,22 +99,14 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 	}
 
 
-
-
-//	@Override
-//	public SchoolYear findLastestOfSchoolId(Integer school_id) {
-//		Criteria crit_list = createEntityCriteria();
-//		crit_list.add(Restrictions.eq("school_id", school_id));
-//		crit_list.addOrder(Order.desc("id"));
-//		@SuppressWarnings("unchecked")
-//		List<SchoolYear> ret = crit_list.list();
-//		if (ret != null && ret.size() >0){
-//			return ret.get(0);
-//		}
-//		return null;
-//	}
-
-
-
-	
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}	
 }

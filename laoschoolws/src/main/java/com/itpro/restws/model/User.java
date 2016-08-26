@@ -21,6 +21,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.OrderBy;
 import org.hibernate.annotations.SelectBeforeUpdate;
 import org.hibernate.annotations.WhereJoinTable;
 
@@ -33,7 +34,7 @@ import com.itpro.restws.helper.Utils;
 @DynamicInsert(value=true)
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
-public class User extends AbstractModel{
+public class User extends AbstractModel {
 	
 	@Id
 	@GeneratedValue
@@ -97,34 +98,74 @@ public class User extends AbstractModel{
 	
 	@Column(name="std_contact_email", nullable=true)
 	private String std_contact_email;
+	
 	@Column(name="std_payment_dt", nullable=true)
 	private String std_payment_dt;
 	
 	@Column(name="std_valid_through_dt", nullable=true)
 	private String std_valid_through_dt;
+	
 	@Column(name="std_graduation_dt", nullable=true)
 	private String std_graduation_dt;
 	
 	@Column(name="std_parent_name", nullable=true)
 	private String std_parent_name;
 	
-
+	@Column(name="cls_level")
+	private Integer cls_level;
+	
 	@NotFound(action=NotFoundAction.IGNORE)
 	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
 	@JoinTable(name = "user2class", 
              joinColumns        = { @JoinColumn(name = "user_id") }, 
              inverseJoinColumns = { @JoinColumn(name = "class_id") })
-	 //@Where (applied on the target entity)
-	// @WhereJoinTable (applied on the association table)
-	@WhereJoinTable(clause="closed=0")
+	// @Where (applied on the target entity)
+	//@WhereJoinTable (applied on the association table)
+	@WhereJoinTable(clause="actflg='A' AND closed = 0")
+	@OrderBy(clause="id")
 	private Set<EClass> classes = new HashSet<EClass>();
 	public Set<EClass> getClasses() {
 		return classes;
 	}
-//	public void setClasses(Set<EClass> classes) {
-//		this.classes = classes;
-//	}
+	
+	@NotFound(action=NotFoundAction.IGNORE)
+	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
+	@JoinTable(name = "user2class", 
+             joinColumns        = { @JoinColumn(name = "user_id") }, 
+             inverseJoinColumns = { @JoinColumn(name = "class_id") })
+	@WhereJoinTable(clause="actflg='A' AND closed = 1")
+	@OrderBy(clause="id")
+	private Set<EClass> classes_old = new HashSet<EClass>();
+	public Set<EClass> getClasses_old() {
+		return classes_old;
+	}
+	
+	
+	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
+	private String SchoolName;	
+	
+	@Transient
+	private ArrayList<Permit> permisions;
+	
 
+	@Transient
+	private String default_pass;
+	
+// 	Khong cho hien thi password trong JSON
+	@JsonIgnore
+	public String getPassword() {
+		return password;
+	}
+
+	// Cho phep truyen password qua JSON de store vao DB
+	@JsonProperty
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	
+	
+	
 	public Integer getId() {
 		return id;
 	}
@@ -143,18 +184,8 @@ public class User extends AbstractModel{
 	public void setSso_id(String sso_id) {
 		this.sso_id = sso_id;
 	}
-// 	Khong cho hien thi password trong JSON
-	@JsonIgnore
-	public String getPassword() {
-		return password;
-	}
 
-	// Cho phep truyen password qua JSON de store vao DB
-	@JsonProperty
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
+	
 
 	public String getFullname() {
 		return fullname;
@@ -176,14 +207,10 @@ public class User extends AbstractModel{
 	}
 
 
-	public int getState() {
+	public Integer getState() {
 		return state;
 	}
 
-
-	public void setState(int state) {
-		this.state = state;
-	}
 
 
 	public Integer getSchool_id() {
@@ -358,46 +385,19 @@ public class User extends AbstractModel{
 	}
 
 
-	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-	private String SchoolName;	
+	
 	public String getSchoolName() {
 		return SchoolName;
 	}
 	
 	
-//	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
-//	private int exam_result_type = 1;	
-//	public int getExam_result_type() {
-//		return exam_result_type;
-//	}
-	
-	
-	public void setSchoolName(String schoolName) {
-		SchoolName = schoolName;
-	}
-	@Transient
-	private ArrayList<Permit> permisions;
-	public ArrayList<Permit> getPermisions() {
-		return permisions;
-	}
-
-	public void setPermisions(ArrayList<Permit> permisions) {
-		this.permisions = permisions;
-	}
-	
-	@Transient
-	private String default_pass;
-
-
-	public String getDefault_pass() {
-		return default_pass;
-	}
-
-
 	public void setDefault_pass(String default_pass) {
 		this.default_pass = default_pass;
 	}
  	
+	
+	
+	
 	public String eClassesToString() {
 		if (classes == null ){
 			return "";
@@ -438,31 +438,6 @@ public class User extends AbstractModel{
 		return false;
 	}
 	
-//	@Transient
-//	private ArrayList<Term> terms;
-//	public ArrayList<Term> getTerms() {
-//		return terms;
-//	}
-//	
-//	public void setTerms(ArrayList<Term> terms) {
-//		this.terms = terms;
-//	}
-	
-	
-	
-//	@NotFound(action=NotFoundAction.IGNORE)
-//	@ManyToMany(fetch = FetchType.EAGER) 
-//	@JoinTable(name = "student_profile", 
-//             joinColumns        = { @JoinColumn(name = "student_id") }, 
-//             inverseJoinColumns = { @JoinColumn(name = "school_year") })
-//	private Set<MYear> myears = new HashSet<MYear>();
-//	public Set<MYear> getMyears() {
-//		return myears;
-//	}
-//	
-//	public void setMyears(Set<MYear> years) {
-//		this.myears = years;
-//	}
 
 	public boolean is_belong2class(Integer class_id){
 		if (classes == null){
@@ -474,5 +449,34 @@ public class User extends AbstractModel{
 			}
 		}
 		return false;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
+	}
+
+	public void setClasses(Set<EClass> classes) {
+		this.classes = classes;
+	}
+
+	public ArrayList<Permit> getPermisions() {
+		return permisions;
+	}
+	public void setPermisions(ArrayList<Permit> permisions) {
+		this.permisions = permisions;
+	}
+	public String getDefault_pass() {
+		return default_pass;
+	}
+	public void setSchoolName(String schoolName) {
+		SchoolName = schoolName;
+	}
+
+	public Integer getCls_level() {
+		return cls_level;
+	}
+
+	public void setCls_level(Integer cls_level) {
+		this.cls_level = cls_level;
 	}
 }

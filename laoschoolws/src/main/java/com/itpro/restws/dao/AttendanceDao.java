@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.Attendance;
 
 
@@ -22,5 +24,9 @@ public interface AttendanceDao {
 	
 	void saveAttendance(Attendance attendance);
 	void updateAttendance(Attendance attendance);
+	
+	void setFlushMode(FlushMode mode);
+	void clearChange();
+	
 }
 

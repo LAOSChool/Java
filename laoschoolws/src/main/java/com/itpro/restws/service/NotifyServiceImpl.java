@@ -62,8 +62,15 @@ public class NotifyServiceImpl implements NotifyService{
 	protected ClassService classService;
 	
 	@Autowired
+	protected UserService userService;
+	
+	
+	
+	@Autowired
 	protected SchoolService schoolService;
 	
+	@Autowired
+	protected FirebaseMsgService firebaseMsgService;
 	@Override
 	public int countFromUser(Integer from_user_id) {
 		return notifyDao.countByFromUser(from_user_id);
@@ -295,7 +302,7 @@ public class NotifyServiceImpl implements NotifyService{
 //	}
 
 	@Override
-	public Notify saveUploadData(User user, MultipartFile[] files, String[] captions,String[]orders, String json_str_notify) {
+	public Notify saveUploadData(User me, MultipartFile[] files, String[] captions,String[]orders, String json_str_notify) {
 		String err_msg = "";
 		
 		// Validation Data
@@ -334,13 +341,14 @@ public class NotifyServiceImpl implements NotifyService{
 			byte ptext[] = json_str_notify.getBytes(Constant.ISO_8859_1); 
 			String value = new String(ptext, Constant.UTF_8); 
 			notify = mapper.readValue(value, Notify.class);
-			//notify = mapper.readValue(json_str_notify, Notify.class);
+
+			// Valid upload date
+			valid_save_upload_notify(me,notify);
+			// Create task, not real notify
 			notify.setSent_dt(Utils.now());
 			notify.setIs_sent(99);// Will not sent this
 			notifyDao.saveNotify(notify);
 			notify.setTask_id(notify.getId());
-			//notifyDao.updateNotify(notify);
-			
 		} catch (IOException e) {
 			throw new ESchoolException("Cannot convert STRING to JSON =>" + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -370,7 +378,7 @@ public class NotifyServiceImpl implements NotifyService{
 				byte[] bytes = file.getBytes();
 				String str_dir = Utils.makeFolderByTime(upload_dir);
 				//fileName = file.getOriginalFilename();
-				fileName = Utils.getFileName(user.getSso_id(),file.getOriginalFilename());            	
+				fileName = Utils.getFileName(me.getSso_id(),file.getOriginalFilename());            	
 	            filePath = str_dir+ "/" + fileName;
 	            
 				// Create the file on server
@@ -386,7 +394,7 @@ public class NotifyServiceImpl implements NotifyService{
 				notifyImg.setFile_url(filePath.replaceFirst(upload_dir, urlbase));
 				notifyImg.setCaption(caption);
 				notifyImg.setUpload_dt(Utils.now());
-				notifyImg.setUser_id(user.getId());
+				notifyImg.setUser_id(me.getId());
 				notifyImg.setNotify_id(notify.getId());
 				notifyImg.setTask_id(notify.getTask_id());
 				notifyImg.setIdx(order);
@@ -419,22 +427,77 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	
-	private ArrayList<Notify> insertClassNotify(User user,Notify notify,EClass eclass, String filter_roles) {
+	private void valid_user_notify(User me, Notify notify, boolean is_new) {
+		
+		if (!is_new){
+			if (notify.getId() == null || notify.getId().intValue() == 0){
+				throw new RuntimeException("notify.id == NULL, cannot update");
+			}	
+		}
+		
+		// From user_id
+		if (notify.getFrom_usr_id() == null || notify.getFrom_usr_id().intValue() <= 0){
+			throw new RuntimeException("from_user_id is NUll");
+		}
+		User frm_user = userService.findById(Integer.valueOf(notify.getFrom_usr_id()));
+		if (frm_user == null){
+			throw new RuntimeException("From user_id not existing");
+		}
+		boolean ignored_school =false;
+		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			ignored_school =true;
+			
+		}
+		else if (frm_user.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			ignored_school =true;
+		}
+		
+		if (	!ignored_school && 
+				frm_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new RuntimeException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue());
+		}
+		notify.setFrom_user_name(frm_user.getFullname());
+		
+		// To user_id
+		if (notify.getTo_user_id() == null || notify.getTo_user_id().intValue() <= 0){
+			throw new RuntimeException("to_user_id is NUll");
+		}
+		User to_user = userService.findById(Integer.valueOf(notify.getTo_user_id()));
+		if (to_user == null){
+			throw new RuntimeException("to_user_id not existing");
+		}
+		
+		if (!ignored_school && 
+				to_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new RuntimeException("ToUserId"+to_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue());
+		}
+		
+		notify.setSchool_id(to_user.getSchool_id());
+		notify.setTo_user_name(to_user.getFullname());		
+		notify.setTo_sso_id(to_user.getSso_id());
+		notify.setSent_dt(Utils.now());
+		notify.setIs_sent(1);
+	}
+
+	private ArrayList<Notify> insertClassNotify(User me,Notify notify,EClass eclass, String filter_roles) {
 		ArrayList<Notify> list = new ArrayList<>();
 		
 		//validate mandatory
-		if (user == null || notify == null || eclass == null ){
+		if (me == null || notify == null || eclass == null ){
 			throw new ESchoolException(" Input mandatory paramester is NULL", HttpStatus.BAD_REQUEST);
 		}
 			
 		//validate user vs school
-		if (user.getSchool_id() != notify.getSchool_id()){
-			throw new ESchoolException("From User id:"+user.getId()+" is not belong to school_id="+notify.getSchool_id(), HttpStatus.BAD_REQUEST);
+		notify.setSchool_id(me.getSchool_id());
+
+		if (me.getSchool_id() != eclass.getSchool_id()){
+			throw new ESchoolException("From User and Class are not in the same School, user_id="+me.getId()+", class_id="+eclass.getId(), HttpStatus.BAD_REQUEST);
 		}
 		
-
-		if (user.getSchool_id() != eclass.getSchool_id()){
-			throw new ESchoolException("From User and Class are not in the same School, user_id="+user.getId()+", class_id="+eclass.getId(), HttpStatus.BAD_REQUEST);
+		if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+			if (!me.is_belong2class(eclass.getId())){
+				throw new ESchoolException("TEACHER cannot send notify to class that is not assigned="+me.getId()+", class_id="+eclass.getId(), HttpStatus.BAD_REQUEST);
+			}
 		}
 		// Get list of users from class
 		HashSet<User> users = null; 
@@ -461,21 +524,15 @@ public class NotifyServiceImpl implements NotifyService{
 		// Get list of users from class				
 		for (User to_user : users){
 			// Disable sending notify to current user
-				if (user.getId() == to_user.getId()){
+				if (me.getId() == to_user.getId()){
 					continue;
 				}
 				Notify new_notify = notify.copy();
 				
-				new_notify.setFrom_usr_id(user.getId());
-				new_notify.setFrom_user_name(user.getFullname());
+				new_notify.setFrom_usr_id(me.getId());
+				new_notify.setTo_user_id(to_user.getId());
 				
-				new_notify.setTo_usr_id(to_user.getId());
-				new_notify.setTo_user_name(to_user.getFullname());
-				
-				new_notify.setSchool_id(to_user.getSchool_id());
-				new_notify.setSent_dt(Utils.now());
-				new_notify.setIs_sent(1);// Disable sent			
-				notifyDao.saveNotify(new_notify);
+				insertUserNotify(me,new_notify);
 				list.add(new_notify);
 			
 		}
@@ -483,7 +540,8 @@ public class NotifyServiceImpl implements NotifyService{
 		
 	}
 
-	private ArrayList<Notify> insertClassNotifyExt(User user,Notify notify,String filter_roles) {
+	
+	private ArrayList<Notify> insertClassNotifyExt(User me,Notify notify,String filter_roles) {
 		
 		if (notify.getDest_type() != E_DEST_TYPE.CLASS.getValue() ){
 			throw new ESchoolException("Notify destination type is not for whole class, dest_type="+notify.getDest_type(), HttpStatus.BAD_REQUEST);
@@ -495,7 +553,7 @@ public class NotifyServiceImpl implements NotifyService{
 			throw new ESchoolException("Class is not existing, class_id="+notify.getClass_id(), HttpStatus.BAD_REQUEST);
 		}
 		
-		return insertClassNotify(user, notify, eclass, filter_roles);
+		return insertClassNotify(me, notify, eclass, filter_roles);
 		
 	}
 	
@@ -530,40 +588,32 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	@Override
-	public ArrayList<Notify> broadcastNotify(User user, Notify notify, String filter_roles) {
+	public ArrayList<Notify> broadcastNotify(User me, Notify notify, String filter_roles) {
 		ArrayList<Notify> list = null;
 		if (notify.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
-			list = insertClassNotifyExt(user, notify, filter_roles);
+			list = insertClassNotifyExt(me, notify, filter_roles);
 		}else if (notify.getDest_type() == E_DEST_TYPE.SCHOOL.getValue()){
-			list = insertSchoolNotifyExt(user, notify, filter_roles);
+			list = insertSchoolNotifyExt(me, notify, filter_roles);
 		}else {
 			throw new ESchoolException("Unknow notify.dest_type="+ notify.getDest_type(), HttpStatus.BAD_REQUEST);
 		}
 		// Batch update is_sent flg to 0
 		if (list != null){
 			boolean keep_cc_frm_user = false;
-			for (Notify e : list){
-				if (e.getIs_sent() == 1){
-					e.setIs_sent(0);
-					notifyDao.updateNotify(e);
-				}
-				// check already cc to Current user or not
-				if ((e.getTo_usr_id() != null)   && (e.getTo_usr_id() == user.getId())){
+			if (list !=null && list.size() > 0){
+				Notify e = list.get(0);
+				if ((e.getTo_user_id() != null)   && (e.getTo_user_id() == me.getId())){
 					keep_cc_frm_user = true;
 				}
 			}
-			// CC to current user 
+			// CC to Current user 
 			if (!keep_cc_frm_user){
 				Notify new_notify = notify.copy();
-				new_notify.setFrom_usr_id(user.getId());
-				new_notify.setFrom_user_name(user.getFullname());
-				new_notify.setTo_usr_id(user.getId());
-				new_notify.setTo_user_name(user.getFullname());
-
-				new_notify.setSchool_id(user.getSchool_id());
-				new_notify.setSent_dt(Utils.now());
-				new_notify.setIs_sent(0);
-				notifyDao.saveNotify(new_notify);
+				new_notify.setFrom_usr_id(me.getId());
+				new_notify.setTo_user_id(me.getId());
+				
+				insertUserNotify(me, new_notify);
+				
 				list.add(new_notify);
 			}
 
@@ -666,28 +716,6 @@ public class NotifyServiceImpl implements NotifyService{
 	            }
 	        }
 
-//		 
-//		ArrayList<Notify> notifies = (ArrayList<Notify>) notifyDao.findNotifyExt(
-//				school_id, 
-//				from_row, 
-//				max_result, 
-//				// Secure
-//				filter.getClasses(),
-//				filter.getUsers(), 
-//				// User filter
-//				class_id,
-//				dateFrom,
-//				dateTo,
-//				fromUserID, 
-//				toUserID,
-//				channel,
-//				is_read,
-//				from_row_id);
-//		for (Notify notify : notifies){
-//			if (notify != null  && notify.getTask_id() != null && notify.getTask_id() > 0){
-//				notify.setNotifyImages(findImgByTaskID(notify.getTask_id()));
-//			}
-//		}
 		return notifies;
 	}
 
@@ -728,6 +756,60 @@ public class NotifyServiceImpl implements NotifyService{
 		return notify;
 	}
 
+	public Notify insertUserNotify(User me, Notify new_notify) {
+		// Valid message before send
+		valid_user_notify(me, new_notify,true);
+		
+		notifyDao.saveNotify(new_notify);
+		// Send firebase
+		firebaseMsgService.create_from_notify(new_notify);
+		return new_notify;
+		
+	}
 
-	
+	private void valid_save_upload_notify(User me, Notify notify) {
+        //validate mandatory
+        if (me == null || notify == null  ){
+            throw new ESchoolException("User-me or Input Notify is NULL", HttpStatus.BAD_REQUEST);
+        }
+        //School ID
+        if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+        	 if (notify.getSchool_id() == null || 
+ 	                notify.getSchool_id().intValue() == 0 ){
+        		 throw new ESchoolException("notify.school_id = NULL", HttpStatus.BAD_REQUEST);
+ 	        }
+        }else{
+        	notify.setSchool_id(me.getSchool_id());
+        }
+         
+        // Check dest type, only class is acccepted 
+         
+        if (notify.getDest_type() == null || notify.getDest_type().intValue() == 0){
+            throw new ESchoolException("notify.dest_type is NULL", HttpStatus.BAD_REQUEST);
+        }
+        
+        if (notify.getDest_type().intValue() == E_DEST_TYPE.CLASS.getValue()){
+            if (notify.getClass_id() == null || notify.getClass_id().intValue() == 0){
+                throw new ESchoolException("notify.class_id is NULL", HttpStatus.BAD_REQUEST);  
+            }
+            EClass eclass = classService.findById(notify.getClass_id());
+            if (notify.getSchool_id() != eclass.getSchool_id()){
+                throw new ESchoolException("notify.school_id != class.school_id", HttpStatus.BAD_REQUEST);
+            }
+             
+            if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+                if (!me.is_belong2class(eclass.getId())){
+                    throw new ESchoolException("TEACHER cannot send notify to class that is not assigned="+me.getId()+", class_id="+eclass.getId(), HttpStatus.BAD_REQUEST);
+                }
+            }
+             
+        }else if (notify.getDest_type().intValue() == E_DEST_TYPE.SCHOOL.getValue()){
+        	// Do nothing
+        }else{
+        	throw new ESchoolException("Unknow notify.dest_type="+ notify.getDest_type(), HttpStatus.BAD_REQUEST);
+        }
+        		
+         
+    }
+ 
 }

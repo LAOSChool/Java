@@ -2,8 +2,8 @@ package com.itpro.restws.securityimpl;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +13,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.itpro.restws.dao.SysStsDao;
-import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.Password;
 import com.itpro.restws.model.SysSts;
@@ -22,6 +21,8 @@ import com.itpro.restws.service.UserService;
 
 @Component("customAuthenticationProvider")
 public class CustomAuthenticationProvider implements AuthenticationProvider {
+	
+	private static final Logger logger = Logger.getLogger(CustomAuthenticationProvider.class);
 	@Autowired
 	private UserService userService;
 	
@@ -61,18 +62,32 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	    		throw new BadCredentialsException("User state is not Found");
 	    	}
 	    	for (SysSts sysSts : list){
-	    		if (	sysSts.getSval() != null && 
-	    				(!sysSts.getSval().equalsIgnoreCase(E_STATE.ACTIVE.name()))){
+	    		if ((	sysSts.getSval() != null && 
+	    				(sysSts.getSval().equalsIgnoreCase(E_STATE.ACTIVE.name())
+	    						
+	    						)) ||
+	    		(	sysSts.getSval() != null && 
+				(sysSts.getSval().equalsIgnoreCase(""+E_STATE.ACTIVE.value())
+						)))
+	    		
+	    		{
 	    			
+	    			// Do nothing
+	    			logger.info("authenticate() success: user.sso_id="+user.getSso_id()+"//state="+user.getState());
+	    		}else{
+	    			logger.error("authenticate() FAILED, use is not actived: user.sso_id="+user.getSso_id()+"//state="+user.getState());
 	    			throw new BadCredentialsException("User state is not Active");
 	    		}
 	    	}
 		    try {
 				if (!Password.check(password, user.getPassword())) {
-					 throw new BadCredentialsException("Wrong password.");
+	    			logger.error("authenticate() FAILED, Wrong password: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
+
+					throw new BadCredentialsException("Wrong password.");
 				}
 			} catch (Exception e) {
-				 throw new BadCredentialsException("Wrong password.");
+				logger.error("authenticate() FAILED, Execption from Password.checked: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
+				 throw new BadCredentialsException("Password.check exception.");
 			}
 	    //}
 	    

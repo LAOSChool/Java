@@ -23,11 +23,14 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 
 
 
+
 @Entity
 @Table(name="command")
 @DynamicInsert(value=true)
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
+
+
 
 public class Command extends AbstractModel{
 	@Id
@@ -35,6 +38,8 @@ public class Command extends AbstractModel{
 	@Column(name="id")
 	private Integer id;
 
+	@Column(name="school_id")
+	private Integer school_id;
 	
 	@Column(name="cmd_dt")
 	private String cmd_dt;
@@ -131,6 +136,14 @@ public class Command extends AbstractModel{
 
 	public void setSuccess(int success) {
 		this.success = success;
+	}
+
+	public Integer getSchool_id() {
+		return school_id;
+	}
+
+	public void setSchool_id(Integer school_id) {
+		this.school_id = school_id;
 	}
 
 	public void setMessage(String message) {

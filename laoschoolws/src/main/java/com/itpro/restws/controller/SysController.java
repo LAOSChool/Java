@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,25 +41,41 @@ public class SysController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getSys(
 			 @PathVariable String tbl_name,
-			 
+			 @RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
+				
 			 @Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.getSys");
 		
-		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;
+
 		ListEnt listResp = new ListEnt();
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+		
+		int total_row = 0;
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}
 		
 		
     	// Count user
     	total_row = sysTblService.countAll(tbl_name);
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
+    	if (total_row <=  0){
+    		listResp.setList(null);
+    		listResp.setFrom_row(0);
+    		listResp.setTo_row(0);
+    		listResp.setTotal_count(0);
+    		rsp.setMessageObject(listResp);
+    		return rsp;
     	}
+    	
+    	if (total_row < max_result){
+    		max_result = total_row;
+    	}	
+    	
 		logger.info("System Table:"+ tbl_name+ " count: total_row : "+total_row);
 		// Query class by school id
 		ArrayList<SysTemplate> list = (ArrayList<SysTemplate>) sysTblService.findAll(tbl_name, from_row, max_result);
@@ -67,9 +84,6 @@ public class SysController {
 		listResp.setFrom_row(from_row);
 		listResp.setTo_row(from_row + max_result);
 		listResp.setTotal_count(total_row);
-	    //return listResp;
-	    
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(listResp);
 		return rsp;
 		

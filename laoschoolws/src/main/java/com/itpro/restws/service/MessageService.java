@@ -47,12 +47,16 @@ public interface MessageService {
 			Integer from_row_id) ;
 	
 	
-	Message insertMessageExt(Message message);
-	//void insertClassMessageExt(Message message,String class_list,String filter_role);
+	//Message insertMessageExt(User me, Message message);
+	Message updateMessage(User me, Message message);
+	Message newSimpleMessage(Integer from_user,Integer to_user, String content);
+	//ArrayList<Message> broadcastMessage(User me, Message message, String filter_roles) ;
+	ArrayList<Message> findUnProcSMS(User me, String api_key);
+	void smsDone(User me, String api_key,Integer id);
+	// 20160822 START
+	Message sendUserMessageWithCC(User me, Message message);// Support CC list
+	ArrayList<Message> sendClassMessage(User me, Message task, String filter_roles) ;// using by Crontabab
+	ArrayList<Message> createClassMessageTaskWithCC(User me, Message message, String filter_roles) ;
+	// 20160822 END
 	
-//	Message insertMessage(Message message);
-	Message updateMessage(Message message);
-	//void broadcastMessage(User user, Message msg, String filter_class_list, String filter_roles);
-	ArrayList<Message> broadcastMessage(User user, Message message, String filter_roles) ;
-	Message newMessage(Integer from_user,Integer to_user, String content);
 }

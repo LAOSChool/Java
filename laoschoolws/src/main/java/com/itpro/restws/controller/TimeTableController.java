@@ -8,7 +8,6 @@ import javax.ws.rs.core.Context;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.EscapedErrors;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +44,8 @@ public class TimeTableController extends BaseController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ListEnt  getTimetables(
 			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -52,36 +53,58 @@ public class TimeTableController extends BaseController {
 		logger.info(" *** MainRestController.getTimetables");
 		
 		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
-		
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}
 		ListEnt listResp = new ListEnt();
 		
-		User current_user =getCurrentUser();
-		Integer school_id = current_user.getSchool_id();
+		User me =getCurrentUser();
+		Integer school_id = me.getSchool_id();
 		
-    	// Count user
-    	total_row = timetableService.countBySchoolID(school_id);
-    	if (total_row > Constant.MAX_RESP_ROW){
-    		max_result = Constant.MAX_RESP_ROW;
-    	}else{
-    		max_result = total_row;
-    	}
-    		
-		logger.info("Timetable count: total_row : "+total_row);
 		ArrayList<Timetable> timetables = null;
-		// Query class by school id
-		if (filter_class_id == null ){
-			timetables = timetableService.findBySchool(school_id, from_row, max_result);
-		}else{
+		// Find by class
+		if (filter_class_id != null && filter_class_id.intValue() > 0 ){
+			total_row = timetableService.countTimetableExt(school_id, filter_class_id,null,null,null,null);
+			
+			if (total_row <=  0){
+	    		listResp.setList(null);
+	    		listResp.setFrom_row(0);
+	    		listResp.setTo_row(0);
+	    		listResp.setTotal_count(0);
+	    		return listResp;
+	    	}
+	    	
+	    	if (total_row < max_result){
+	    		max_result = total_row;
+	    	}
+	    		
+			logger.info("Timetable count: total_row : "+total_row);
 			EClass eclass = classService.findById(filter_class_id);
 			if (eclass == null || 
 					(eclass.getSchool_id().intValue() != school_id.intValue())){
 				throw new ESchoolException("filter_class_id is required or not belont to current school", HttpStatus.BAD_REQUEST);
 			}
-			timetables = timetableService.findByClass(filter_class_id, from_row, max_result);
+			timetables = timetableService.findTimetableExt(school_id, filter_class_id, null, null, null, null);
+		}else{
+			// Find all by school
+			total_row = timetableService.countBySchoolID(school_id);
+			if (total_row <=  0){
+	    		listResp.setList(null);
+	    		listResp.setFrom_row(0);
+	    		listResp.setTo_row(0);
+	    		listResp.setTotal_count(0);
+	    		return listResp;
+	    	}
+	    	
+	    	if (total_row < max_result){
+	    		max_result = total_row;
+	    	}			
+			timetables = timetableService.findBySchool(school_id, from_row, max_result);
 		}
-		
+    	
+    	
 		listResp.setList(timetables);
 		listResp.setFrom_row(from_row);
 		listResp.setTo_row(from_row + max_result);
@@ -96,13 +119,13 @@ public class TimeTableController extends BaseController {
 	public Timetable getTimetable(@PathVariable int  id) 
 	{
 		logger.info(" *** MainRestController.getTimetable/{id}:"+id);
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		
 		Timetable tbl = timetableService.findById(id);
 		if (tbl == null ){
 			throw new ESchoolException("timetable.id is not existing", HttpStatus.BAD_REQUEST);
 		}
-		if (tbl.getSchool_id().intValue() != user.getSchool_id().intValue()){
+		if (tbl.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("timetable.school_id != user.school_id", HttpStatus.BAD_REQUEST);
 		}
 		return tbl;
@@ -116,9 +139,10 @@ public class TimeTableController extends BaseController {
 			@RequestBody Timetable timetable
 			) {
 		logger.info(" *** MainRestController.ceateTimetable.create");
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 				
-		return timetableService.insertTimetable(user,timetable);
+		Timetable tbl = timetableService.insertTimetable(me,timetable);
+		return timetableService.reloadTimetable(tbl);
 		 
 		 
 	}
@@ -131,7 +155,8 @@ public class TimeTableController extends BaseController {
 		logger.info(" *** MainRestController.updateTimetable.update");
 		 //return timetable;
 		User user = getCurrentUser();
-		return timetableService.updateTimetable(user,timetable);
+		Timetable tbl = timetableService.updateTimetable(user,timetable);
+		return timetableService.reloadTimetable(tbl);
 		 
 	}
 	@Secured({ "ROLE_ADMIN"})

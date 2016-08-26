@@ -17,13 +17,27 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 
 import com.itpro.restws.helper.Utils;
 
+//@NamedNativeQuery(
+//	    name="getCommandSQL2", 
+//	    query="call get_unproc_sms()", 
+//	    callable=true, 
+//	    readOnly=true, 
+//	    resultClass=Message.class
+//)
+
+
 @Entity
 @Table(name="message")
 @DynamicInsert(value=true)
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-public class Message extends AbstractModel{
+public class Message extends AbstractModel implements java.io.Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue
 	@Column(name="id")
@@ -61,6 +75,18 @@ public class Message extends AbstractModel{
 	@Column(name="is_sent")
 	private Integer is_sent;
 	
+	@Column(name="sms_sent")
+	private Integer sms_sent;
+	
+	@Column(name="sms_sent_dt")
+	private String sms_sent_dt;
+	
+	@Column(name="sms_sent_sts")
+	private Integer sms_sent_sts;
+	
+	
+	
+
 	@Column(name="sent_dt")
 	private String sent_dt;
 	
@@ -85,8 +111,12 @@ public class Message extends AbstractModel{
 	@Column(name="task_id")
 	private Integer task_id;
 	
-		
+	@Column(name="to_sso_id")
+	private String to_sso_id;
 
+	@Column(name="to_phone")
+	private String to_phone;
+	
 	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String SchoolName;	
 	public String getSchoolName() {
@@ -122,6 +152,9 @@ public class Message extends AbstractModel{
 		copy.setFrom_user_name(this.from_user_name);
 		copy.setTo_usr_id(this.to_user_id);
 		copy.setTo_user_name(this.to_user_name);
+		copy.setTo_sso_id(this.to_sso_id);
+		copy.setTo_phone(this.to_phone);
+		
 		copy.setTitle(this.title);
 		copy.setMsg_type_id(this.msg_type_id);
 		copy.setChannel(this.channel);
@@ -390,5 +423,81 @@ public class Message extends AbstractModel{
 	}
 
 
+
+
+	public String getTo_sso_id() {
+		return to_sso_id;
+	}
+
+
+
+
+	public void setTo_sso_id(String to_sso_id) {
+		this.to_sso_id = to_sso_id;
+	}
+
+
+
+
+	public void setFrm_user_photo(String frm_user_photo) {
+		this.frm_user_photo = frm_user_photo;
+	}
+
+
+
+
+	public void setTo_user_photo(String to_user_photo) {
+		this.to_user_photo = to_user_photo;
+	}
+
+
+	public Integer getSms_sent() {
+		return sms_sent;
+	}
+
+
+
+
+	public String getSms_sent_dt() {
+		return sms_sent_dt;
+	}
+
+
+
+
+	public void setSms_sent(Integer sms_sent) {
+		this.sms_sent = sms_sent;
+	}
+
+
+
+
+	public void setSms_sent_dt(String sms_sent_dt) {
+		this.sms_sent_dt = sms_sent_dt;
+	}
 	
+	public Integer getSms_sent_sts() {
+		return sms_sent_sts;
+	}
+
+
+
+
+	public void setSms_sent_sts(Integer sms_sent_sts) {
+		this.sms_sent_sts = sms_sent_sts;
+	}
+
+
+
+
+	public String getTo_phone() {
+		return to_phone;
+	}
+
+
+
+
+	public void setTo_phone(String to_phone) {
+		this.to_phone = to_phone;
+	}
 }

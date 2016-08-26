@@ -22,10 +22,10 @@ public class SysBase extends AbstractModel{
 	
 	
 	@Column(name="fval1")
-	protected float fval1;
+	protected Float fval1;
 	
 	@Column(name="fval2")
-	protected float fval2;
+	protected Float fval2;
 	
 	@Column(name="notice")
 	protected String notice;
@@ -34,11 +34,11 @@ public class SysBase extends AbstractModel{
 		return sval;
 	}
 
-	public float getFval1() {
+	public Float getFval1() {
 		return fval1;
 	}
 
-	public float getFval2() {
+	public Float getFval2() {
 		return fval2;
 	}
 
@@ -50,11 +50,11 @@ public class SysBase extends AbstractModel{
 		this.sval = sval;
 	}
 
-	public void setFval1(float fval1) {
+	public void setFval1(Float fval1) {
 		this.fval1 = fval1;
 	}
 
-	public void setFval2(float fval2) {
+	public void setFval2(Float fval2) {
 		this.fval2 = fval2;
 	}
 

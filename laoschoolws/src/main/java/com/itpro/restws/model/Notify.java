@@ -56,32 +56,35 @@ public class Notify extends AbstractModel{
 	
 	
 	@Column(name="channel")
-	private int channel;
+	private Integer channel;
 	
 	@Column(name="is_sent")
-	private int is_sent;
+	private Integer is_sent;
 	
 	@Column(name="sent_dt")
 	private String sent_dt;
 	
 	@Column(name="is_read")
-	private int is_read;
+	private Integer is_read;
 	
 	@Column(name="read_dt")
 	private String read_dt;
 	
 	@Column(name="imp_flg")
-	private int imp_flg;
+	private Integer imp_flg;
 	
 	@Column(name="other")
 	private String other;
 	
 	@Column(name="dest_type")
-	private int dest_type;//0:Person;1: Class;2:School
+	private Integer dest_type;//0:Person;1: Class;2:School
 	
 	@Column(name="task_id")
 	private Integer task_id;// ID of group notify/message (sending to class or school)
 
+	@Column(name="to_sso_id")
+	private String to_sso_id;
+	
 //
 //	@JsonIgnore
 //	@Column(name="images")
@@ -105,19 +108,17 @@ public class Notify extends AbstractModel{
 		return from_user_id;
 	}
 
-	public Integer getTo_usr_id() {
-		return to_user_id;
-	}
+	
 
 	public String getContent() {
 		return content;
 	}
 
-	public int getChannel() {
+	public Integer getChannel() {
 		return channel;
 	}
 
-	public int getIs_sent() {
+	public Integer getIs_sent() {
 		return is_sent;
 	}
 
@@ -125,7 +126,7 @@ public class Notify extends AbstractModel{
 		return sent_dt;
 	}
 
-	public int getIs_read() {
+	public Integer getIs_read() {
 		return is_read;
 	}
 
@@ -133,7 +134,7 @@ public class Notify extends AbstractModel{
 		return read_dt;
 	}
 
-	public int getImp_flg() {
+	public Integer getImp_flg() {
 		return imp_flg;
 	}
 
@@ -157,19 +158,17 @@ public class Notify extends AbstractModel{
 		this.from_user_id = from_user_id;
 	}
 
-	public void setTo_usr_id(Integer to_user_id) {
-		this.to_user_id = to_user_id;
-	}
+
 
 	public void setContent(String content) {
 		this.content = content;
 	}
 
-	public void setChannel(int channel) {
+	public void setChannel(Integer channel) {
 		this.channel = channel;
 	}
 
-	public void setIs_sent(int is_sent) {
+	public void setIs_sent(Integer is_sent) {
 		this.is_sent = is_sent;
 	}
 
@@ -177,7 +176,7 @@ public class Notify extends AbstractModel{
 		this.sent_dt = sent_dt;
 	}
 
-	public void setIs_read(int is_read) {
+	public void setIs_read(Integer is_read) {
 		this.is_read = is_read;
 	}
 
@@ -185,7 +184,7 @@ public class Notify extends AbstractModel{
 		this.read_dt = read_dt;
 	}
 
-	public void setImp_flg(int imp_flg) {
+	public void setImp_flg(Integer imp_flg) {
 		this.imp_flg = imp_flg;
 	}
 
@@ -244,27 +243,14 @@ public class Notify extends AbstractModel{
 		this.title = title;
 	}
 
-	public int getDest_type() {
+	public Integer getDest_type() {
 		return dest_type;
 	}
 
-	public void setDest_type(int dest_type) {
+	public void setDest_type(Integer dest_type) {
 		this.dest_type = dest_type;
 	}
 	
-//	public void addImageID(int id){
-//		this.images = this.images + ","+id;
-//		if (this.images.startsWith(",")){
-//			this.images = this.images.substring(1);
-//		}
-//	}
-//	public String getImages() {
-//		return images;
-//	}
-//
-//	public void setImages(String images) {
-//		this.images = images;
-//	}
 	
 	public Notify copy(){
 		Notify copy = new Notify();
@@ -272,8 +258,11 @@ public class Notify extends AbstractModel{
 		copy.setClass_id(this.class_id);
 		copy.setFrom_usr_id(this.from_user_id);
 		copy.setFrom_user_name(this.from_user_name);
-		copy.setTo_usr_id(this.to_user_id);
+		copy.setTo_user_id(this.to_user_id);
 		copy.setTo_user_name(this.to_user_name);
+		copy.setTo_sso_id(this.to_sso_id);
+		
+		
 		copy.setTitle(this.title);
 		copy.setChannel(this.channel);
 		copy.setContent(this.getContent());
@@ -298,5 +287,29 @@ public class Notify extends AbstractModel{
 
 	public void setTask_id(Integer task_id) {
 		this.task_id = task_id;
+	}
+
+	public Integer getFrom_user_id() {
+		return from_user_id;
+	}
+
+	public Integer getTo_user_id() {
+		return to_user_id;
+	}
+
+	public String getTo_sso_id() {
+		return to_sso_id;
+	}
+
+	public void setFrom_user_id(Integer from_user_id) {
+		this.from_user_id = from_user_id;
+	}
+
+	public void setTo_user_id(Integer to_user_id) {
+		this.to_user_id = to_user_id;
+	}
+
+	public void setTo_sso_id(String to_sso_id) {
+		this.to_sso_id = to_sso_id;
 	}
 }

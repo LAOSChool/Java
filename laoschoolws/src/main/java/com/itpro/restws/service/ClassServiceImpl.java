@@ -9,13 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ClassDao;
 import com.itpro.restws.dao.SchoolExamDao;
-import com.itpro.restws.dao.SchoolYearDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
-import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.SchoolExam;
+import com.itpro.restws.model.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
@@ -33,8 +32,10 @@ public class ClassServiceImpl implements ClassService{
 	private SchoolExamDao schoolExamDao;
 	
 	@Autowired
-	protected SchoolYearDao schoolYearDao;
-
+	protected SchoolYearService schoolYearService;
+	@Autowired
+	private SchoolTermService schoolTermService;
+	
 	@Autowired
 	protected User2ClassService user2ClassService;
 	
@@ -42,7 +43,9 @@ public class ClassServiceImpl implements ClassService{
 	
 	@Override
 	public EClass findById(Integer id) {
-		return classDao.findById(id);
+		EClass eclass= classDao.findById(id);
+		updateTermVal(eclass);
+		return eclass;
 		
 	}
 
@@ -55,32 +58,48 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public ArrayList<EClass> findByUser(Integer user_id, int from_num, int max_result) {
-		return (ArrayList<EClass>) classDao.findByUser(user_id, from_num, max_result);
+		ArrayList<EClass> list= (ArrayList<EClass>) classDao.findByUser(user_id, from_num, max_result);
+		updateTermVals(list);
+		return list;
 		
 	}
 
 	@Override
 	public ArrayList<EClass> findBySchool(Integer school_id, int from_num, int max_result) {
-		return (ArrayList<EClass>) classDao.findBySchool(school_id, from_num, max_result);
+		ArrayList<EClass> list= (ArrayList<EClass>) classDao.findBySchool(school_id, from_num, max_result);
+		updateTermVals(list);
+		return list;
 	}
 	@Override
 	public EClass newClass(User admin, EClass eClass) {
+		
+		valid_new_class(admin,eClass);
 		classDao.saveClass(eClass);
 		// assign head teacher to class auto
 		assignHeadTeacher(admin,eClass);
+		updateTermVal(eClass);
 		return eClass;
 
 	}
 
 	@Override
 	public EClass updateClass(User admin,EClass eClass) {
-		
+		if (eClass.getId() == null || eClass.getId().intValue() <= 0){
+			throw new ESchoolException("class.id is required to update", HttpStatus.BAD_REQUEST);
+		}
 		EClass eClassDB = classDao.findById(eClass.getId());
+		
+		if (eClassDB== null){
+			throw new ESchoolException("class.id is not existing", HttpStatus.BAD_REQUEST);
+		}
 		
 		Integer old_teacher_id = eClassDB.getHead_teacher_id();
 		Integer new_teacher_id = eClass.getHead_teacher_id();
 		
 		eClassDB = EClass.updateChanges(eClassDB, eClass);
+		
+		valid_new_class(admin,eClass);
+		
 		classDao.updateClass(eClassDB);
 		
 		if (new_teacher_id == null || new_teacher_id.intValue() <=0) {
@@ -95,6 +114,7 @@ public class ClassServiceImpl implements ClassService{
 				assignHeadTeacher(admin,eClass);
 			}
 		}
+		updateTermVal(eClass);
 		return eClassDB;
 
 		
@@ -159,11 +179,94 @@ public class ClassServiceImpl implements ClassService{
 	public SchoolYear getSchoolYear(EClass eclass) {
 		Integer year_id = eclass.getYear_id();
 		
-		return schoolYearDao.findById(year_id); 
+		return schoolYearService.findById(year_id); 
 	}
 
+	@Override
+	public SchoolTerm getCurrentTerm(EClass eClass) {
+		if (eClass == null ){
+			return null;
+		}
+		if (eClass.getYear_id() != null && eClass.getYear_id().intValue() > 0){
+			SchoolTerm term = schoolTermService.findMaxActiveTermBySchool(eClass.getSchool_id());
+			return term;
+		}
+		return null;
+	}
+	
+	@Override
+	public void updateTermVal(EClass eClass) {
+		if (eClass == null ){
+			return;
+		}
+		if (eClass.getYear_id() != null && eClass.getYear_id().intValue() > 0){
+			SchoolTerm term = schoolTermService.findMaxActiveTermBySchool(eClass.getSchool_id());
+			if (term != null ){
+				eClass.setTerm(term.getTerm_val());
+			}
+			
+		}
+	}
 
+	@Override
+	public void updateTermVals(ArrayList<EClass> classes) {
+		if (classes == null || classes.size() <= 0 ){
+			return;
+		}
+		EClass eClass = classes.get(0);
+		SchoolTerm term = null;
+		if (eClass.getYear_id() != null && eClass.getYear_id().intValue() > 0){
+			term = schoolTermService.findMaxActiveTermBySchool(eClass.getSchool_id());
+		}
+		if (term != null ){
+			for (EClass eclass : classes){
+				eclass.setTerm(term.getTerm_val());
+			}
+		}
+	}
 
+	private void valid_new_class(User me, EClass eclass){
+		
+		if (eclass.getSchool_id() == null ){
+			eclass.setSchool_id(me.getSchool_id());
+		}
+		SchoolYear schoolYear = null;
+		if (eclass.getYear_id() == null ){
+			schoolYear = schoolYearService.findLatestYearBySchool(eclass.getSchool_id());
+		}else{
+			schoolYear = schoolYearService.findById(eclass.getYear_id());
+			if (schoolYear == null ){
+				throw new ESchoolException("year_id is not existing", HttpStatus.BAD_REQUEST);
+			}
+		}
+		eclass.setYear_id(schoolYear.getId());
+		eclass.setYears(schoolYear.getYears());
+	}
+
+	@Override
+	public EClass delClass(User me, Integer class_id) {
+		EClass eClass = classDao.findById(class_id);
+		
+		if (eClass.getId() == null || eClass.getId().intValue() <= 0){
+			throw new ESchoolException("class.id is required to update", HttpStatus.BAD_REQUEST);
+		}
+		
+
+		if (eClass.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("class.chool_id != me.school_id", HttpStatus.BAD_REQUEST);
+		}
+		user2ClassService.delClass(me, class_id);
+		
+		eClass.setActflg("D");
+		classDao.updateClass(eClass);
+		
+		
+		
+		return eClass;
+		
+	
+
+	}
 
 
 }

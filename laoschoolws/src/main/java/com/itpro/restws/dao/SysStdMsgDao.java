@@ -9,6 +9,6 @@ public interface SysStdMsgDao {
 
 	int countAll();
 	List<SysStdMsg> findAll() ;
-	
+	SysStdMsg findById(Integer id);
 }
 

@@ -73,49 +73,73 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
 		// Check API_KEY Start
-		// To disable check API_KEY, just comment this code block
-		checkApiKey(httpRequest, httpResponse);
-		// Check API_KEY End
-		boolean authenticated = checkToken(httpRequest, httpResponse);
+		checkBlankApiKey(httpRequest, httpResponse);
 
-//		if (canRequestProcessingContinue(httpRequest) && httpRequest.getMethod().equals("POST")) {
+		// Check token
+		boolean authenticated = false;
 		if (canRequestProcessingContinue(httpRequest)) {
+			authenticated = checkToken(httpRequest, httpResponse);
+		}
+
+		// Check Log out/Login
+		if (canRequestProcessingContinue(httpRequest)) { //		if (canRequestProcessingContinue(httpRequest) && httpRequest.getMethod().equals("POST")) {
 			// If we're not authenticated, we don't bother with logout at all.
 			// Logout does not work in the same request with login - this does not make sense,
 			// because logout works with token and login returns it.
 			if (authenticated ) {
-				checkLogout(httpRequest,httpResponse);
+				checkLogout(httpRequest,httpResponse); // Logout and del auth_key
+				// Check API_KEY is active
+				if (canRequestProcessingContinue(httpRequest)) {
+					checkActivedApiKey(httpRequest,httpResponse);
+				}
+				
 			}else{
-				checkLogin(httpRequest, httpResponse);
+				checkLogin(httpRequest, httpResponse);// Login and save api_key + sso_id to 2 tables ( auth_key and api_key)
 			}
 		}
-
+		// Process chain 
 		if (canRequestProcessingContinue(httpRequest)) {
-			// Dump start
-			UserContext usercontext = (UserContext) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			ActionLog act = actionLogService.start_trace(httpRequest,usercontext.getUser());
-			long startTime = System.currentTimeMillis();
-			httpRequest.setAttribute("x-actlog_id", act.getId());
+			if (SecurityContextHolder.getContext().getAuthentication()  == null ){
+				chain.doFilter (httpRequest, httpResponse);
+			}else{
+				// Dump start
+				UserContext usercontext = (UserContext) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				ActionLog act = actionLogService.start_trace(httpRequest,usercontext.getUser());
+				long startTime = System.currentTimeMillis();
+				httpRequest.setAttribute("x-actlog_id", act.getId());
+				
+				HttpServletResponseCopier responseCopier = new HttpServletResponseCopier(httpResponse);
+				
+				
+				try {
+					//chain.doFilter (httpRequest, httpResponse);
+
+//					String origin = httpRequest.getHeader("origin");
+//		            origin = (origin == null || origin.equals("")) ? "null" : origin;
+//		            responseCopier.addHeader("Access-Control-Allow-Origin", origin);
+//		            responseCopier.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, DELETE, OPTIONS");
+//		            responseCopier.addHeader("Access-Control-Allow-Credentials", "true");
+//		            responseCopier.addHeader("Access-Control-Allow-Headers",
+//		                    "Authorization, origin, content-type, accept, x-requested-with");
+//		            
+		            
+					
+					chain.doFilter(request, responseCopier);
+		            responseCopier.flushBuffer();
+		        } finally {
+		        	  byte[] copy = responseCopier.getCopy();
+		        	  long endTime = System.currentTimeMillis();
+		        	  long executeTime = endTime - startTime;
+		        	if  (httpRequest.getMethod().equals("GET")){
+		        		actionLogService.end_trace(act.getId(),"",responseCopier.getStatus(),executeTime);
+		        	}else{
+		        		actionLogService.end_trace(act.getId(),new String(copy, response.getCharacterEncoding()),responseCopier.getStatus(),executeTime);
+		        	}
+		        }
+				
+				// Dump end
+			}
 			
-			HttpServletResponseCopier responseCopier = new HttpServletResponseCopier(httpResponse);
-			
-			
-			try {
-				//chain.doFilter (httpRequest, httpResponse);
-				chain.doFilter(request, responseCopier);
-	            responseCopier.flushBuffer();
-	        } finally {
-	        	  byte[] copy = responseCopier.getCopy();
-	        	  long endTime = System.currentTimeMillis();
-	        	  long executeTime = endTime - startTime;
-	        	if  (httpRequest.getMethod().equals("GET")){
-	        		actionLogService.end_trace(act.getId(),"",responseCopier.getStatus(),executeTime);
-	        	}else{
-	        		actionLogService.end_trace(act.getId(),new String(copy, response.getCharacterEncoding()),responseCopier.getStatus(),executeTime);
-	        	}
-	        }
-			
-			// Dump end
 			
 			
 			
@@ -132,20 +156,26 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		
 		if (username != null && password != null) {
 			doNotContinueWithRequestProcessing(httpRequest);
-			checkUsernameAndPassword(username, password, httpResponse);
+			checkUsernameAndPassword(username, password, httpRequest,httpResponse);
+			
 		}
-//		else{
-//			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-//		}
+		else{
+			// Update last_request_dt api_key
+		}
 		
 	}
 
-	private void checkUsernameAndPassword(String username, String password, HttpServletResponse httpResponse) throws IOException {
+	private void checkUsernameAndPassword(String username, String password,HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 		TokenInfo tokenInfo = authenticationService.authenticate(username, password);
 		if (tokenInfo != null) {
 			httpResponse.setHeader(Constant.HEADER_AUTH_KEY, tokenInfo.getToken());
 			httpResponse.getOutputStream().println("OK");
 			httpResponse.getOutputStream().flush();
+			
+			// Sau khi Login thanh cong, save API_KEY/SSO_ID
+			String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+			authenticationService.loginApiKeySuccess(username, api_key,tokenInfo.getToken());
+			//authenticationService.addAuthKey_to_ApiKey(api_key, tokenInfo.getToken());
 		} else {
 			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		}
@@ -158,13 +188,16 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		String token = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
 		if (token == null) {
 			// OK, continue to check_login
-			//return false;
+			return false;
 			
-			if (currentLink(httpRequest).equals(Constant.LOGIN_LINK) || 
-					currentLink(httpRequest).equals(Constant.FORGOT_PASS)){
-				//OK, continue to check_login
-				return false;
-			}
+//			if (currentLink(httpRequest).equals(Constant.LOGIN_LINK) || 
+//					currentLink(httpRequest).equals(Constant.FORGOT_PASS)){
+//				//OK, continue to check_login
+//				return false;
+//			}
+			
+			
+			
 //			else{
 //				SecurityContextHolder.clearContext();
 //		        HttpSession session = httpRequest.getSession(false);
@@ -194,6 +227,16 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			String token = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
 			// we go here only authenticated, token must not be null
 			authenticationService.logout(token);
+			
+			// Clear auth_key from api_key
+			String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+			
+			if (api_key != null && !api_key.trim().equals("")) {
+				authenticationService.logoutAuthKeySuccess(api_key, token);
+			}
+			
+			
+			
 			httpResponse.getOutputStream().println("Request was successfully");
 			httpResponse.getOutputStream().flush();
 			httpResponse.flushBuffer();
@@ -225,20 +268,30 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	}
 	
 	
-	/** Returns true, if request contains valid apk_key. */
-	private void checkApiKey(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+//	/** Returns true, if request contains valid apk_key. */
+	private void checkActivedApiKey(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 		String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+		String auth_key = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
 		
-		if (api_key != null && authenticationService.checkApiKey(api_key)) {
-			logger.info(" *** api_key: " + Constant.HEADER_API_KEY + " : is valid ");
+		if ( authenticationService.checkActivedApiKey(api_key,auth_key)) {
+			logger.info(" *** api_key: " + Constant.HEADER_API_KEY + " : is OK ");
 		} else {
-			logger.info(" *** Invalid api_key:" + Constant.HEADER_API_KEY );
+			logger.error(" *** ERROR api_key:" + Constant.HEADER_API_KEY );
 			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);
 			doNotContinueWithRequestProcessing(httpRequest);
 		}
 	}
 	
-	
+	/** Returns true, if request contains valid apk_key. */
+	private void checkBlankApiKey(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+		String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+		
+		if (api_key == null || api_key.trim().equals("")) {
+			logger.info(" *** api_key is BLANK" + Constant.HEADER_API_KEY );
+			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);
+			doNotContinueWithRequestProcessing(httpRequest);
+		}
+	}
 
 	/////////////// Request/Response Dump
 	

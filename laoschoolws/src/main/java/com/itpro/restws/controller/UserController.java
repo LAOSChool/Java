@@ -18,21 +18,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.dao.CommandDao;
+import com.itpro.restws.helper.ChangePassInfo;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.ListEnt;
-import com.itpro.restws.helper.Password;
 import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.Command;
-import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
+import com.itpro.restws.service.CommandService;
 import com.itpro.restws.service.EduProfileService;
 import com.itpro.restws.service.User2ClassService;
 /**
@@ -56,6 +56,11 @@ public class UserController extends BaseController {
 	@Autowired
 	protected EduProfileService eduProfileService;
 	
+	
+	@Autowired
+	protected CommandService commandService;
+	
+	
 	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -64,7 +69,9 @@ public class UserController extends BaseController {
 			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
 			@RequestParam(value="filter_user_role",required =false) String filter_user_role,			
 			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts,
-			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
+			@RequestParam(value="filter_from_id", required =false) Integer filter_from_id,
+			@RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
 			
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
@@ -73,8 +80,7 @@ public class UserController extends BaseController {
 		
 		List<User> users = null;
 		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;
+		
 		
 		User user = getCurrentUser();
 		Integer school_id = user.getSchool_id();
@@ -97,23 +103,44 @@ public class UserController extends BaseController {
 	    		}
 	    	}
 	    	
-	    	
 	    	// Count user
-	    	total_row = userService.countUserExt(school_id, class_id, filter_user_role, Utils.parseInteger(filter_sts), Utils.parseInteger(filter_from_id));
-	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;    	
-	    	}else{
-	    		max_result = total_row;
+			int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+			int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+			if (max_result <= 0){
+				max_result = Constant.MAX_RESP_ROW;
+			}
+			
+	    	// Count user
+	    	total_row = userService.countUserExt(school_id, class_id, filter_user_role, Utils.parseInteger(filter_sts), filter_from_id);
+	    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
+	    		rspEnt.setList(null);
+	    		rspEnt.setFrom_row(0);
+	    		rspEnt.setTo_row(0);
+	    		rspEnt.setTotal_count(0);
+	    		return rspEnt;
 	    	}
-	    		
-			logger.info("user count: total_row : "+total_row);
+	    	if ((from_row + max_result > total_row)){
+	    		max_result = total_row-from_row;
+	    	}
+	    	logger.info("UserControl : total_row : "+total_row);
+	    	logger.info("UserControl : from_row : "+from_row);
+	    	logger.info("UserControl : max_result : "+max_result);
+	    	
+	    	
 			// Query user
 			users = userService.findUserExt(school_id, 
 					from_row, 
 					max_result, 
 					class_id, 
 					filter_user_role,  
-					Utils.parseInteger(filter_sts), Utils.parseInteger(filter_from_id));
+					Utils.parseInteger(filter_sts), 
+					filter_from_id);
+			if (users != null && users.size() > 0){
+				for (User usr: users){
+					userService.updateClassTerm(usr);
+				}
+			}
+			
 			rspEnt.setList(users);
 		    rspEnt.setFrom_row(from_row);
 		    rspEnt.setTo_row(from_row + max_result);
@@ -162,7 +189,9 @@ public class UserController extends BaseController {
 	    		throw new ESchoolException("Teacher and user are not in the same Class"+id, HttpStatus.BAD_REQUEST);
 	    	}
 	    }
-		
+		if (load_user != null){
+			userService.updateClassTerm(load_user);
+		}
 	    return load_user;
 	 }
 
@@ -173,6 +202,9 @@ public class UserController extends BaseController {
 		User user = getCurrentUser();
 		if (user != null && (user.getPermisions() == null) ){
 			permitService.loadPermit(user);
+			
+			userService.updateClassTerm(user);
+			
 		}
 		
 	    return user;
@@ -203,20 +235,20 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.users.create");
-		String user_pass = user.getPassword() ;
-		if (user_pass == null ){
-			user_pass = Password.getRandomPass();
-		}else{
-			if (!userService.isValidPassword(user_pass)){
-				throw new ESchoolException("Invalid user password: please input password with length >=4 AND <= 20 characters", HttpStatus.BAD_REQUEST);
-			}
-		}
-		try {
-			user.setPassword(Password.getSaltedHash(user_pass));
-			user.setDefault_pass(user_pass);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		String user_pass = user.getPassword() ;
+//		if (user_pass == null ){
+//			user_pass = Password.getRandomPass();
+//		}else{
+//			if (!userService.isValidPassword(user_pass)){
+//				throw new ESchoolException("Invalid user password: please input password with length >=4 AND <= 20 characters", HttpStatus.BAD_REQUEST);
+//			}
+//		}
+//		try {
+//			user.setPassword(Password.getSaltedHash(user_pass));
+//			user.setDefault_pass(user_pass);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		String type = user.getRoles().split(",")[0];
 		 //return userService.insertUser(user);
 		E_ROLE role = E_ROLE.STUDENT;
@@ -249,18 +281,21 @@ public class UserController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.users.update");
 
-		User curr_user = getCurrentUser();
+		User me = getCurrentUser();
 		
-		if (!userService.isSameSChool(user, curr_user)){
+		if (!userService.isSameSChool(user, me)){
 			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
 		}
 		
 		 if (userService.isValidState(user.getState())){
-			 return userService.updateUser(user,true);
+			 return userService.updateUser(me,user,true);
 		 }else{
 			 throw new RuntimeException("Invalid State="+user.getState());
 		 }
 	}
+	
+
+
 	
 	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/reset_pass/{sso}",method = RequestMethod.POST)
@@ -269,42 +304,52 @@ public class UserController extends BaseController {
 			@PathVariable String sso,
 			@Context final HttpServletResponse response
 			) {
+		User me = getCurrentUser();
+		
 		logger.info(" *** MainRestController.users.reset_pass");
-		String newpass= userService.resetPassword(sso);
-		 User user= userService.findBySso(sso);
-		 Message msg = new Message();
-		 msg.setFrom_usr_id(Integer.valueOf(1));
-		 msg.setTo_usr_id(user.getId());
-		 msg.setTitle("Thong bao reset password");
-		 msg.setContent("Reset pass success to : "+newpass);
-		 messageService.insertMessageExt(msg);
-		 return "Reset password success, new pass:"+newpass;
+		String newpass= userService.resetPassword(me,sso,false);
+ 	    return  "Reset password success, new_pass:"+newpass;
 	}
 	
 	//@Secured({ "ROLE_ADMIN"})
-	@RequestMapping(value="/api/users/change_pass",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)
-	public RespInfo changePass(
-			@RequestParam(value="username",required=true) String username,
-			@RequestParam(value="old_pass",required=true) String old_pass,
-			@RequestParam(value="new_pass",required=true) String new_pass,
-			@Context final HttpServletResponse response,
-			@Context final HttpServletRequest request
-			) {
-		
-		logger.info(" *** MainRestController.users.reset_pass");
-		if (!username.equals(getPrincipal())){
-			throw new RuntimeException("username is not mapped with logined sso_id");
+		@RequestMapping(value="/api/users/change_pass",method = RequestMethod.POST)
+		@ResponseStatus(value=HttpStatus.OK)
+		public RespInfo changePass(
+				@RequestBody ChangePassInfo data,
+				
+				
+				@Context final HttpServletResponse response,
+				@Context final HttpServletRequest request
+				) {
+			
+			logger.info(" *** MainRestController.users.change");
+			User me = getCurrentUser();
+			
+			String username = data.getUsername();
+			String old_pass = data.getOld_pass();
+			String new_pass = data.getNew_pass();
+			
+			if (username == null || username.trim().length()==0 ){
+				throw new ESchoolException("data.username is NULL or Blank", HttpStatus.BAD_REQUEST) ;
+			}
+			if (old_pass == null|| old_pass.trim().length()==0  ){
+				throw new ESchoolException("data.old_pass is NULL  or Blank", HttpStatus.BAD_REQUEST) ;
+			}
+			if (new_pass == null|| new_pass.trim().length()==0  ){
+				throw new ESchoolException("data.new_pass is NULL or Blank", HttpStatus.BAD_REQUEST) ;
+			}
+			
+			if (!username.equals(getPrincipal())){
+				throw new RuntimeException("username is not mapped with logined sso_id");
+			}
+			String msg =  "Request was successfully, newpass:"+userService.changePassword(me,username, old_pass,new_pass);
+			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+	    	
+			rsp.setMessageObject(msg);
+			
+		    return rsp;
 		}
-		String msg =  "Request was successfully, newpass:"+userService.changePassword(username, old_pass,new_pass);
-		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-    	
-		rsp.setMessageObject(msg);
 		
-	    return rsp;
-	}
-	
-	
 	
 	//@Secured({ "ROLE_ADMIN"})
 	 
@@ -350,13 +395,16 @@ public class UserController extends BaseController {
 			throw new ESchoolException("phone:("+phone+") is not mapped with user's phone",HttpStatus.BAD_REQUEST);
 		}
 		//userService.forgotPassword(sso_id, phone);
-		Command cmd = new Command();
-		cmd.setCommand(Constant.CMD_FOROT_PASS);
-		cmd.setParams("sso_id="+sso_id+"&phone="+phone);
-		cmd.setCmd_dt(Utils.now());
-		cmd.setProcessed(0);
-		cmd.setMessage("Waiting");
-		commandDao.saveCommand(cmd);
+//		Command cmd = new Command();
+//		cmd.setCommand(Constant.CMD_FOROT_PASS);
+//		cmd.setParams("sso_id="+sso_id+"&phone="+phone);
+//		cmd.setCmd_dt(Utils.now());
+//		cmd.setProcessed(0);
+//		cmd.setMessage("Waiting");
+		// commandDao.saveCommand(cmd);
+		
+		commandService.create_user_forgot_pass_cmd(user,sso_id, phone);
+		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Plz wait, your request is in processing");
 		logger.info(" *** MainRestController.users.forgotPass END");
 		return rsp;
@@ -370,17 +418,22 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		User del_user = userService.findById(id);
 		if (del_user == null ){
 			throw new ESchoolException("Cannot find user", HttpStatus.NOT_FOUND);
 		}
 		
-		if (!userService.isSameSChool(user, del_user)){
+		if (!userService.isSameSChool(me, del_user)){
 			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
 		}
+		user2ClassService.delUser(me, id);
+		
 		del_user.setActflg("D");
-		userService.updateUser(del_user,true);
+		userService.updateUser(me,del_user,true);
+		
+		
+		
 		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
 	    return "Request was successfully, deleted user of id:"+id;
 	 }
@@ -499,5 +552,26 @@ public class UserController extends BaseController {
 		    
 		    return rspEnt;
 		}
+	
+//	/**
+//	 * Upload multiple file using Spring Controller
+//	 */
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value="/api/users/upload_photo",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo uploadPhoto(
+			@RequestParam(value = "user_id",required =false) Integer user_id,
+			@RequestParam(value = "file",required =false) MultipartFile[] files,
+			 @Context final HttpServletRequest request)
+			 {
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		User me = getCurrentUser();
+		
+		userService.saveUploadPhoto(me, user_id, files);
+		
+		return rsp;
+		 
+	}
 	
 }

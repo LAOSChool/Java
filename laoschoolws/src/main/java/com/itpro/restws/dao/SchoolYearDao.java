@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.SchoolYear;
 
 
@@ -15,5 +17,7 @@ public interface SchoolYearDao {
 	void saveSchoolYear(SchoolYear schoolYear);
 	void updateSchoolYear(SchoolYear schoolYear);
 	 List<SchoolYear> findFromOrTo(Integer school_id, Integer frm_year, Integer to_year) ;
+	 void setFlushMode(FlushMode mode);
+		void clearChange();
 }
 

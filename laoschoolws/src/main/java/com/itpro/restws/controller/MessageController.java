@@ -1,3 +1,4 @@
+
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_DEST_TYPE;
+import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.MessageFilter;
 import com.itpro.restws.helper.RespInfo;
@@ -75,7 +79,9 @@ public class MessageController extends BaseController {
 			@RequestParam(value="filter_to_dt",required =false) String filter_to_dt	,
 			@RequestParam(value="from_row",required =false) String filter_from_row,
 			@RequestParam(value="max_result",required =false) String filter_max_result,
-			@RequestParam(value="filter_from_id",required =false) String filter_from_id
+			@RequestParam(value="filter_from_id",required =false) String filter_from_id,
+			@RequestParam(value="filter_from_time",required =false) Long filter_from_time,
+			@RequestParam(value="filter_to_time",required =false) Long filter_to_time
 			
 			) {
 		logger.info(" *** MainRestController.getMessages");
@@ -83,8 +89,7 @@ public class MessageController extends BaseController {
 		ListEnt listResp = new ListEnt();
 		// Parsing params
 		int total_row = 0;
-		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
-		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		
 		
 		// Load user
 		User user = getCurrentUser();
@@ -92,7 +97,23 @@ public class MessageController extends BaseController {
 		// Get data access right for entity
 		MessageFilter secure_filter = messageService.secureGetMessages(user);
 		
-		
+		if (filter_from_time != null && filter_from_time.longValue() > 0){
+			if (filter_from_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+		}
+		if (filter_to_time != null && filter_to_time.longValue() > 0){
+			if (filter_to_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+		}
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}			
     	// Count messages
     	total_row = messageService.countMsgExt(
     			user.getSchool_id(), 
@@ -111,7 +132,7 @@ public class MessageController extends BaseController {
     			Utils.parseLong(filter_from_id)
     			);
     	
-    	if (total_row <=  0){
+    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
     		listResp.setList(null);
     		listResp.setFrom_row(0);
     		listResp.setTo_row(0);
@@ -119,10 +140,9 @@ public class MessageController extends BaseController {
     		return listResp;
     	}
     	
-    	if (total_row < max_result){
-    		max_result = total_row;
-    	}
-    		
+    	if ((from_row + max_result > total_row)){
+    		max_result = total_row-from_row;
+    	}	
 		logger.info("Message count: total_row : "+total_row);
 		// Query message
 		ArrayList<com.itpro.restws.model.Message> messages = messageService.findMsgExt(
@@ -163,7 +183,7 @@ public class MessageController extends BaseController {
 	
 	
 	
-	
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/messages/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo createMessage(
@@ -173,45 +193,63 @@ public class MessageController extends BaseController {
 		logger.info(" *** MainRestController.createMessage");
 		
 		// Load user
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		// Check user permission
-		messageService.secureCheckNewMessage(user, message);
+		messageService.secureCheckNewMessage(me, message);
 		// Create message
-		Message msg = messageService.insertMessageExt(message);
+		// 20160823 start
+		// Message msg = messageService.insertMessageExt(me,message);
+		Message msg = messageService.sendUserMessageWithCC(me, message);
+		// 20160823 end		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(msg);
 		return rsp;	
 	}
-	// Create message for School & Class
+	/***
+	 * 	Send to Class, always set from Me user, only ADMIN can send to class or school
+  	 *   TEACHER: can only send personal message with CC
+	 * @param message
+	 * @param filter_roles
+	 * @param request
+	 * @return
+	 */
 	@Secured({"ROLE_ADMIN" })
 	@RequestMapping(value="/api/messages/create_ext",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo createMessage_ext(
 			@RequestBody Message message,
-			@RequestParam(value="filter_class_list",required =false) String filter_class_list,
-			//@RequestParam(value="filter_roles",defaultValue="STUDENT",required =false) String filter_roles,
 			@RequestParam(value="filter_roles",required =false) String filter_roles,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.createClassMessage");
+		logger.info(" *** MainRestController.createMessage_ext");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath().toString(), "Successful");
 		// Load user
-		User user = getCurrentUser();
-//		// Check user permission
-//		messageService.secureCheckClassMessage(user, message, filter_class_list,filter_roles);
-//		// Create message
-//		//return messageService.insertClassMessageExt(message, filter_class_list);
-//		messageService.insertClassMessageExt(message, filter_class_list, filter_roles);
-//		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath().toString(), "Successful");
-//		rsp.setMessageObject(null);
-//		return rsp;
-		//message.setSchool_id(user.getSchool_id());
-		ArrayList<Message> list = messageService.broadcastMessage(user, message, filter_roles);
-		rsp.setMessageObject("Done, count= "+list.size());
+		User me = getCurrentUser();
+		// 2016-08-22 DEL
+		// ArrayList<Message> list = messageService.broadcastMessage(me, message, filter_roles);
+		// rsp.setMessageObject("Done, count= "+list.size());
+		// 2016-08-22 Start
+		
+		ArrayList<Message> list = null;
+		if (message.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
+			list = messageService.createClassMessageTaskWithCC(me,message,filter_roles);
+		}else {
+			throw new ESchoolException("message.dest_type must be 1 ONLY to send to a CLASS, keep other class_id in cc_list", HttpStatus.BAD_REQUEST);
+		}
+		String ids = "";
+		if (list != null && list.size() > 0){
+			for (Message msg: list){
+				ids += msg.getId().intValue()+",";
+			}
+			ids = Utils.removeTxtLastComma(ids);
+		}
+		rsp.setMessageObject("Done, tasks created for background processing, ids:"+ids);
 		return rsp;
 				
 	}
 	
+	
+
 	@RequestMapping(value="/api/messages/update/{id}",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo updateMessage(
@@ -223,34 +261,67 @@ public class MessageController extends BaseController {
 		logger.info(" *** MainRestController.updateMessage");
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		User me = getCurrentUser();
 		
 		Message msg = messageService.findById(Integer.valueOf(id));
-		if (msg != null ){
-			if (is_read != null && Utils.parseInteger(is_read) != null ){
-				msg.setIs_read( Utils.parseInteger(is_read));
-			}
-			if (imp_flg != null && Utils.parseInteger(imp_flg) != null ){
-				msg.setImp_flg( Utils.parseInteger(imp_flg));
+		if (msg == null ){
+			throw new ESchoolException("message_id is not existing:"+id, HttpStatus.BAD_REQUEST);
+		}
+		
+		if (is_read != null && Utils.parseInteger(is_read) != null ){
+			msg.setIs_read( Utils.parseInteger(is_read));
+		}
+		if (imp_flg != null && Utils.parseInteger(imp_flg) != null ){
+			msg.setImp_flg( Utils.parseInteger(imp_flg));
+		}
+		
+		if (me.hasRole(E_ROLE.STUDENT.getRole_short())){
+			if (msg.getTo_user_id() != null && msg.getTo_user_id().intValue() == me.getId()){
+				//OK do nothing
+			}else{
+				throw new ESchoolException("current user is STUDENT, cannot update message sent to other User, to_user_id:"+msg.getTo_user_id()==null?"":(msg.getTo_user_id().intValue()+""), HttpStatus.BAD_REQUEST);
 			}
 		}
-		messageService.updateMessage(msg);
+		
+		
+		messageService.updateMessage(me,msg);
 		rsp.setMessageObject(msg);
 		
 		return rsp;
 	}
 
-//	@RequestMapping(value = "/api/messages/delete/{id}", method = RequestMethod.POST)
-//	@ResponseStatus(value=HttpStatus.OK)	
-//	 public String delMessage(
-//			 @PathVariable int  id
-//			 ) {
-//		logger.info(" *** MainRestController.delMessage/{id}:"+id);
-//
-//	    return "Request was successfully, delete delMessage of id: "+id;
-//	 }
-//	
+	@Secured({"ROLE_ADMIN","ROLE_SYS_ADMIN" })
+	@RequestMapping(value="/api/messages/open_sms",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo getUnProcSMS(
+			@Context final HttpServletRequest request
+			) 
+	{
+		
+		String api_key = request.getHeader(Constant.HEADER_API_KEY);
+		User me = getCurrentUser();
+		
+		ArrayList<Message> list =  messageService.findUnProcSMS(me, api_key);
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		rsp.setMessageObject(list);
+		return rsp;
+	 }	
 	
-	
-
-	
+	@Secured({"ROLE_ADMIN","ROLE_SYS_ADMIN" })
+	@RequestMapping(value="/api/messages/sms_done/{id}",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo sms_done
+	(
+			@PathVariable int  id,
+			@Context final HttpServletRequest request
+			) 
+	{
+		String api_key = request.getHeader(Constant.HEADER_API_KEY);
+		User me = getCurrentUser();
+		
+		messageService.smsDone(me,api_key, id);
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		rsp.setMessageObject("DONE");
+		return rsp;
+	 }	
 }

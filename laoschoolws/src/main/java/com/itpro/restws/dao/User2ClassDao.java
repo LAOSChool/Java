@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.User2Class;
 
 public interface User2ClassDao {
@@ -18,11 +20,13 @@ public interface User2ClassDao {
 	List<User2Class> findBySchoolId(Integer school_id,int from_row,int max_result);
 	List<User2Class> findByClassId(Integer class_id,int from_row,int max_result);
 	
-	List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, boolean is_running);
+	List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, Integer closed);
 	
 	
 	void saveUser2Class(User2Class user2Class);
 	void updateUser2Class(User2Class user2Class);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 	
 }
 

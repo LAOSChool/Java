@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.EClass;
 
 
@@ -13,6 +15,7 @@ public interface ClassDao {
 	List<EClass> findByUser(Integer user_id,int from_row,int max_result) ;
 	void saveClass(EClass eClass);
 	void updateClass(EClass eClass);
-
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 }
 

@@ -2,7 +2,6 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
-import com.itpro.restws.helper.SchoolTerm;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 
@@ -20,12 +19,16 @@ public interface SchoolYearService {
 	SchoolYear insertSchoolYear(User user,SchoolYear schoolYear);
 	SchoolYear updateSchoolYear(User user,SchoolYear schoolYear);
 	void delSchoolYear(User user, Integer id);
-///////////////////////// TERM 
-	ArrayList<SchoolTerm> findTermByYear(Integer school_id,Integer year_id);
-	ArrayList<SchoolTerm> findTermBySchool(Integer school_id);
-	SchoolTerm findLatestTermBySchool(Integer school_id);
-	
 	boolean valid_year_id(Integer school_id,Integer year_id);
-	boolean valid_term_val(Integer school_id,Integer year_id, Integer term_val);
+///////////////////////// TERM 
+//	ArrayList<SchoolTerm> findAllTermByYear(Integer school_id,Integer year_id);
+//	ArrayList<SchoolTerm> findAllTermBySchool(Integer school_id);
+//	SchoolTerm findMaxActiveTermBySchool(Integer school_id);
+//	SchoolTerm findMaxActiveTermByYear(Integer school_id, Integer year_id) ;
+//	SchoolTerm findTermById(User me, Integer term_id);
+//	boolean valid_term_val(Integer school_id,Integer year_id, Integer term_val);	
+//	SchoolTerm insertSchoolTerm(User me,SchoolTerm schoolTerm);
+//	SchoolTerm updateSchoolTerm(User me,SchoolTerm schoolTerm);
+	
 	 
 }

@@ -3,6 +3,8 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,9 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<SchoolExam> list = crit_list.list();
 	     
@@ -76,6 +81,9 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 		if (ex_year != null) {
 			crit_list.add(Restrictions.eq("ex_year", ex_year));
 		}
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SchoolExam> list = crit_list.list();
 	     
@@ -94,6 +102,9 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 		if (term_val != null && term_val.intValue() > 0) {
 			crit_list.add(Restrictions.eq("term_val", term_val));
 		}
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SchoolExam> list = crit_list.list();
 	     
@@ -108,7 +119,7 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.add(Restrictions.eq("ex_key", ex_key));
 
-		
+		crit_list.addOrder(Order.asc("id"));
 	     @SuppressWarnings("unchecked")
 		List<SchoolExam> list = crit_list.list();
 	    if (list !=null && list.size() > 0){
@@ -118,6 +129,15 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 	}
 
 
-	
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}	
 	
 }

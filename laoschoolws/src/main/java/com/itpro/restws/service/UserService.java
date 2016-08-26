@@ -3,6 +3,8 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
@@ -20,15 +22,16 @@ public interface UserService {
 	ArrayList<User> findUserExt(Integer school_id,int from_num, int max_result,Integer filter_class_id,String filter_user_role,Integer filter_sts,Integer from_row_id);
 	
 	
-	User insertUser(User user);
-	User updateUser(User user,boolean ignore_pass);
+	//User insertUser(User me, User user);
+	User updateUser(User me, User user,boolean ignore_pass);
+	
 	public boolean isValidState(int State);
 	public boolean isValidPassword(String pass);
 	public boolean isValidUserName(String username);
 	public String encryptPass(String password);
-	public String changePassword(String sso_id, String old_pass, String new_pass);
-	public String forgotPassword(String sso_id, String phone);
-	public String resetPassword(String sso_id);
+	public String changePassword(User me, String sso_id, String old_pass, String new_pass);
+	public String forgotPassword(User me, String sso_id, String phone);
+	public String resetPassword(User me, String sso_id,boolean by_forgot_request);
 	
 	public User createUser(User user,E_ROLE role);
 	public User createAdmin(String sso_id,String pass,Integer school_id);
@@ -51,5 +54,7 @@ public interface UserService {
 
 	int countAvailableUser(Integer school_id);
 	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result);
+	void updateClassTerm(User user);
+	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
 	
 }

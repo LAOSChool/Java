@@ -8,5 +8,6 @@ import com.itpro.restws.model.SysWeekday;
 public interface SysWeekdayDao {
 	int countAll();
 	List<SysWeekday> findAll() ;
+	SysWeekday findById(Integer id);
 }
 

@@ -3,7 +3,9 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.Query;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<Attendance> attendances = crit_list.list();
 	     return attendances;
@@ -52,6 +57,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		crit_list.add(Restrictions.eq("student_id", student_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<Attendance> attendances = crit_list.list();
 	     return attendances;
@@ -70,6 +78,9 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<Attendance> attendances = crit_list.list();
 	     return attendances;
@@ -173,6 +184,8 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		if (year_id != null ){
 			str = str +" and att.year_id = '"+year_id.intValue()+"'";
 		}
+		
+		str = str +" order by att.id asc ";
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_num);
@@ -190,11 +203,24 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 		crit_list.add(Restrictions.eq("auditor", auditor));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.asc("id"));
+        
 	     @SuppressWarnings("unchecked")
 		List<Attendance> attendances = crit_list.list();
 	     return attendances;
 	}
 
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 	
 	
 }

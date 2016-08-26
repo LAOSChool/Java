@@ -34,7 +34,11 @@ public class AuthenKey extends AbstractModel{
 	@JsonIgnore
 	@Column(name="expired_dt")
 	private String expired_dt;
+	
+	
 
+
+	
 	public Integer getId() {
 		return id;
 	}

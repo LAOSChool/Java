@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,8 @@ public class SysProvinceDaoImpl extends AbstractDao<Integer, SysProvince> implem
 	public List<SysProvince> findAll() {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("actflg","A"));
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SysProvince> list = crit_list.list();
 	     return list;
@@ -31,6 +34,11 @@ public class SysProvinceDaoImpl extends AbstractDao<Integer, SysProvince> implem
 		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_PROVINCE.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
+	}
+
+	@Override
+	public SysProvince findById(Integer id) {
+		return getByKey(id);
 	}
 
 	

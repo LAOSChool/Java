@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.SchoolExam;
 
 
@@ -20,6 +22,8 @@ public interface SchoolExamDao {
 	
 	void saveSchoolExam(SchoolExam schoolExam);
 	void updateSchoolExam(SchoolExam schoolExam);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 	
 		
 }

@@ -3,7 +3,10 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
+import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -44,6 +47,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		crit_list.add(Restrictions.eq("from_user_id", from_user_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		crit_list.addOrder(Order.asc("id"));
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
@@ -63,7 +67,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
-
+		crit_list.addOrder(Order.asc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -96,7 +100,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
-
+		crit_list.addOrder(Order.asc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -114,6 +118,9 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
+		
+		crit_list.addOrder(Order.asc("id"));
+		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
 		return messages;
@@ -196,10 +203,10 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		// Filter by date
 				
 		if (dateFrom != null) {
-			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+			crit_list.add(Restrictions.gt("sent_dt", dateFrom));
 		} 
 		if (dateTo != null) {
-			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+			crit_list.add(Restrictions.lt("sent_dt", dateTo));
 		}
 
 		// Filter by from user
@@ -230,6 +237,8 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
+		
+		crit_list.addOrder(Order.asc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -281,11 +290,11 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 //			crit_list.add(Restrictions.lt("lstmdf", dateTo));
 //		}
 		if (dateFrom != null) {
-			crit_list.add(Restrictions.gt("lstmdf", dateFrom));
+			crit_list.add(Restrictions.gt("sent_dt", dateFrom));
 		} 
 		
 		if (dateTo != null) {
-			crit_list.add(Restrictions.lt("lstmdf", dateTo));
+			crit_list.add(Restrictions.lt("sent_dt", dateTo));
 		}
 		
 		// Filter by from user
@@ -319,40 +328,28 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		return numRows == null ? 0 : numRows.intValue();
 
 	}
+	@Override
+	public void clearChange() {
+		getSession().clear();
+		
+	}
+	@Override
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
 
-	//
-	// private Criteria getCriteria(Collection<Integer> ints, Integer longVal, Date
-	// dateFrom, Date dateTo) {
-	//
-	//
-	// if( ints != null && !ints.isEmpty()) {
-	// criteria.add( Restrictions.in( "intField", ints ) );
-	// }
-	//
-	// if( longVal != null ) {
-	// criteria.add( Restrictions.sqlRestriction( "{alias}.longField & ? = ?",
-	// new Integer[]{ longVal, longVal }, new Type[]{ StandardBasicTypes.LONG,
-	// StandardBasicTypes.LONG } ) );
-	// }
-	//
-	// if(dateFrom != null && dateTo != null) {
-	// criteria.add( Restrictions.between( "dateField", dateFrom, dateTo ) );
-	// } else if(dateFrom != null) {
-	// criteria.add( Restrictions.gt( "dateField", dateFrom ) );
-	// } else if(dateTo != null) {
-	// criteria.add( Restrictions.lt( "dateField", dateTo ) );
-	// }
-	//
-	// return criteria;
-	// }
-
-	// public List<TimeSeriesPowerPK> getPowerUsageForUser(String minutes) {
-	// Query query = sessionFactory.getCurrentSession().createQuery("From
-	// TimeSeriesPowerPK where dateTime <=:param1 AND dateTime >= :parma2 ");
-	// query.setParameter("param1",currentDateObject);
-	// query.setParameter("param2",userEnteredDateObject);
-	// List<TimeSeriesPowerPK> powerUsedList=query.list();
-	// return powerUsedList;
-	// }
+	@Override
+	public List<Message> findUnProcSms() {
+		
+		String sql = "CALL get_unproc_sms()";
+		SQLQuery query = getSession().createSQLQuery(sql);
+		query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP);
+		@SuppressWarnings("unchecked")
+		List<Message> results = query.list();
+		return results;
+		
+		
+	}
 
 }

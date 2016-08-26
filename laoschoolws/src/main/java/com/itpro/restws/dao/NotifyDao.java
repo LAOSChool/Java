@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.List;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.Notify;
 
 
@@ -39,6 +41,8 @@ public interface NotifyDao {
 			// User filter
 			Integer class_id, String dateFrom, String dateTo, Integer fromUserID, Integer toUserID, Integer channel,
 			Integer is_read, Integer from_row_id);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 }
 
 

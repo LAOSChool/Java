@@ -52,93 +52,118 @@ public class AttendanceController extends BaseController {
 	@RequestMapping(value="/api/attendances",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ListEnt getAttendances(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_user_id",required =false) String filter_user_id,			
-			@RequestParam(value="filter_from_id", required =false) String filter_from_id,
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="filter_user_id",required =false) Integer filter_user_id,
+			
+			@RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
+			
+			@RequestParam(value="filter_from_id", required =false) Integer filter_from_id,
 			@RequestParam(value="filter_from_dt", required =false) String filter_from_dt,
 			@RequestParam(value="filter_to_dt", required =false) String filter_to_dt,
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,
 			@RequestParam(value="filter_term_val", required =false) Integer filter_term_val,
+			@RequestParam(value="filter_from_time", required =false) Long filter_from_time,
+			@RequestParam(value="filter_to_time", required =false) Long filter_to_time,			
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getAttendances");
+		logger.info(" *** getAttendances() START");
 		
 		
-		User user = getCurrentUser();
-		Integer school_id = user.getSchool_id();
-		Integer class_id =  Utils.parseInteger(filter_class_id);
-		Integer student_id = Utils.parseInteger(filter_user_id);
+		User me = getCurrentUser();
+		Integer school_id = me.getSchool_id();
+		Integer class_id =  filter_class_id;
+		Integer student_id = filter_user_id;
 		Integer year_id = filter_year_id;
 		Integer term_val = filter_term_val;
 		
-		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
+		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
 			
-    	}else if (user.hasRole(E_ROLE.TEACHER.getRole_short()) || user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ){
+    	}else if (me.hasRole(E_ROLE.TEACHER.getRole_short()) || me.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) ){
     		if (class_id == null || class_id == 0 ){
     			throw new ESchoolException("User is not Admin, require filter_class_id to get Attendance Info ",HttpStatus.BAD_REQUEST);
     		}
-    		if (!userService.isBelongToClass(user.getId(), class_id)){
-    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
+    		if (!userService.isBelongToClass(me.getId(), class_id)){
+    			throw new ESchoolException("User ID="+me.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
     		}
     		
     		EClass eclass = classService.findById(class_id);
     		if (eclass.getSchool_id().intValue() != school_id.intValue()){
-    			if (!userService.isBelongToClass(user.getId(), class_id)){
-        			throw new ESchoolException("User ID="+user.getId()+" and Class are not in same school,class_id= "+class_id,HttpStatus.BAD_REQUEST);
+    			if (!userService.isBelongToClass(me.getId(), class_id)){
+        			throw new ESchoolException("User ID="+me.getId()+" and Class are not in same school,class_id= "+class_id,HttpStatus.BAD_REQUEST);
         		}
     		}
     		
     	}else{
     		// STUDENT
-    		student_id = user.getId();
+    		student_id = me.getId();
     	}
     	
+		if (filter_from_time != null && filter_from_time.longValue() > 0){
+			if (filter_from_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+		}
+		if (filter_to_time != null && filter_to_time.longValue() > 0){
+			if (filter_to_dt != null ){
+				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
+			}
+			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+		}
+		
+		
 		
 		List<Attendance> attendances = null;
 		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
+		
+		
+		
+		
+		
+		
+		
 		if (year_id == null){
-			SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(user.getSchool_id());
+			SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(me.getSchool_id());
 			if (schoolYear == null ){
-				throw new ESchoolException("Cannot get schoolyear of school_id: "+user.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);
+				throw new ESchoolException("Cannot get schoolyear of school_id: "+me.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);
 			}
 			year_id= schoolYear.getId();
 		}
 				
 		ListEnt rspEnt = new ListEnt();
-	    try {
-	    	// Count user
-	    	
-	    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id),null,filter_from_dt,filter_to_dt,null,term_val,year_id);
-	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;
-	    	}else{
-	    		max_result = total_row;
-	    	}
-	    		
-			logger.info("Attendance count: total_row : "+total_row);
-			// Query class by school id
-			attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, Utils.parseInteger(filter_from_id), from_row, max_result,null,filter_from_dt,filter_to_dt,null,term_val,year_id);
-		    rspEnt.setList(attendances);
-		    rspEnt.setFrom_row(from_row);
-		    rspEnt.setTo_row(from_row + max_result);
-		    rspEnt.setTotal_count(total_row);
+	  
+    	// Count user
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+    	total_row = attendanceService.countAttendanceExt(school_id, class_id, student_id, filter_from_id,null,filter_from_dt,filter_to_dt,null,term_val,year_id);
+    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
+    		rspEnt.setList(null);
+    		rspEnt.setFrom_row(0);
+    		rspEnt.setTo_row(0);
+    		rspEnt.setTotal_count(0);
+    		return rspEnt;
+    	}
+    	
+    	if ((from_row + max_result > total_row)){
+    		max_result = total_row-from_row;
+    	}
+    	logger.info("Attendance count: total_row : "+total_row);
+    	logger.info("Attendance count: from_row : "+from_row);
+    	logger.info("Attendance count: max_result : "+max_result);
+    	
+    		
+		
+		// Query class by school id
+		attendances = attendanceService.findAttendanceExt(school_id, class_id, student_id, filter_from_id, from_row, max_result,null,filter_from_dt,filter_to_dt,null,term_val,year_id);
+	    rspEnt.setList(attendances);
+	    rspEnt.setFrom_row(from_row);
+	    rspEnt.setTo_row(from_row + max_result);
+	    rspEnt.setTotal_count(total_row);
 		    
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.getAttendances() ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    
+	  
 	    return rspEnt;
 
 	}
@@ -352,9 +377,11 @@ public class AttendanceController extends BaseController {
 		}
 		
 	
-		Date att_dt = Utils.parsetDate(filter_date);// YYYY-MM-DD
-		if (att_dt == null){
+		Date dt = Utils.parsetDateAll(filter_date);// YYYY-MM-DD
+		if (dt == null){
 			throw new ESchoolException("Invalide filter_date ",HttpStatus.BAD_REQUEST);
+		}else{
+			filter_date = Utils.dateToString(dt);
 		}
 		
 		if (user.hasRole(E_ROLE.ADMIN.getRole_short())){

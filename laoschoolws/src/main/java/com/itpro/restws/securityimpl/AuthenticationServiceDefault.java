@@ -1,5 +1,7 @@
 package com.itpro.restws.securityimpl;
 
+import java.util.ArrayList;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.log4j.Logger;
@@ -13,10 +15,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.User;
 import com.itpro.restws.security.AuthenticationService;
 import com.itpro.restws.security.TokenInfo;
 import com.itpro.restws.security.TokenManager;
+import com.itpro.restws.service.ApiKeyService;
 import com.itpro.restws.service.UserService;
 
 /**
@@ -29,6 +33,10 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	private ApplicationContext applicationContext;
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private ApiKeyService apiKeyService;
+//	@Autowired
+//	private AuthenKeyDao authenKeyDao;
 	
 	private final AuthenticationManager authenticationManager;
 	private final TokenManager tokenManager;
@@ -119,14 +127,48 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	}
 
 	@Override
-	public boolean checkApiKey(String api_key) {
+	public void loginApiKeySuccess(String sso_id, String api_key,String auth_key) {
+		apiKeyService.loginApiKeySuccess(sso_id, api_key,auth_key);
+		
+	}
+
+
+	@Override
+	public void logoutAuthKeySuccess( String api_key, String auth_key){
+
+		apiKeyService.logoutApiKey(api_key);
+		
+	}
+
+	
+	@Override
+	public boolean checkActivedApiKey(String api_key, String auth_key) {
 		logger.info(" *** AuthenticationServiceImpl.checkApiKey");
-		//if (Constant.API_KEY.equalsIgnoreCase(api_key)){
-		if (api_key != null && api_key.length() > 0 && api_key.length() < 500){
+		if (auth_key == null || auth_key.trim().length() == 0){
+			return false;
+		}
+		
+		if (api_key == null || api_key.trim().length() == 0){
+			return false;
+		}
+		if (apiKeyService.isIgnoredKey(api_key)){
 			return true;
 		}
-		//TODO: define later
-		return false;
+		
+		
+		
+		//if (Constant.API_KEY.equalsIgnoreCase(api_key)){
+		//ArrayList<ApiKey> list = apiKeyService.findByApiKey(api_key); // Phai check theo ca auth_key
+		ArrayList<ApiKey> list = apiKeyService.findActivedApiKey(api_key, auth_key);
+		if (list != null && list.size() > 0){
+//			for (ApiKey on_api_key : list){
+//				on_api_key.setLast_request_dt(Utils.now());
+//				apiKeyService.updateApiKey(on_api_key);
+//			}
+			return true;
+		}else {
+			return false;
+		}
 
 	}
 	

@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
@@ -75,6 +76,13 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 		return criteria;
 		
 	}
-	
+	public void setFlushMode(FlushMode mode){
+		getSession().setFlushMode(mode);
+		
+	}
+	public void clear(){
+		getSession().clear();
+		
+	}
 
 }

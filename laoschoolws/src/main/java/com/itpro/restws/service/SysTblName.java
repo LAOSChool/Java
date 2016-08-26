@@ -14,6 +14,10 @@ public enum SysTblName {
 	TBLNAME_SYS_STS("sys_sts","SysSts"),
 	TBLNAME_SYS_STD_MSG("sys_std_msg","SysStdMsg"),
 	
+	TBLNAME_SYS_MSG_SAMP("sys_msg_samp","SysMsgSamp"),
+	TBLNAME_SYS_SETTINGS("sys_settings","SysSettings"),
+	
+	
 	TBLNAME_SYS_WEEKDAY("sys_weekday","SysWeekday");
 	
 	   public String toString() { return tbl_name; }

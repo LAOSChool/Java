@@ -3,11 +3,11 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.itpro.restws.model.SysBase;
 import com.itpro.restws.model.SysSts;
 import com.itpro.restws.service.SysTblName;
 
@@ -19,6 +19,8 @@ public class SysStsDaoImpl extends AbstractDao<Integer, SysSts> implements SysSt
 	public List<SysSts> findAll() {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("actflg","A"));
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SysSts> list = crit_list.list();
 	     return list;
@@ -48,6 +50,12 @@ public class SysStsDaoImpl extends AbstractDao<Integer, SysSts> implements SysSt
 		List<SysSts> list = crit_list.list();
 	     return list;
 	     
+	}
+
+
+	@Override
+	public SysSts findById(Integer id) {
+		return getByKey(id);
 	}
 
 

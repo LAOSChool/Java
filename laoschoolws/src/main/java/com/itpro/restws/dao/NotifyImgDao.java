@@ -11,5 +11,6 @@ public interface NotifyImgDao {
 	void updateImg(NotifyImg notifyImg);
 	NotifyImg findById(Integer id);
 	ArrayList<NotifyImg> findByTaskId(Integer task_id);
+	
 }
 

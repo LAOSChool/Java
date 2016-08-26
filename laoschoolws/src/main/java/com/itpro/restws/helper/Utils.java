@@ -1,4 +1,6 @@
 package com.itpro.restws.helper;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -6,9 +8,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.imageio.ImageIO;
+
+import org.apache.log4j.Logger;
+import org.springframework.http.HttpStatus;
+
 public class Utils {
 	public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
-
+	protected static final Logger logger = Logger.getLogger(Utils.class);
 	public static String now() {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
@@ -193,6 +200,21 @@ public class Utils {
 		return s;
 	}
 	
+	public static String dateToStringDateOnly(Date date){
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String s = formatter.format(date);
+		return s;
+	}
+	
+	
+	public static String numberToDateTime(Long value){
+		String myDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                .format(new Date(value.longValue() * 1000L));
+		
+		
+		return myDate;
+	}
+	
 	public static Date fullTimeToDate(Date date){
 		
 		Format formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -212,18 +234,68 @@ public class Utils {
 		return year;
 	}
 	
-	public static Date parsetDate(String inputString){
+//	public static Date parsetDate(String inputString){
+//		if ((inputString == null ) || inputString.equals("")){
+//			return null;
+//		}
+////		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
+////		try{
+////		       return  formater.parse(inputString);
+////		    }
+////		    catch(Exception e)
+////		    {
+////		        return null;
+////		    }
+//
+//		SimpleDateFormat formater = null;
+//		for (int i=0;i< com.itpro.restws.helper.Constant.datetime_formats.length;i++){
+//			formater = new java.text.SimpleDateFormat(Constant.datetime_formats[i]);
+//			try{
+//				return  formater.parse(inputString);
+//				
+//			} catch(Exception e)
+//		    {
+//		        
+//		    }
+//		}
+//		return null;
+//		    
+//	}
+	public static Date parsetDateAll(String inputString){
 		if ((inputString == null ) || inputString.equals("")){
 			return null;
 		}
-		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
-		    try{
-		       return  formater.parse(inputString);
-		    }
-		    catch(Exception e)
+//		SimpleDateFormat formater = new java.text.SimpleDateFormat("yyyy-MM-dd");
+//		try{
+//		       return  formater.parse(inputString);
+//		    }
+//		    catch(Exception e)
+//		    {
+//		        return null;
+//		    }
+		Date date  = null;
+		SimpleDateFormat formater = null;
+		for (int i=0;i< com.itpro.restws.helper.Constant.datetime_formats.length;i++){
+			formater = new java.text.SimpleDateFormat(Constant.datetime_formats[i]);
+			try{
+				date  = formater.parse(inputString);
+				if (!inputString.equals(formater.format(date))) {
+			        date = null;
+			        logger.info("parsetDateAll(): NG="+Constant.datetime_formats[i]);
+			    }else{
+			    	logger.info("parsetDateAll(): OK="+Constant.datetime_formats[i]);
+					return date;	
+			    }
+				
+				
+				
+			} catch(Exception e)
 		    {
-		        return null;
+				logger.info("parsetDateAll(): Exception="+Constant.datetime_formats[i]);   
 		    }
+		}
+		return null;
+		    
 	}
 	public static Integer parseWeekDay(String inputString){
 		if ((inputString == null ) || inputString.equals("")){
@@ -337,5 +409,119 @@ public class Utils {
 		        return -1;
 		    }
 	}
+	public static int convertDayOfWeekToSyWeekDayID(Integer dayofWee){
+		
+			if (dayofWee.intValue() ==  Calendar.MONDAY){ //2
+				return 1;
+			}
+			else if (dayofWee.intValue() ==  Calendar.TUESDAY){ //3
+				return 2;
+			}
+			else if (dayofWee.intValue() ==  Calendar.WEDNESDAY){ //4
+				return 3;
+			}
+			else if (dayofWee.intValue() ==  Calendar.THURSDAY){ //5
+				return 4;
+			}
+			else if (dayofWee.intValue() ==  Calendar.FRIDAY){ //6
+				return 5;
+					
+			}
+			else if (dayofWee.intValue() ==  Calendar.SATURDAY){ //7
+				return 6;
+				
+			}
+			else if (dayofWee.intValue() ==  Calendar.SUNDAY){ //1
+				return 7;
+				
+			}
+			return 0;
 	
+	}
+	public static void ensureFolder(String fld_path){
+		File directory = new File(fld_path);
+	    if (! directory.exists()){
+	        directory.mkdir();
+	    }	
+	
+	}
+
+	public static String resizeImage(String inputPath, int new_width, int new_height) throws ESchoolException{
+		try{
+			if (inputPath == null || inputPath.trim().length() == 0){
+				throw new ESchoolException("resizeImage(): inputPath = NULL ", HttpStatus.BAD_REQUEST);
+			}
+			File inputFile = new File(inputPath);
+			
+			BufferedImage originalImage = ImageIO.read(inputFile);
+			if (originalImage == null ){
+				throw new ESchoolException("Cannot read input fie:"+inputPath, HttpStatus.BAD_REQUEST);
+			}
+			
+			String fName = inputFile.getName();// /d/home/huynq/test.jpg => test.jpg
+			String fExt = getFileExtension(fName); // test.jpg =>  jpg
+			String fPath = inputFile.getParent(); // /d/home/huynq/test.jpg => /d/home/huynq/
+			
+			String outPath = fPath +"/" + getFilenameWithoutExt(fName) + "_" + new_width + "." +    fExt; // /d/home/huynq/test_300.jpg
+			File outFile = new File(outPath);
+			if (outFile.exists() ){
+				outFile.delete();
+			}
+			int type = originalImage.getType() == 0? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+
+			BufferedImage resizeImageJpg = resizeImage(originalImage, type,new_width,new_height);//jpg,png
+			ImageIO.write(resizeImageJpg, fExt, new File(outPath));
+
+			return outPath;
+		}catch (Exception e){
+			
+			for (StackTraceElement st: e.getStackTrace()){
+				logger.error(st.toString());
+			}
+			throw new ESchoolException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			
+		}
+		
+
+	}
+	private static BufferedImage resizeImage(BufferedImage originalImage, int type, int IMG_WIDTH, int IMG_HEIGHT){
+		BufferedImage resizedImage = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, type);
+		Graphics2D g = resizedImage.createGraphics();
+		g.drawImage(originalImage, 0, 0, IMG_WIDTH, IMG_HEIGHT, null);
+		g.dispose();
+
+		return resizedImage;
+	    }
+
+	private static String getFileExtension(String fileName){
+		String extension = "";
+
+		int i = fileName.lastIndexOf('.');
+		if (i >= 0) {
+		    extension = fileName.substring(i+1);
+		}
+		/***
+		 * "file.doc" => "doc"
+		"file.doc.gz" => "gz"
+		".doc" => "doc"
+		 */
+		return extension;
+	}
+	private static String getFilenameWithoutExt(String str){
+		
+        if (str == null) return null;
+
+        // Get position of last '.'.
+
+        int pos = str.lastIndexOf(".");
+
+        // If there wasn't any '.' just return the string as is.
+
+        if (pos == -1) return str;
+
+        // Otherwise return the string, up to the dot.
+
+        return str.substring(0, pos);
+	}
 }
+

@@ -2,14 +2,17 @@ package com.itpro.restws.controller;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,12 +36,17 @@ public class ClassController extends BaseController {
 	
 	@RequestMapping(value="/api/classes",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public ListEnt getClasses(@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getClasses");
+	public ListEnt getClasses(
+			@RequestParam(value="from_row",required =false) Integer filter_from_row,
+			@RequestParam(value="max_result",required =false) Integer filter_max_result,
+			
+			@Context final HttpServletResponse response,
+			@Context final HttpServletRequest request
+			) {
+		logger.info(" *** ClassController.getClasses");
 		List<EClass> classes = null;
 		int total_row = 0;
-		int from_row = 0;
-		int max_result = Constant.MAX_RESP_ROW;;
+		
 		
 		User user = getCurrentUser();
 		Integer school_id = user.getSchool_id();
@@ -46,12 +54,25 @@ public class ClassController extends BaseController {
 		ListEnt rspEnt = new ListEnt();
 	    try {
 	    	// Count user
+			int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+			int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+	    	
+	    	// Count user
 	    	total_row = classService.countBySchoolID(school_id);
-	    	if (total_row > Constant.MAX_RESP_ROW){
-	    		max_result = Constant.MAX_RESP_ROW;;
-	    	}else{
-	    		max_result = total_row;
+	    	
+	    	if( (total_row <=  0) || (from_row > total_row) ||   max_result<=0) {
+	    		rspEnt.setList(null);
+	    		rspEnt.setFrom_row(0);
+	    		rspEnt.setTo_row(0);
+	    		rspEnt.setTotal_count(0);
+	    		return rspEnt;
 	    	}
+	    	if ((from_row + max_result > total_row)){
+	    		max_result = total_row-from_row;
+	    	}
+	    	logger.info("ClassController : total_row : "+total_row);
+	    	logger.info("ClassController : from_row : "+from_row);
+	    	logger.info("ClassController: max_result : "+max_result);
 	    		
 			logger.info("Class count: total_row : "+total_row);
 			// Query class by school id
@@ -106,7 +127,7 @@ public class ClassController extends BaseController {
 	    return eclass;
 	 }
 	
-	
+	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value="/api/classes/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public EClass createClass(
@@ -119,7 +140,7 @@ public class ClassController extends BaseController {
 		 return classService.newClass(admin, eclass);
 		 
 	}
-	
+	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value="/api/classes/update",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public EClass updateClass(
@@ -132,16 +153,18 @@ public class ClassController extends BaseController {
 		 return classService.updateClass(admin,eclass);
 		 
 	}
-	
+	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value = "/api/classes/delete/{id}", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delClass(
+	 public EClass delClass(
 			@PathVariable int id,
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		logger.info(" *** MainRestController.delUser/{class_id}:"+id);
-	    return "Request was successfully, delete class of id: "+id;
+		
+		logger.info(" *** MainRestController.delClass/{class_id}:"+id);
+		User me = getCurrentUser();
+		return classService.delClass(me,id);
 	 }
 	
 	

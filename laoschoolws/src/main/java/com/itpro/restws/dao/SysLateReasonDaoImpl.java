@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import java.util.List;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,8 @@ public class SysLateReasonDaoImpl extends AbstractDao<Integer, SysLateReason> im
 	public List<SysLateReason> findAll() {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("actflg","A"));
+		crit_list.addOrder(Order.asc("id"));
+		
 	     @SuppressWarnings("unchecked")
 		List<SysLateReason> list = crit_list.list();
 	     return list;
@@ -31,6 +34,12 @@ public class SysLateReasonDaoImpl extends AbstractDao<Integer, SysLateReason> im
 		int count = ((Long)getSession().createQuery("select count(*) from " + SysTblName.TBLNAME_SYS_LATE_REASON.getModelName()+  " WHERE actflg = 'A'").uniqueResult()).intValue();
 		return count;
 
+	}
+
+
+	@Override
+	public SysLateReason findById(Integer id) {
+		return getByKey(id);
 	}
 
 

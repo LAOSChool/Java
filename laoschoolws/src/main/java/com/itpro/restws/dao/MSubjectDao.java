@@ -2,6 +2,8 @@ package com.itpro.restws.dao;
 
 import java.util.ArrayList;
 
+import org.hibernate.FlushMode;
+
 import com.itpro.restws.model.MSubject;
 public interface MSubjectDao {
 	int countBySchool(Integer school_id);
@@ -10,4 +12,6 @@ public interface MSubjectDao {
 	void saveSubject(MSubject msubject);
 	void updateSubject(MSubject msubject);
 	void delSubject(MSubject msubject);
+	void setFlushMode(FlushMode mode);
+	void clearChange();
 }
