@@ -1,0 +1,14 @@
+[2016-09-06 11:53:40][INFO] MAIN THREAD - Start !!!, to exit, please make a file:" ./exit.exit 
+[2016-09-06 11:53:45][INFO]  propertiesPath-D:\Dropbox\Working\Git\LAOSChool\LaoESchool\WIP\SourceCode\Java\laoschool_firebase\. 
+[2016-09-06 11:53:45][INFO]  propertiesPath-FIREBASE_FCM_AUTH_KEY:AIzaSyCisIWVItd72I8Ha9_UGfIR79JwdipzDcA 
+[2016-09-06 11:53:52][INFO] ThreadSend[0] Started 
+[2016-09-06 11:53:52][INFO] ThreadSend[1] Started 
+[2016-09-06 11:53:52][INFO] Create new connection to LaoSchool DB 
+[2016-09-06 11:53:52][INFO] ThreadSend[2] Started 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD Exception message = The url cannot be null 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD 	java.sql.DriverManager.getConnection(Unknown Source) 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD 	java.sql.DriverManager.getConnection(Unknown Source) 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD 	com.itpro.laoschool.firebase.FireBase_DA.getConn(FireBase_DA.java:58) 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD 	com.itpro.laoschool.firebase.FireBase_DA.get_firebase_list(FireBase_DA.java:126) 
+[2016-09-06 11:53:52][ERROR] MAIN THREAD 	com.itpro.laoschool.firebase.ClsMain.main(ClsMain.java:84) 
+[2016-09-06 11:53:52][INFO] Create new connection to LaoSchool DB 

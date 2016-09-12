@@ -1,0 +1,33 @@
+[2016-08-31 16:19:25][INFO] MAIN THREAD - Start !!!, to exit, please make a file:" ./firease.exit 
+[2016-08-31 16:19:30][INFO] sendFirebase START,
+	 titleTitle
+	 body:Content 
+	  
+[2016-08-31 16:19:42][INFO] sendFirebase jsonInString: 
+	 {"priority":"high","to":"eYTWnzdSL3o:APA91bFGadMHyUeKMCoiknNQ9rPllRDLZkf3MR_kLmyL0T5yihKs-2cp1ezCtDfPGSY24xkSMbrALQwo_Io9i4M85Ub1bZ82V0H1fY5BzHBertpEDYgZGaIzKTH1t7HTZri7kf3N4_0p","notification":{"title":"Title","body":"default","badge":1,"sound":"default"}} 
+[2016-08-31 16:19:46][INFO] sendFirebase FIREBASE_URL:https://fcm.googleapis.com/fcm/send 
+[2016-08-31 16:20:06][INFO] 
+Sending 'POST' request to URL : https://fcm.googleapis.com/fcm/send 
+[2016-08-31 16:20:06][INFO] Post parameters : {"priority":"high","to":"eYTWnzdSL3o:APA91bFGadMHyUeKMCoiknNQ9rPllRDLZkf3MR_kLmyL0T5yihKs-2cp1ezCtDfPGSY24xkSMbrALQwo_Io9i4M85Ub1bZ82V0H1fY5BzHBertpEDYgZGaIzKTH1t7HTZri7kf3N4_0p","notification":{"title":"Title","body":"default","badge":1,"sound":"default"}} 
+[2016-08-31 16:20:06][INFO] Response Code : 200 
+[2016-08-31 16:20:09][INFO] {"multicast_id":6690382263523288597,"success":0,"failure":1,"canonical_ids":0,"results":[{"error":"NotRegistered"}]} 
+[2016-08-31 16:37:36][INFO] MAIN THREAD - Start !!!, to exit, please make a file:" ./firease.exit 
+[2016-08-31 16:37:38][INFO] sendFirebase START,
+ [title]
+Title 
+
+ [body]
+Content 
+
+ [toDeviceToken]
+d3uglczBPVQ:APA91bEawo7avHtZd3ppQPo8CjXH1hU8E6TBNa0uNPfQjSS7BnNQW_-zyqMxMRTsOoApb42k760MQYlCFVfM2bYEe741R8omxLDOTUilUCb1JD1_YGdIx9D6Izj5RTkoYw71-wuVgIHB  
+
+ 
+[2016-08-31 16:37:53][INFO] sendFirebase jsonInString: 
+	 {"priority":"high","to":"d3uglczBPVQ:APA91bEawo7avHtZd3ppQPo8CjXH1hU8E6TBNa0uNPfQjSS7BnNQW_-zyqMxMRTsOoApb42k760MQYlCFVfM2bYEe741R8omxLDOTUilUCb1JD1_YGdIx9D6Izj5RTkoYw71-wuVgIHB ","notification":{"title":"Title","body":"default","badge":1,"sound":"default"}} 
+[2016-08-31 16:37:54][INFO] sendFirebase FIREBASE_URL:https://fcm.googleapis.com/fcm/send 
+[2016-08-31 16:37:54][INFO] 
+Sending 'POST' request to URL : https://fcm.googleapis.com/fcm/send 
+[2016-08-31 16:37:55][INFO] Post parameters : {"priority":"high","to":"d3uglczBPVQ:APA91bEawo7avHtZd3ppQPo8CjXH1hU8E6TBNa0uNPfQjSS7BnNQW_-zyqMxMRTsOoApb42k760MQYlCFVfM2bYEe741R8omxLDOTUilUCb1JD1_YGdIx9D6Izj5RTkoYw71-wuVgIHB ","notification":{"title":"Title","body":"default","badge":1,"sound":"default"}} 
+[2016-08-31 16:38:06][INFO] Response Code : 200 
+[2016-08-31 16:38:09][INFO] {"multicast_id":4672665641668550715,"success":0,"failure":1,"canonical_ids":0,"results":[{"error":"InvalidRegistration"}]} 
