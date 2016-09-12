@@ -29,7 +29,7 @@ public interface NotifyService {
 	ArrayList<Notify> findTomUser(Integer to_userid,int from_num, int max_result);
 	
 	
-	Notify updateNotify(Notify notify);
+	Notify updateNotify(User me,Notify notify);
 	Notify saveUploadData(User user,MultipartFile[] files,String[] captions, String[] orders,String json_str_notify);
 	
 	public HashSet<NotifyImg> findImgByTaskID(Integer task_id);

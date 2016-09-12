@@ -18,6 +18,7 @@ import com.itpro.restws.dao.AttendanceDao;
 import com.itpro.restws.dao.MSessionDao;
 import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_MSG_CHANNEL;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Attendance;
 import com.itpro.restws.model.EClass;
@@ -111,7 +112,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		attendance.setStudent_name(me.getFullname());
 		
 		valid_insert_attendance(me,attendance);
-		attendanceDao.saveAttendance(attendance);
+		attendanceDao.saveAttendance(me,attendance);
 		// Send message 
 		send_msg_attendance(attendance);
 
@@ -140,7 +141,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 //	}
 
 	@Override
-	public Attendance updateAttendance(User teacher, Attendance attendance) {
+	public Attendance updateAttendance(User me, Attendance attendance) {
 		if (attendance == null || attendance.getId() == null){
 			throw new ESchoolException("attendance == null || attendance.id = NULL", HttpStatus.BAD_REQUEST);
 		}
@@ -163,11 +164,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 			  attendanceDao.setFlushMode(FlushMode.MANUAL);
 			  curr_db = Attendance.updateChanges(curr_db, attendance);
 				
-			  curr_db.setAuditor(teacher.getId());
-			  curr_db.setAuditor_name(teacher.getFullname());
+			  curr_db.setAuditor(me.getId());
+			  curr_db.setAuditor_name(me.getFullname());
 			  curr_db.setStudent_name(student.getFullname());
 		
-				valid_attendance_info(teacher,curr_db);
+				valid_attendance_info(me,curr_db);
 			  	
 	        } catch (Exception e){
 	        	attendanceDao.clearChange();
@@ -177,7 +178,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 			   attendanceDao.setFlushMode(FlushMode.AUTO);
 	        }
 			  
-			attendanceDao.updateAttendance(curr_db);
+			attendanceDao.updateAttendance(me,curr_db);
 		}else{
 			throw new ESchoolException("Error: cannot find attendace_id:"+attendance.getId(), HttpStatus.BAD_REQUEST);
 		}
@@ -199,12 +200,12 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 
 	@Override
-	public Attendance requestAttendance(User user, Attendance request,boolean in_range, boolean is_sent_msg) {
+	public Attendance requestAttendance(User me, Attendance request,boolean in_range, boolean is_sent_msg) {
 		
 		// more valid
-		valid_insert_attendance(user, request);
+		valid_insert_attendance(me, request);
 		
-		boolean is_valid = validAttendanceRequest(user, request,in_range); 
+		boolean is_valid = validAttendanceRequest(me, request,in_range); 
 		if (is_valid){
 			//SchoolTerm term = schoolYearService.findLatestTermBySchool(user.getSchool_id());
 //			request.setTerm_val(term.getTerm_val());
@@ -216,7 +217,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 			request.setIs_requested(1);
 			request.setRequested_dt(Utils.now());
 			
-			attendanceDao.saveAttendance(request);
+			attendanceDao.saveAttendance(me,request);
 			// Send Message
 			if (!is_sent_msg){
 				// sendAttendMessage(request);
@@ -227,17 +228,17 @@ public class AttendanceServiceImpl implements AttendanceService{
 		return null;
 	}
 	
-	private boolean validAttendanceRequest(User curr_user, Attendance request,boolean in_range){
-		if (curr_user.getSchool_id() != request.getSchool_id()){
+	private boolean validAttendanceRequest(User me, Attendance request,boolean in_range){
+		if (me.getSchool_id() != request.getSchool_id()){
 			throw new ESchoolException("User and request attendance is not in same school", HttpStatus.BAD_REQUEST);
 		}
 		
-		if (!(userService.isBelongToClass(curr_user.getId(), request.getClass_id()))){
-			throw new ESchoolException("UserID:"+curr_user.getId() +" is not belong to class_id:"+ request.getClass_id(), HttpStatus.BAD_REQUEST);
+		if (!(userService.isBelongToClass(me.getId(), request.getClass_id()))){
+			throw new ESchoolException("UserID:"+me.getId() +" is not belong to class_id:"+ request.getClass_id(), HttpStatus.BAD_REQUEST);
 		}
 		
-		if (curr_user.getId() != request.getStudent_id()){
-			throw new ESchoolException("StudentID:"+curr_user.getId()+ " is differ from request attendance student_id = "+request.getStudent_id(), HttpStatus.BAD_REQUEST);
+		if (me.getId() != request.getStudent_id()){
+			throw new ESchoolException("StudentID:"+me.getId()+ " is differ from request attendance student_id = "+request.getStudent_id(), HttpStatus.BAD_REQUEST);
 		}
 		
 		if (!in_range && request.getAtt_dt() == null ){
@@ -260,7 +261,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		int cnt = countAttendanceExt(request.getSchool_id(), request.getClass_id(), request.getStudent_id(),null,request.getAtt_dt(),null,null,null,null,null);
 		if (cnt > 0){
 			// throw new ESchoolException("Request already existing:"+curr_user.getId()+ ",  date="+request.getAtt_dt(), HttpStatus.TOO_MANY_REQUESTS);
-			logger.error("Request already existing:"+curr_user.getId());
+			logger.error("Request already existing:"+me.getId());
 			return false;
 		}
 		return true;
@@ -386,7 +387,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 //		Message msg = messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content);
 //		messageService.insertMessageExt(msg);
-		messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content);
+		messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content, E_MSG_CHANNEL.FIREBASE.getValue());
 		
 	}
 
@@ -647,7 +648,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 //		Message msg = messageService.newMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
 //		messageService.insertMessageExt(msg);
-		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
+		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content, E_MSG_CHANNEL.FIREBASE.getValue());
 
 
 		

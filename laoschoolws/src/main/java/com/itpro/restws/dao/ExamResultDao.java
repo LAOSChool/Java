@@ -6,6 +6,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.ExamResult;
+import com.itpro.restws.model.User;
 
 public interface ExamResultDao {
 
@@ -23,35 +24,15 @@ public interface ExamResultDao {
 
 	List<ExamResult> findByStudent(Integer user_id, int from_row, int max_result);
 
-	// List<ExamResult> findSameExam(
-	// Integer school_id,
-	// Integer student_id,
-	// Integer class_id,
-	// Integer subject_id,
-	// Integer exam_id,
-	// Integer term_id,
-	// Integer exam_year,
-	// Integer school_year_id);
+	
 
-	void saveExamResult(ExamResult examResult);
+	void saveExamResult(User me,ExamResult examResult);
 
-	void updateExamResult(ExamResult examResult);
+	void updateExamResult(User me,ExamResult examResult);
 
-	void deleteExamResult(ExamResult examResult);
+	void deleteExamResult(User me,ExamResult examResult);
 
-	// int countExamResultExt(Integer school_id, Integer class_id, Integer
-	// user_id, Integer subject_id,
-	// Integer term_id, Integer exam_year, Integer exam_month, String exam_dt,
-	// String dateFrom, String dateTo,
-	// Integer from_row_id,Integer exam_type, Integer sch_year_id) ;
-	//
-	//
-	// ArrayList<ExamResult> findExamResultExt(Integer school_id, int from_row,
-	// int max_result, Integer class_id,
-	// Integer user_id, Integer subject_id, Integer term_id, Integer exam_year,
-	// Integer exam_month,
-	// String exam_dt, String dateFrom, String dateTo, Integer
-	// from_row_id,Integer exam_type, Integer sch_year_id) ;
+	
 
 		ArrayList<ExamResult> findExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer subject_id,Integer sch_year_id);
 		int  countExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer subject_id,Integer sch_year_id);

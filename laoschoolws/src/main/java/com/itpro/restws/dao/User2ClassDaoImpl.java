@@ -9,7 +9,10 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
+import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
 
 @Repository("user2ClassDao")
@@ -49,11 +52,25 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 	}
 
 	@Override
-	public void saveUser2Class(User2Class user2Class) {
+	public void saveUser2Class(User me,User2Class user2Class) {
 		user2Class.setActflg("A");
-		user2Class.setCtdusr("HuyNQ-test");
+		user2Class.setCtdusr(Constant.USER_SYS);
 		user2Class.setCtddtm(Utils.now());
-		user2Class.setCtdpgm("RestWS");
+		user2Class.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			user2Class.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				user2Class.setCtdwks(device);
+			}
+			
+		}
+		
 		
 		save(user2Class);
 
@@ -61,9 +78,22 @@ public class User2ClassDaoImpl extends AbstractDao<Integer, User2Class> implemen
 	}
 
 	@Override
-	public void updateUser2Class(User2Class user2Class) {
-		user2Class.setMdfusr("HuyNQ-test");
-		user2Class.setMdfpgm("RestWS");
+	public void updateUser2Class(User me,User2Class user2Class) {
+		user2Class.setMdfusr(Constant.USER_SYS);
+		user2Class.setLstmdf(Utils.now());
+		user2Class.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			user2Class.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				user2Class.setMdfwks(device);
+			}
+		}
 		update(user2Class);
 	}
 

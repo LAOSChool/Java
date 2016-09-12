@@ -12,8 +12,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.Message;
+import com.itpro.restws.model.User;
 
 @Repository("messageDao")
 @Transactional
@@ -127,12 +130,29 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	}
 
 	@Override
-	public void saveMessage(Message message) {
+	public void saveMessage(User me,Message message) {
+				
+		
 		message.setActflg("A");
-		message.setCtdusr("HuyNQ-test");
+		message.setCtdusr(Constant.USER_SYS);
 		message.setCtddtm(Utils.now());
-		message.setCtdpgm("RestWS");
-		message.setCtddtm(Utils.now());
+		message.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			message.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				message.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		//Integer id = save(message);
 		save(message);
 		// message.setId(id);
@@ -140,10 +160,24 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 	}
 
 	@Override
-	public void updateMessage(Message message) {
-		message.setMdfusr("HuyNQ-test");
+	public void updateMessage(User me,Message message) {
+		message.setMdfusr(Constant.USER_SYS);
 		message.setLstmdf(Utils.now());
-		message.setMdfpgm("RestWS");
+		message.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			message.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				message.setMdfwks(device);
+			}
+		}
+		
+		
 		update(message);
 
 	}

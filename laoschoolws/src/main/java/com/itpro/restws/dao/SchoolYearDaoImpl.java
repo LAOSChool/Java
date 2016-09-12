@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.SchoolYear;
+import com.itpro.restws.model.User;
 
 @Repository("schoolYearDao")
 @Transactional
@@ -24,22 +27,50 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 
 
 	@Override
-	public void saveSchoolYear(SchoolYear schoolYear) {
+	public void saveSchoolYear(User me,SchoolYear schoolYear) {
+		
 		schoolYear.setActflg("A");
-		schoolYear.setCtdusr("HuyNQ-test");
+		schoolYear.setCtdusr(Constant.USER_SYS);
 		schoolYear.setCtddtm(Utils.now());
-		schoolYear.setCtdpgm("RestWS");
-		schoolYear.setCtddtm(Utils.now());
+		schoolYear.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolYear.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolYear.setCtdwks(device);
+			}
+			
+		}
+		
 		save(schoolYear);
 		
 	}
 
 
 	@Override
-	public void updateSchoolYear(SchoolYear schoolYear) {
-		schoolYear.setMdfusr("HuyNQ-test");
+	public void updateSchoolYear(User me,SchoolYear schoolYear) {
+		
+
+		schoolYear.setMdfusr(Constant.USER_SYS);
 		schoolYear.setLstmdf(Utils.now());
-		schoolYear.setMdfpgm("RestWS");
+		schoolYear.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolYear.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolYear.setMdfwks(device);
+			}
+		}
 		update(schoolYear);
 		
 	}

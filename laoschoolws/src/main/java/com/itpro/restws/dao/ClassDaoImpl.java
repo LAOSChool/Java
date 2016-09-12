@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.EClass;
+import com.itpro.restws.model.User;
 
 
 @Repository("classesDao")
@@ -61,22 +64,50 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 	}
 
 	@Override
-	public void saveClass(EClass eClass) {
+	public void saveClass(User me, EClass eClass) {
+
+		
 		eClass.setActflg("A");
-		eClass.setCtdusr("HuyNQ-test");
+		eClass.setCtdusr(Constant.USER_SYS);
 		eClass.setCtddtm(Utils.now());
-		eClass.setCtdpgm("RestWS");
-		eClass.setCtddtm(Utils.now());
+		eClass.setCtdpgm(Constant.PGM_REST);
+		if (me != null ){
+			eClass.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				eClass.setCtdwks(device);
+			}
+			
+		}
+		
 		save(eClass);
 
 		
 	}
 
 	@Override
-	public void updateClass(EClass eClass) {
-		eClass.setMdfusr("HuyNQ-test");
+	public void updateClass(User me, EClass eClass) {
+
+		eClass.setMdfusr(Constant.USER_SYS);
 		eClass.setLstmdf(Utils.now());
-		eClass.setMdfpgm("RestWS");
+		eClass.setMdfpgm(Constant.PGM_REST);
+		if (me != null ){
+			eClass.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				eClass.setMdfwks(device);
+			}
+		}
+		
+		
 		update(eClass);
 
 		

@@ -16,11 +16,11 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @DynamicUpdate(value=true)
 @SelectBeforeUpdate(value=true) 
 
-public class FirebaseMsg extends AbstractModel implements java.io.Serializable{
+public class FirebaseMsg extends AbstractModel {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+
 
 	@Id
 	@GeneratedValue
@@ -74,12 +74,7 @@ public class FirebaseMsg extends AbstractModel implements java.io.Serializable{
 
 
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-
-
+	
 	public Integer getId() {
 		return id;
 	}

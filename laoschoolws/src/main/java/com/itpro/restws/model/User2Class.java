@@ -50,6 +50,12 @@ public class User2Class extends AbstractModel{
 	@Column(name="notice")
 	private String notice;
 
+	@Column(name="sso_id")
+	private String sso_id;
+	@Column(name="cls_title")
+	private String cls_title;
+	
+	
 	public Integer getId() {
 		return id;
 	}
@@ -128,6 +134,23 @@ public class User2Class extends AbstractModel{
 
 	public void setNotice(String notice) {
 		this.notice = notice;
+	}
+
+	public String getSso_id() {
+		return sso_id;
+	}
+
+	public String getCls_title() {
+		return cls_title;
+	}
+
+
+	public void setSso_id(String sso_id) {
+		this.sso_id = sso_id;
+	}
+
+	public void setCls_title(String cls_title) {
+		this.cls_title = cls_title;
 	}
 
 	

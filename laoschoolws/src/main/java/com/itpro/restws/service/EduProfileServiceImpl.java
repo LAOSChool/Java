@@ -86,7 +86,7 @@ public class EduProfileServiceImpl implements EduProfileService{
 			if (current_profiles == null || current_profiles.size() <= 0){
 				EduProfile current_profile = new_blank_edu_profile(student, curr_year.getId());
 				if (current_profile != null ){
-					eduProfileDao.saveStudentProfile(current_profile);
+					eduProfileDao.saveStudentProfile(null,current_profile);
 					eduProfiles.add(current_profile);
 				}else{
 					throw new ESchoolException("new_blank_edu_profile() return null", HttpStatus.BAD_REQUEST);
@@ -135,19 +135,19 @@ public class EduProfileServiceImpl implements EduProfileService{
 		eduProfile.setStudent_name(student.getSso_id());
 		eduProfile.setSchool_year_id(year_id);
 		eduProfile.setSchool_years(schoolYear.getYears());
-		eduProfile.setStart_dt(Utils.now());// TODO: need update later
+		eduProfile.setStart_dt(Utils.now());
 		
 		return eduProfile;
 	}
 
 	@Override
-	public ArrayList<EduProfile> getClassProfile(User teacher, Integer class_id, Integer student_id, Integer year_id) {
+	public ArrayList<EduProfile> getClassProfile(User me, Integer class_id, Integer student_id, Integer year_id) {
 		if ((class_id == null || class_id.intValue() == 0) &&
 		   (student_id == null || student_id.intValue() == 0) ){
 			throw new ESchoolException("Must input filter_class_id OR filter_student_id:", HttpStatus.BAD_REQUEST);
 		}
 		
-		Integer school_id = teacher.getSchool_id();
+		Integer school_id = me.getSchool_id();
 		// Check student
 		ArrayList<User> users = new ArrayList<User>();
 		if (student_id != null && student_id.intValue() > 0){
@@ -158,8 +158,8 @@ public class EduProfileServiceImpl implements EduProfileService{
 			if (filter_student.getSchool_id().intValue() != school_id.intValue()){
 				throw new ESchoolException("filter_student_id is not in SAME school with teacher", HttpStatus.BAD_REQUEST);
 			}
-			if (teacher.hasRole(E_ROLE.TEACHER.getRole_short())){
-				if (!userService.isSameClass(teacher, filter_student)){
+			if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+				if (!userService.isSameClass(me, filter_student)){
 					throw new ESchoolException("filter_student_id is not in SAME class with teacher", HttpStatus.BAD_REQUEST);
 				}
 			}
@@ -173,9 +173,9 @@ public class EduProfileServiceImpl implements EduProfileService{
 			if (filter_eclass.getSchool_id().intValue() != school_id.intValue()){
 				throw new ESchoolException("filter_class_id is not in SAME school with teacher", HttpStatus.BAD_REQUEST);
 			}
-			if (teacher.hasRole(E_ROLE.TEACHER.getRole_short())){
-				if (!userService.isBelongToClass(teacher.getId(), class_id)){
-					throw new ESchoolException("teacher:"+teacher.getId().intValue()+" is not belong to filter_class_id:"+class_id.intValue(), HttpStatus.BAD_REQUEST);
+			if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+				if (!userService.isBelongToClass(me.getId(), class_id)){
+					throw new ESchoolException("teacher:"+me.getId().intValue()+" is not belong to filter_class_id:"+class_id.intValue(), HttpStatus.BAD_REQUEST);
 				}
 			}
 			Set<User> setUsers = filter_eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());

@@ -1,5 +1,6 @@
 package com.itpro.restws.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -12,10 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.ActionLogDao;
+import com.itpro.restws.helper.AuthenticationRequestWrapper;
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.helper.MultipartFromWrapper;
+import com.itpro.restws.helper.MyRequestWrapper;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ActionLog;
 import com.itpro.restws.model.User;
+
+import sun.misc.IOUtils;
 
 @Service("actionLogService")
 @Transactional
@@ -54,7 +60,7 @@ public class ActionLogServiceImpl implements ActionLogService{
 	}
 
 	@Override
-	public ActionLog insertAction(ActionLog act) {
+	public ActionLog insertAction( ActionLog act) {
 		
 		actionLogDao.saveAction(act);;
 		return act;
@@ -153,27 +159,25 @@ public class ActionLogServiceImpl implements ActionLogService{
 	}
 
 	@Override
-	public ActionLog start_trace(HttpServletRequest request,User user) {
+	public ActionLog start_trace(HttpServletRequest request,User me) {
+		boolean is_loggin = false;
+		String log_content = "";
 		ActionLog act = new ActionLog();
-		/// Log JSON 
-//		try {
-//			byte[] jsonBody = IOUtils.readFully(request.getInputStream(),-1,true);
-//			String x = new String(jsonBody);
-//			 System.out.println("Text Decryted : " + x);
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
+		/// Log JSON
+		//  Only if /api/sms/log
+		if (request.getRequestURL().toString().contains("/api/sms/log")){
+			is_loggin = true;
+			try {
+				
+				byte[] jsonBody = IOUtils.readFully(request.getInputStream(),-1,true);
+				log_content = new String(jsonBody);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	
+		}
+		//		
 		
-//		 Map params = request.getParameterMap();
-//         Iterator i = params.keySet().iterator();
-//         while ( i.hasNext() )
-//           {
-//             String key = (String) i.next();
-//             String value = ((String[]) params.get( key ))[ 0 ];
-//            
-//           }
      
      
 		 Map<String, String> requestMap = this.getTypesafeRequestMap(request);
@@ -189,21 +193,198 @@ public class ActionLogServiceImpl implements ActionLogService{
 	                   .append(requestMap)
 	                   .append("]\n[REMOTE ADDRESS:")
 	                   .append(request.getRemoteAddr())
+	                   .append("]\n[REMOTE HOST:")
+	                   .append(request.getRemoteHost())
 	                   .append("]\n[LOCAL ADDRESS:")
 	                   .append(request.getLocalAddr())
 	                   .append("\n");
         
 		act.setRequest_data(logMessage.length() > Constant.ActionLogMaxLength?logMessage.toString().substring(0, Constant.ActionLogMaxLength-1):logMessage.toString());
+		if (is_loggin){
+			act.setRequest_data("--- REST Request ---\n"+log_content);	
+		}
 		act.setRequest_dt(Utils.now());
 		act.setRequest_method(request.getMethod());
 		act.setRequest_url(request.getServletPath());
 		// User info
-		act.setSchool_id(user.getSchool_id());
-		act.setSso_id(user.getSso_id());
-		act.setUser_role(user.getRoles());
+		act.setSchool_id(me.getSchool_id());
+		act.setSso_id(me.getSso_id());
+		act.setUser_role(me.getRoles());
 		actionLogDao.saveAction(act);
 		return act;
 	}
-	
+/*
+	private void printRequest(HttpServletRequest httpRequest) {
+        System.out.println("receive " + httpRequest.getMethod() +" notification for "+ httpRequest.getRequestURI());
+
+
+        System.out.println(" \n\n Headers");
+
+        Enumeration<String> headerNames = httpRequest.getHeaderNames();
+        while(headerNames.hasMoreElements()) {
+            String headerName = (String)headerNames.nextElement();
+            System.out.println(headerName + " = " + httpRequest.getHeader(headerName));
+        }
+
+        System.out.println("\n\nParameters");
+
+        Enumeration<String> params = httpRequest.getParameterNames();
+        while(params.hasMoreElements()){
+            String paramName = (String)params.nextElement();
+            System.out.println(paramName + " = " + httpRequest.getParameter(paramName));
+        }
+
+        System.out.println("\n\n Row data");
+        System.out.println(extractPostRequestBody(httpRequest));
+    }
+
+    static String extractPostRequestBody(HttpServletRequest request) {
+        if ("POST".equalsIgnoreCase(request.getMethod())) {
+            Scanner s = null;
+            try {
+                s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return s.hasNext() ? s.next() : "";
+        }
+        return "";
+    }
+*/
+	@Override
+	public ActionLog start_tracewrapper(MyRequestWrapper myRequestWrapper, User me) {
+		ActionLog act = new ActionLog();
+		String body = myRequestWrapper.getBody();
+//		byte ptext[] = myRequestWrapper.getBody().getBytes(Constant.ISO_8859_1); 
+//		String body = new String(ptext, Constant.UTF_8); 
+
+    
+			 Map<String, String> requestMap = this.getTypesafeRequestMap(myRequestWrapper);
+			 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(myRequestWrapper);
+		        final StringBuilder logMessage = new StringBuilder("--- REST Request ---\n")
+		                   .append("[HTTP METHOD:")
+	                       .append(myRequestWrapper.getMethod())                                        
+		                   .append("]\n[PATH INFO:")
+	                       .append(myRequestWrapper.getServletPath())
+	                       .append("]\n[REQUEST HEADERS:")
+		                   .append(headerMap)
+		                   .append("]\n[REQUEST BODY:")
+		                   .append(body)		                   
+		                   .append("]\n[REQUEST PARAMETERS:")
+		                   .append(requestMap)
+		                   .append("]\n[REMOTE ADDRESS:")
+		                   .append(myRequestWrapper.getRemoteAddr())
+		                   .append("]\n[REMOTE HOST:")
+		                   .append(myRequestWrapper.getRemoteHost())
+		                   .append("]\n[LOCAL ADDRESS:")
+		                   .append(myRequestWrapper.getLocalAddr())
+		                   .append("\n");
+	        
+			act.setRequest_data(logMessage.length() > Constant.ActionLogMaxLength?logMessage.toString().substring(0, Constant.ActionLogMaxLength-1):logMessage.toString());
+		
+			act.setRequest_dt(Utils.now());
+			act.setRequest_method(myRequestWrapper.getMethod());
+			act.setRequest_url(myRequestWrapper.getServletPath());
+			// User info
+			act.setSchool_id(me.getSchool_id());
+			act.setSso_id(me.getSso_id());
+			act.setUser_role(me.getRoles());
+			
+			actionLogDao.saveAction(act);
+			return act;
+
+	}
+
+	@Override
+	public ActionLog start_tracewrapper2(AuthenticationRequestWrapper myRequestWrapper, User me)   {
+		try{
+		ActionLog act = new ActionLog();
+		byte[] bytes = myRequestWrapper.getRequestBody();
+		String log_content = new String(bytes);
+		
+    
+			 Map<String, String> requestMap = this.getTypesafeRequestMap(myRequestWrapper);
+			 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(myRequestWrapper);
+		        final StringBuilder logMessage = new StringBuilder("--- REST Request ---\n")
+		                   .append("[HTTP METHOD:")
+	                       .append(myRequestWrapper.getMethod())                                        
+		                   .append("]\n[PATH INFO:")
+	                       .append(myRequestWrapper.getServletPath())
+	                       .append("]\n[REQUEST HEADERS:")
+		                   .append(headerMap)
+		                   .append("]\n[REQUEST BODY:")
+		                   .append(log_content)		                   
+		                   .append("]\n[REQUEST PARAMETERS:")
+		                   .append(requestMap)
+		                   .append("]\n[REMOTE ADDRESS:")
+		                   .append(myRequestWrapper.getRemoteAddr())
+		                   .append("]\n[REMOTE HOST:")
+		                   .append(myRequestWrapper.getRemoteHost())
+		                   .append("]\n[LOCAL ADDRESS:")
+		                   .append(myRequestWrapper.getLocalAddr())
+		                   .append("\n");
+	        
+			act.setRequest_data(logMessage.length() > Constant.ActionLogMaxLength?logMessage.toString().substring(0, Constant.ActionLogMaxLength-1):logMessage.toString());
+		
+			act.setRequest_dt(Utils.now());
+			act.setRequest_method(myRequestWrapper.getMethod());
+			act.setRequest_url(myRequestWrapper.getServletPath());
+			// User info
+			act.setSchool_id(me.getSchool_id());
+			act.setSso_id(me.getSso_id());
+			act.setUser_role(me.getRoles());
+			
+			actionLogDao.saveAction(act);
+			return act;
+		}catch (Exception e){
+			throw new RuntimeException(e.getMessage());
+		}
+	}
+
+	@Override
+	public ActionLog start_tracewrapper3(MultipartFromWrapper myRequestWrapper, User me) {
+		try{
+			ActionLog act = new ActionLog();
+			
+			String log_content =  myRequestWrapper.getRequestBody();
+			
+	    
+				 Map<String, String> requestMap = this.getTypesafeRequestMap(myRequestWrapper);
+				 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(myRequestWrapper);
+			        final StringBuilder logMessage = new StringBuilder("--- REST Request ---\n")
+			                   .append("[HTTP METHOD:")
+		                       .append(myRequestWrapper.getMethod())                                        
+			                   .append("]\n[PATH INFO:")
+		                       .append(myRequestWrapper.getServletPath())
+		                       .append("]\n[REQUEST HEADERS:")
+			                   .append(headerMap)
+			                   .append("]\n[REQUEST BODY:")
+			                   .append(log_content)		                   
+			                   .append("]\n[REQUEST PARAMETERS:")
+			                   .append(requestMap)
+			                   .append("]\n[REMOTE ADDRESS:")
+			                   .append(myRequestWrapper.getRemoteAddr())
+			                   .append("]\n[REMOTE HOST:")
+			                   .append(myRequestWrapper.getRemoteHost())
+			                   .append("]\n[LOCAL ADDRESS:")
+			                   .append(myRequestWrapper.getLocalAddr())
+			                   .append("\n");
+		        
+				act.setRequest_data(logMessage.length() > Constant.ActionLogMaxLength?logMessage.toString().substring(0, Constant.ActionLogMaxLength-1):logMessage.toString());
+			
+				act.setRequest_dt(Utils.now());
+				act.setRequest_method(myRequestWrapper.getMethod());
+				act.setRequest_url(myRequestWrapper.getServletPath());
+				// User info
+				act.setSchool_id(me.getSchool_id());
+				act.setSso_id(me.getSso_id());
+				act.setUser_role(me.getRoles());
+				
+				actionLogDao.saveAction(act);
+				return act;
+			}catch (Exception e){
+				throw new RuntimeException(e.getMessage());
+			}
+	}
 
 }

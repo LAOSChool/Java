@@ -9,6 +9,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.AuthenKey;
 
@@ -35,10 +36,10 @@ public class AuthenKeyDaoImpl extends AbstractDao<Integer, AuthenKey> implements
 	@Override
 	public void saveToken(AuthenKey authenKey) {
 		authenKey.setActflg("A");
-		authenKey.setCtdusr("HuyNQ-test");
+		authenKey.setCtdusr(Constant.USER_SYS);
 		authenKey.setCtddtm(Utils.now());
-		authenKey.setCtdpgm("RestWS");
-		authenKey.setCtddtm(Utils.now());
+		authenKey.setCtdpgm(Constant.PGM_REST);
+		
 		persist(authenKey);
 	}
 
@@ -51,9 +52,9 @@ public class AuthenKeyDaoImpl extends AbstractDao<Integer, AuthenKey> implements
 
 	@Override
 	public void updateToken(AuthenKey authenKey) {
-		authenKey.setMdfusr("HuyNQ-test");
+		authenKey.setMdfusr(Constant.USER_SYS);
 		authenKey.setLstmdf(Utils.now());
-		authenKey.setMdfpgm("RestWS");
+		authenKey.setMdfpgm(Constant.PGM_REST);
 		update(authenKey);
 		
 	}
@@ -79,14 +80,7 @@ public class AuthenKeyDaoImpl extends AbstractDao<Integer, AuthenKey> implements
 
 	@Override
 	public int deleteBySso(String sso) {
-//		Query query = session.createQuery("delete Product where price > :maxPrice");
-//		query.setParameter("maxPrice", new Float(1000f));
-//		 
-//		int result = query.executeUpdate();
-//		 
-//		if (result > 0) {
-//		    System.out.println("Expensive products was removed");
-//		}
+
 		Query query = getSession().createQuery("delete AuthenKey where sso_id = :sso");
 		query.setParameter("sso", sso);
 		 

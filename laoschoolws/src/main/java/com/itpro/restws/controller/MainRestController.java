@@ -15,10 +15,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
+import com.itpro.restws.service.ActionLogService;
 import com.itpro.restws.service.UserService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -35,7 +37,8 @@ public class MainRestController {
 	private static final Logger logger = Logger.getLogger(MainRestController.class);
 	@Autowired
 	private ApplicationContext applicationContext;
-
+	@Autowired
+	ActionLogService actionLogService;
 //	@Autowired
 //	private ResourceBundleMessageSource messageSource;// Store messages
 	@Autowired
@@ -272,6 +275,18 @@ public class MainRestController {
 		return user;
 	}
 
-	
+	@Secured({"ROLE_ADMIN" })
+	@RequestMapping(value = "/api/sms/log", method = RequestMethod.POST)
+	public String log(String content,
+			@Context final HttpServletResponse response,
+			@Context final HttpServletRequest request
+			) {
+		if (content != null && content.length() > 0){
+		logger.info("\n====== API LOG ==== START");
+		logger.info(content);
+		logger.info("====== API LOG ==== END\n");
+		}
+		return "DONE";
+	}	
 			
 }

@@ -31,16 +31,16 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 	}
 
 	@Override
-	public SchoolExam insertSchoolExam(User user, SchoolExam schoolExam) {
-		validateSchoolExam(user,schoolExam);
-		schoolExamDao.saveSchoolExam(schoolExam);
+	public SchoolExam insertSchoolExam(User me, SchoolExam schoolExam) {
+		validateSchoolExam(me,schoolExam);
+		schoolExamDao.saveSchoolExam(me,schoolExam);
 		return schoolExam;
 		
 	}
 
 	@Override
-	public SchoolExam updateSchoolExam(User user, SchoolExam schoolExam) {
-		validateSchoolExam(user,schoolExam);
+	public SchoolExam updateSchoolExam(User me, SchoolExam schoolExam) {
+		validateSchoolExam(me,schoolExam);
 		
 		
 		if (schoolExam.getId() != null && schoolExam.getId().intValue() >0 ){
@@ -50,11 +50,11 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 				throw new ESchoolException("SchoolExam.id is not exising: "+schoolExam.getId().intValue(), HttpStatus.BAD_REQUEST);
 			}
 			
-			if (ex_db.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (ex_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("ex_db.SchooId is not same with user.school_id", HttpStatus.BAD_REQUEST);
 			}
 			SchoolExam.updateChanges(ex_db, schoolExam);
-			schoolExamDao.updateSchoolExam(ex_db);
+			schoolExamDao.updateSchoolExam(me,ex_db);
 			return ex_db;
 		}else{
 			throw new ESchoolException("SchoolExam.id is NULL", HttpStatus.BAD_REQUEST);
@@ -62,16 +62,16 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 	}
 
 	@Override
-	public void delById(User user, Integer id) {
+	public void delById(User me, Integer id) {
 		SchoolExam ex = schoolExamDao.findById(id);
 		if (ex == null ){
 			throw new ESchoolException("Delete SchoolExam.ID is not existing", HttpStatus.BAD_REQUEST);
 		}
-		if (ex.getSchool_id().intValue() != user.getSchool_id().intValue()){
+		if (ex.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("Delete SchoolExam.school_id is not same with user.school_id", HttpStatus.BAD_REQUEST);
 		}
 		ex.setActflg("D");
-		schoolExamDao.updateSchoolExam(ex);
+		schoolExamDao.updateSchoolExam(me,ex);
 		
 	}
 

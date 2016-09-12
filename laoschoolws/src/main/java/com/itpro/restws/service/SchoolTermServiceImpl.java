@@ -40,7 +40,7 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	@Override
 	public SchoolTerm insertSchoolTerm(User me, SchoolTerm schoolTerm) {
 		validTerm(me,schoolTerm,true);
-		schoolTermDao.saveSchoolTerm(schoolTerm);
+		schoolTermDao.saveSchoolTerm(me,schoolTerm);
 		return schoolTerm;
 	}
 
@@ -83,7 +83,7 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	        }
 		  
 		
-		schoolTermDao.updateSchoolTerm(term_db);
+		schoolTermDao.updateSchoolTerm(me,term_db);
 		return term_db;
 	}
 
@@ -289,7 +289,7 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 			throw new ESchoolException("term_id"+id.intValue()+" is not in same school with current user", HttpStatus.BAD_REQUEST);
 		}
 		term.setActflg("D");
-		schoolTermDao.updateSchoolTerm(term);
+		schoolTermDao.updateSchoolTerm(me,term);
 		
 	}
 
@@ -329,7 +329,7 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 			throw new ESchoolException("INACTIVE term cannot be change to ACTIVE or PENDING", HttpStatus.BAD_REQUEST);
 		}
 		termDB.setActived(active);
-		schoolTermDao.updateSchoolTerm(termDB);
+		schoolTermDao.updateSchoolTerm(me,termDB);
 		return termDB;
 	}
 

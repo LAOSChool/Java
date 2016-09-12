@@ -1,7 +1,6 @@
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,8 +45,18 @@ public class ExamResultController extends BaseController {
 	{
 		
 		logger.info(" *** MainRestController.getExamResult/{id}:"+id);
-		return examResultService.findById(Integer.valueOf(id));
+		User me = getCurrentUser();
+		ExamResult ret = examResultService.findById(me,Integer.valueOf(id));
+		
+		if (ret == null){
+    		throw new ESchoolException("Not found", HttpStatus.NOT_FOUND);
+    	}
+		if (ret.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("school_id of user not same with exam result", HttpStatus.BAD_REQUEST);
+		}
+		return ret;
 	 }
+
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
 	@RequestMapping(value="/api/exam_results/input",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -58,8 +67,8 @@ public class ExamResultController extends BaseController {
 			) {
 		logger.info(" *** inputExamResult Start");
 		
-		User teacher = getCurrentUser();
-		ExamResult ret = examResultService.inputExam(teacher,examResult);
+		User me = getCurrentUser();
+		ExamResult ret = examResultService.inputExam(me,examResult);
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(ret);
 	    return rsp;
@@ -91,22 +100,24 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.getExamResults() START");
-		User teacher = getCurrentUser();
+		User me = getCurrentUser();
 
 		// check teacher
-		if (teacher.hasRole(E_ROLE.ADMIN.getRole_short())){
+		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
 			
-    	}else if (teacher.hasRole(E_ROLE.TEACHER.getRole_short())  ){
-    		if (!userService.isBelongToClass(teacher.getId(), filter_class_id)){
-    			throw new ESchoolException("User ID="+teacher.getId()+" is not belong to the class id = "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
+    	}else if (me.hasRole(E_ROLE.TEACHER.getRole_short())  ){
+    		if (!userService.isBelongToClass(me.getId(), filter_class_id)){
+    			throw new ESchoolException("User ID="+me.getId()+" is not belong to the class id = "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
     		}    		
     		
     	}else{
-    		throw new ESchoolException("Invalid user role:"+teacher.getRoles(),HttpStatus.BAD_REQUEST);
+    		throw new ESchoolException("Invalid user role:"+me.getRoles(),HttpStatus.BAD_REQUEST);
     	}
     	
 		
-		List<ExamResult> exam_results  = examResultService.getClassProfile(teacher.getSchool_id(),filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
+		ArrayList<ExamResult> exam_results  = examResultService.getClassProfile(me.getSchool_id(),filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
+		
+		examResultService.orderExamResultByID(exam_results, 0);
 		
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(exam_results);
@@ -125,25 +136,17 @@ public class ExamResultController extends BaseController {
 			 ) {
 		logger.info(" *** MainRestController.getExamResultProfile Start");
 		// Valid class ID
-//		Integer class_id = Utils.parseInteger(filter_class_id);
-//		if (class_id == null){
-//			throw new ESchoolException(" filter_class_id  is required !", HttpStatus.BAD_REQUEST);
-//			
-//		}
 		
 		User student = getCurrentUser();
-//		if (!student.is_belong2class(class_id)){
-//			throw new ESchoolException(" user:"+student.getId()+" is not belong to class_id: "+class_id.intValue(), HttpStatus.BAD_REQUEST);
-//		}
-		
 		
 		ListEnt rspEnt = new ListEnt();
 		// Initial data if necessary
-		// examResultService.initStudentExamResult(student, class_id);
-    	// ArrayList<ExamResult> list = examResultService.findUserProfile(student, class_id);
-		
+	
 		
 		ArrayList<ExamResult> list  = examResultService.getUserProfile(student,filter_subject_id, filter_year_id);
+		
+		examResultService.orderExamResultByID(list, 0);
+		
 	    rspEnt.setFrom_row(0);
 	    rspEnt.setTo_row(list.size());
 		rspEnt.setTotal_count(list.size());
@@ -202,9 +205,9 @@ public class ExamResultController extends BaseController {
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/exam_results/ranks",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo getExamRanks(
+	public RespInfo rankGetExamRanks(
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
-			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
+			@RequestParam(value="filter_class_id",required =true) Integer filter_class_id,
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
 			
 			@Context final HttpServletRequest request,
@@ -212,70 +215,43 @@ public class ExamResultController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.getExamRanks");
 
-		User current_user = getCurrentUser();
+		User me = getCurrentUser();
 				
 		ArrayList<ExamRank> exam_ranks  = null;
 		
 		if (filter_class_id == null || filter_class_id.intValue() == 0)  {
 			throw new ESchoolException("filter_class_id required", HttpStatus.BAD_REQUEST);
 		}
-
-
+		// Filter by Student
 		
 		if (filter_student_id != null && filter_student_id.intValue() > 0){
-			User student = userService.findById(filter_student_id);
-			if (student != null && student.getSchool_id().intValue() == current_user.getSchool_id().intValue()){ 
-				exam_ranks = examResultService.getUserRank(student, filter_class_id, filter_year_id);
+			User student = null;
+			if (me.hasRole(E_ROLE.STUDENT.getRole_short())){
+				filter_student_id = me.getId();
+				student = me;
+			}else{
+				student = userService.findById(filter_student_id);
+			}
+			if (student != null && student.getSchool_id().intValue() == me.getSchool_id().intValue()){ 
+				exam_ranks = examResultService.getUserRank(me,student, filter_class_id, filter_year_id);
 			}else{
 				throw new ESchoolException("filter_student_id is not existing:"+filter_student_id.intValue(), HttpStatus.BAD_REQUEST);
 			}
 		}else {
-			exam_ranks = examResultService.getClassRank(filter_class_id, filter_year_id);
+			exam_ranks = examResultService.getClassRank(me,filter_class_id, filter_year_id);
 		}
 		
+		examResultService.orderRankByID(exam_ranks, 0);
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(exam_ranks);
 	    return rsp;
 	}
 
+
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
-	@RequestMapping(value="/api/exam_results/month_ave",method = RequestMethod.POST)
+	@RequestMapping(value="/api/exam_results/ranks/process",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo month_ave(
-			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
-			@RequestParam(value="filter_year_id", required =true) Integer filter_year_id,			
-			@RequestParam(value="filter_class_id", required =true) Integer filter_class_id,
-			
-			@Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** ExamResultController.month_ave");
-		User curr_user = getCurrentUser();
-		
-		if (curr_user.hasRole(E_ROLE.TEACHER.getRole_short())){
-			if (!curr_user.is_belong2class(filter_class_id)){
-				throw new ESchoolException("Current User is TEACHER - who not assigned to class_id:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
-			}
-		}
-		ArrayList<ExamRank> list = new ArrayList<ExamRank>();
-		if (filter_student_id == null  || filter_student_id.intValue() <= 0){
-			list = examResultService.execClassMonthAve(curr_user, filter_year_id, filter_class_id);
-		}else{
-			ExamRank examRank = examResultService.execUserMonthAve(filter_student_id, filter_year_id,filter_class_id);
-			if (examRank != null ){
-				list.add(examRank);
-			}
-		}
-		
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-		rsp.setMessageObject("Done");
-		
-	    return rsp;
-	}
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
-	@RequestMapping(value="/api/exam_results/month_rank",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo execRank(
+	public RespInfo rankProcessAveAndOrder(
 			@RequestParam(value="filter_year_id", required =true) Integer filter_year_id,			
 			@RequestParam(value="filter_class_id", required =true) Integer filter_class_id,
 			
@@ -289,10 +265,43 @@ public class ExamResultController extends BaseController {
 		ArrayList<ExamRank> examRanks = examResultService.execClassMonthAve(user, filter_year_id, filter_class_id);
 		examResultService.procAllocation(user,examRanks);
 //		// Update ranking
-//		ArrayList<ExamRank> examRanks = examResultService.execMonthAllocation(user.getSchool_id(), filter_class_id, filter_year_id);
 		
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject("DONE, to get result, plz call : /api/exam_results/ranks");
+	    return rsp;
+	}
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@RequestMapping(value="/api/exam_results/ranks/month_ave",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo rankProcessAve(
+			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
+			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
+			@RequestParam(value="filter_class_id", required =false) Integer filter_class_id,
+			
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** ExamResultController.month_ave");
+		User me = getCurrentUser();
+		
+		if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
+			if (!me.is_belong2class(filter_class_id)){
+				throw new ESchoolException("Current User is TEACHER - who not assigned to class_id:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		ArrayList<ExamRank> list = new ArrayList<ExamRank>();
+		if (filter_student_id == null  || filter_student_id.intValue() <= 0){
+			list = examResultService.execClassMonthAve(me, filter_year_id, filter_class_id);
+		}else{
+			ExamRank examRank = examResultService.execUserMonthAve(me,filter_student_id, filter_year_id,filter_class_id);
+			if (examRank != null ){
+				list.add(examRank);
+			}
+		}
+		
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"Done, no error", request.getRequestURL().toString(), "Successful");
+		rsp.setMessageObject(list);
+		
 	    return rsp;
 	}
 	

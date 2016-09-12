@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_DEST_TYPE;
+import com.itpro.restws.helper.E_MSG_CHANNEL;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.MessageFilter;
@@ -183,7 +184,7 @@ public class MessageController extends BaseController {
 	
 	
 	
-	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	//@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/messages/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo createMessage(
@@ -196,9 +197,7 @@ public class MessageController extends BaseController {
 		User me = getCurrentUser();
 		// Check user permission
 		messageService.secureCheckNewMessage(me, message);
-		// Create message
-		// 20160823 start
-		// Message msg = messageService.insertMessageExt(me,message);
+		message.setChannel(E_MSG_CHANNEL.FIREBASE.getValue());// disable send SMS
 		Message msg = messageService.sendUserMessageWithCC(me, message);
 		// 20160823 end		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
@@ -232,6 +231,7 @@ public class MessageController extends BaseController {
 		
 		ArrayList<Message> list = null;
 		if (message.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
+			message.setChannel(E_MSG_CHANNEL.FIREBASE.getValue());// disable send SMS
 			list = messageService.createClassMessageTaskWithCC(me,message,filter_roles);
 		}else {
 			throw new ESchoolException("message.dest_type must be 1 ONLY to send to a CLASS, keep other class_id in cc_list", HttpStatus.BAD_REQUEST);

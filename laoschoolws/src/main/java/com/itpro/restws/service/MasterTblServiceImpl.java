@@ -146,37 +146,37 @@ public class MasterTblServiceImpl implements MasterTblService{
 	}
 
 	@Override
-	public MTemplate insertMTemplate(User user, String tbl_name, MTemplate temp) {
-		validMTemplate(user,tbl_name,temp);
+	public MTemplate insertMTemplate(User me, String tbl_name, MTemplate temp) {
+		validMTemplate(me,tbl_name,temp);
 		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			MFee mfee = new MFee();
 			mfee.saveFromTemplate(temp);
-			mfeeDao.saveFee(mfee);
+			mfeeDao.saveFee(me,mfee);
 			return mfee.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
 			MGrade mgrade = new MGrade();
 			mgrade.saveFromTemplate(temp);
-			mgradeDao.saveGrade(mgrade);
+			mgradeDao.saveGrade(me,mgrade);
 			return mgrade.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
 			MSession msession = new MSession();
 			msession.saveFromTemplate(temp);
-			msessionDao.saveSession(msession);
+			msessionDao.saveSession(me,msession);
 			return msession.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
 			MSubject msubject = new MSubject();
 			msubject.saveFromTemplate(temp);
-			msubjectDao.saveSubject(msubject);
+			msubjectDao.saveSubject(me,msubject);
 			return msubject.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
 			MClsLevel mclslevel = new MClsLevel();
 			mclslevel.saveFromTemplate(temp);
-			mclslevelDao.saveLevel(mclslevel);
+			mclslevelDao.saveLevel(me,mclslevel);
 			return mclslevel.convertToTemplate();
 		} 
 		return null;
@@ -184,21 +184,21 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	
 	@Override
-	public MTemplate updateMTemplate(User user, String tbl_name, MTemplate temp) {
+	public MTemplate updateMTemplate(User me, String tbl_name, MTemplate temp) {
 		
-		validMTemplate(user, tbl_name, temp);
+		validMTemplate(me, tbl_name, temp);
 		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			MFee mfee = mfeeDao.findById(temp.getId());
 			if (mfee == null ){
 				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (mfee.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (mfee.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
 			}
 			
 			mfee.saveFromTemplate(temp);
-			mfeeDao.updateFee(mfee);
+			mfeeDao.updateFee(me,mfee);
 			return mfee.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
@@ -206,12 +206,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			if (mgrade == null ){
 				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (mgrade.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (mgrade.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
 			}
 			
 			mgrade.saveFromTemplate(temp);
-			mgradeDao.updateGrade(mgrade);
+			mgradeDao.updateGrade(me,mgrade);
 			return mgrade.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
@@ -219,12 +219,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			if (msession == null ){
 				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (msession.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (msession.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
 			}
 			
 			msession.saveFromTemplate(temp);
-			msessionDao.updateSession(msession);
+			msessionDao.updateSession(me,msession);
 			return msession.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
@@ -232,11 +232,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 			if (msubject == null ){
 				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (msubject.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (msubject.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
 			}			
 			msubject.saveFromTemplate(temp);
-			msubjectDao.updateSubject(msubject);
+			msubjectDao.updateSubject(me,msubject);
 			return msubject.convertToTemplate();
 		} 
 		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
@@ -244,24 +244,24 @@ public class MasterTblServiceImpl implements MasterTblService{
 			if (mclslevel == null ){
 				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (mclslevel.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			if (mclslevel.getSchool_id().intValue() != me.getSchool_id().intValue()){
 				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
 			}				
 			mclslevel.saveFromTemplate(temp);
-			mclslevelDao.updateLevel(mclslevel);
+			mclslevelDao.updateLevel(me,mclslevel);
 			return mclslevel.convertToTemplate();
 		} 
 		return null;
 	}
 
 	@Override
-	public void deleteMTemplate(User user, String tbl_name, Integer id) {
+	public void deleteMTemplate(User me, String tbl_name, Integer id) {
 		
 		MTemplate temp = findById(tbl_name, id);
 		if (temp == null ){
 			throw new ESchoolException("id is not existing: "+id.intValue(), HttpStatus.BAD_REQUEST);
 		}
-		if (temp.getSchool_id().intValue() != user.getSchool_id().intValue() ){
+		if (temp.getSchool_id().intValue() != me.getSchool_id().intValue() ){
 			throw new ESchoolException("tbl_name:"+tbl_name+"/id:"+id.intValue()+" is not in same school_id with user", HttpStatus.BAD_REQUEST);
 		}
 			
@@ -271,31 +271,31 @@ public class MasterTblServiceImpl implements MasterTblService{
 			
 			//mfeeDao.delFee(mfee);
 			mfee.setActflg("D");
-			mfeeDao.updateFee(mfee);
+			mfeeDao.updateFee(me,mfee);
 		} 
 		else if (MasterTblName.TBLNAME_M_GRADE.equalsName(tbl_name) ){
 			MGrade mgrade = mgradeDao.findById(id);
 			//mgradeDao.delGrade(mgrade);
 			mgrade.setActflg("D");
-			mgradeDao.updateGrade(mgrade);
+			mgradeDao.updateGrade(me,mgrade);
 		} 
 		else if (MasterTblName.TBLNAME_M_SESSION.equalsName(tbl_name) ){
 			MSession msession = msessionDao.findById(id);
 			//msessionDao.delSession(msession);
 			msession.setActflg("D");
-			msessionDao.updateSession(msession);
+			msessionDao.updateSession(me,msession);
 		} 
 		else if (MasterTblName.TBLNAME_M_SUBJECT.equalsName(tbl_name) ){
 			MSubject msubject = msubjectDao.findById(id);
 			//msubjectDao.delSubject(msubject);
 			msubject.setActflg("D");
-			msubjectDao.updateSubject(msubject);
+			msubjectDao.updateSubject(me,msubject);
 		} 
 		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
 			MClsLevel mclslevel = mclslevelDao.findById(id);
 			//mclslevelDao.updateLevel(mclslevel);
 			mclslevel.setActflg("D");
-			mclslevelDao.updateLevel(mclslevel);
+			mclslevelDao.updateLevel(me,mclslevel);
 		} 
 	}
 

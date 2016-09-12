@@ -10,8 +10,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.Timetable;
+import com.itpro.restws.model.User;
 
 
 @Repository("timetableDao")
@@ -63,22 +66,48 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 
 
 	@Override
-	public void saveTimeTable(Timetable timetable) {
+	public void saveTimeTable(User me,Timetable timetable) {
+		
 		timetable.setActflg("A");
-		timetable.setCtdusr("HuyNQ-test");
+		timetable.setCtdusr(Constant.USER_SYS);
 		timetable.setCtddtm(Utils.now());
-		timetable.setCtdpgm("RestWS");
-		timetable.setCtddtm(Utils.now());
+		timetable.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			timetable.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				timetable.setCtdwks(device);
+			}
+			
+		}
+		
 		save(timetable);
 		
 	}
 
 
 	@Override
-	public void updateTimetable(Timetable timetable) {
-		timetable.setMdfusr("HuyNQ-test");
+	public void updateTimetable(User me,Timetable timetable) {
+		timetable.setMdfusr(Constant.USER_SYS);
 		timetable.setLstmdf(Utils.now());
-		timetable.setMdfpgm("RestWS");
+		timetable.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			timetable.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				timetable.setMdfwks(device);
+			}
+		}
 		update(timetable);
 		
 	}
@@ -101,8 +130,9 @@ public class TimetableDaoImpl extends AbstractDao<Integer, Timetable> implements
 
 
 	@Override
-	public void delTimetable(Timetable timetable) {
-		delete(timetable);
+	public void delTimetable(User me,Timetable timetable) {
+		timetable.setActflg("D");
+		updateTimetable(me, timetable);
 		
 	}
 

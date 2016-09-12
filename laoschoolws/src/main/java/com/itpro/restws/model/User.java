@@ -148,6 +148,11 @@ public class User extends AbstractModel {
 	private ArrayList<Permit> permisions;
 	
 
+	
+	@Transient
+	@JsonIgnore
+	private ApiKey api_key;
+	
 	@Transient
 	private String default_pass;
 	
@@ -478,5 +483,17 @@ public class User extends AbstractModel {
 
 	public void setCls_level(Integer cls_level) {
 		this.cls_level = cls_level;
+	}
+
+	
+
+	public ApiKey getApi_key() {
+		return api_key;
+	}
+
+
+
+	public void setApi_key(ApiKey api_key) {
+		this.api_key = api_key;
 	}
 }

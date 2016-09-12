@@ -227,7 +227,7 @@ public class UserController extends BaseController {
 	
 	
 	
-	@Secured({ "ROLE_ADMIN","ROLE_SYS_ADMIN"})
+	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public User createUser(
@@ -235,20 +235,16 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.users.create");
-//		String user_pass = user.getPassword() ;
-//		if (user_pass == null ){
-//			user_pass = Password.getRandomPass();
-//		}else{
-//			if (!userService.isValidPassword(user_pass)){
-//				throw new ESchoolException("Invalid user password: please input password with length >=4 AND <= 20 characters", HttpStatus.BAD_REQUEST);
-//			}
-//		}
-//		try {
-//			user.setPassword(Password.getSaltedHash(user_pass));
-//			user.setDefault_pass(user_pass);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		
+		User me = getCurrentUser();
+		if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0 ){
+			throw new ESchoolException("user.school_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (me.getSchool_id().intValue() != user.getSchool_id().intValue()){
+			throw new ESchoolException("cannot create user of other school_id", HttpStatus.BAD_REQUEST);
+		}
+		
+		
 		String type = user.getRoles().split(",")[0];
 		 //return userService.insertUser(user);
 		E_ROLE role = E_ROLE.STUDENT;
@@ -268,7 +264,7 @@ public class UserController extends BaseController {
 		}else{
 			throw new RuntimeException("Invalid user type="+type);
 		}
-		return userService.createUser(user, role);
+		return userService.createUser(me,user, role);
 		 
 	}
 	
@@ -281,6 +277,12 @@ public class UserController extends BaseController {
 			) {
 		logger.info(" *** MainRestController.users.update");
 
+		if (user.getId() == null || user.getId().intValue() == 0 ){
+			throw new ESchoolException("user.Id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0 ){
+			throw new ESchoolException("user.school_id is required", HttpStatus.BAD_REQUEST);
+		}
 		User me = getCurrentUser();
 		
 		if (!userService.isSameSChool(user, me)){
@@ -442,14 +444,21 @@ public class UserController extends BaseController {
 	@RequestMapping(value = "/api/users/assign_to_class", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	 public RespInfo assignToClass(
-			@RequestParam(value="user_id",required=true) Integer user_id,
-			@RequestParam(value="class_id",required=true) Integer class_id,
+			@RequestParam(value="user_id",required=false) Integer user_id,
+			@RequestParam(value="class_id",required=false) Integer class_id,
 			@RequestParam(value="notice",required=false) String notice,
 			
 		    @Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			 
 			 ) {
+		if (user_id == null || user_id.intValue() == 0){
+			throw new ESchoolException("user_id is required", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (class_id == null || class_id.intValue() == 0){
+			throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
+		}
 		User user = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		

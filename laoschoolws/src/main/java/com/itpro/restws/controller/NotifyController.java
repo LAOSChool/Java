@@ -178,13 +178,13 @@ public class NotifyController extends BaseController {
 	@RequestMapping(value="/api/notifies/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo createNotify(
-//			@RequestParam("title") String title,
-//			@RequestParam("content") String content,
+
 			@RequestParam(value="filter_roles",required =false) String filter_roles,
 			@RequestParam(value = "order",required =false) String[] orders,
 			@RequestParam(value = "caption",defaultValue="NoCaption",required =false) String[] captions,
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
 			@RequestParam(value = "json_in_string",required =false) String json_in_string,
+			
 			 @Context final HttpServletRequest request)
 			 {
 		logger.info(" *** MainRestController.createNotify");
@@ -290,10 +290,189 @@ public class NotifyController extends BaseController {
 			notify.setImp_flg( Utils.parseInteger(imp_flg));
 		}
 		
-		notifyService.updateNotify(notify);
+		notifyService.updateNotify(me,notify);
 		rsp.setMessageObject(notify);
 		
 		return rsp;
 	}
-	 
+
+	@Secured({"ROLE_ADMIN","ROLE_TEACHER"})
+	@RequestMapping(value="/api/notifies/create_php",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo createNotifyPHP(
+			
+			
+			@RequestParam(value = "order1",required =false) String order1,
+			@RequestParam(value = "order2",required =false) String order2,
+			@RequestParam(value = "order3",required =false) String order3,
+			@RequestParam(value = "order4",required =false) String order4,
+			@RequestParam(value = "order5",required =false) String order5,
+			
+			@RequestParam(value = "caption1",required =false) String caption1,
+			@RequestParam(value = "caption2",required =false) String caption2,
+			@RequestParam(value = "caption3",required =false) String caption3,
+			@RequestParam(value = "caption4",required =false) String caption4,
+			@RequestParam(value = "caption5",required =false) String caption5,
+			
+			
+			
+			@RequestParam(value = "file1",required =false) MultipartFile file1,
+			@RequestParam(value = "file2",required =false) MultipartFile file2,
+			@RequestParam(value = "file3",required =false) MultipartFile file3,
+			@RequestParam(value = "file4",required =false) MultipartFile file4,
+			@RequestParam(value = "file5",required =false) MultipartFile file5,
+			
+			@RequestParam(value="filter_roles",required =false) String filter_roles,
+			@RequestParam(value = "json_in_string",required =false) String json_in_string,
+			 @Context final HttpServletRequest request)
+			 {
+		logger.info(" *** MainRestController.createNotifyPHP");
+		logger.info(" *** json_in_string:"+json_in_string);
+		
+		try {
+			request.setCharacterEncoding("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Cannot convert notify data to UTF-8"+e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		
+		String err_msg = "";
+		
+		String[] orders = new String[5];
+		String[] captions = new String[5];
+		MultipartFile[] files = new MultipartFile[5];
+		
+		// Get order
+		if (order1 != null ){
+			orders[0] = order1;
+			
+		}
+		if (order2 != null ){
+			orders[1] = order2;
+		}
+		if (order3 != null ){
+			orders[2] = order3;
+		}
+		if (order4 != null ){
+			orders[3] = order4;
+		}
+		if (order5 != null ){
+			orders[4] = order5;
+		}
+		
+		// Get caption
+		// 
+		if (caption1 != null ){
+			captions[0] = caption1;
+		}
+		if (caption2 != null ){
+			captions[1] = caption2;
+		}
+		if (caption3 != null ){
+			captions[2] = caption3;
+		}
+		if (caption4 != null ){
+			captions[3] = caption4;
+		}
+		if (caption5 != null ){
+			captions[4] = caption5;
+		}
+			
+		// Get File
+		// 
+		if (file1 != null ){
+			files[0] = file1;
+		}
+		if (file2 != null ){
+			files[1] = file2;
+		}
+		if (file3 != null ){
+			files[2] = file3;
+		}
+		if (file4 != null ){
+			files[3] = file4;
+		}
+		if (file5 != null ){
+			files[4] = file5;
+		}
+
+		
+		// Correct input data
+		String[] new_orders = null;
+		int cnt = 0;
+		for (int i=0;i< orders.length;i++){
+			if (orders[i] != null){
+				cnt ++;
+			}
+		}
+		if (cnt > 0){
+			new_orders = new String[cnt];
+			for (int i=0;i< cnt;i++){
+				new_orders[i] = orders[i];
+			}
+		}
+		
+		// Correct input data
+		String[] new_captions = null;
+		cnt = 0;
+		for (int i=0;i< captions.length;i++){
+			if (captions[i] != null){
+				cnt ++;
+			}
+		}
+		if (cnt > 0){
+			new_captions = new String[cnt];
+			for (int i=0;i< cnt;i++){
+				new_captions[i] = captions[i];
+			}
+		}
+	
+		
+		// Correct input data
+		MultipartFile[] new_files = null;
+		cnt = 0;
+		for (int i=0;i< files.length;i++){
+			if (files[i] != null){
+				cnt ++;
+			}
+		}
+		if (cnt > 0){
+			new_files = new MultipartFile[cnt];
+			for (int i=0;i< cnt;i++){
+				new_files[i] = files[i];
+			}
+		}
+		
+		
+		if (new_orders == null ){
+			err_msg = "order is NULL,";
+//			throw new ESchoolException("Orders is NULL", HttpStatus.BAD_REQUEST);
+		}
+
+		if (new_captions == null ){
+//			throw new ESchoolException("captions is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" captions is NULL,";
+		}
+
+		if (new_files == null || files.length <= 0){
+//			throw new ESchoolException("file is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" file is empty,";
+		}
+		if (json_in_string == null ){
+//			throw new ESchoolException("json_in_string is NULL", HttpStatus.BAD_REQUEST);
+			err_msg = err_msg+" json_in_string is NULL,";
+		}
+		
+		if (err_msg.length() > 0){
+			throw new ESchoolException(err_msg, HttpStatus.BAD_REQUEST);
+		}
+		
+	
+		RespInfo rsp = createNotify(filter_roles, new_orders, new_captions, new_files, json_in_string, request);
+		
+		
+		
+		return rsp;
+		 
+	}
 }

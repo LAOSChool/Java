@@ -8,6 +8,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ActionLog;
 
@@ -55,19 +56,21 @@ public class ActionLogDaoImpl extends AbstractDao<Integer, ActionLog> implements
 	@Override
 	public void saveAction(ActionLog actionLog) {
 		actionLog.setActflg("A");
-		actionLog.setCtdusr("HuyNQ-test");
+		
 		actionLog.setCtddtm(Utils.now());
-		actionLog.setCtdpgm("RestWS");
+		actionLog.setCtdusr(Constant.USER_SYS);
 		actionLog.setCtddtm(Utils.now());
+		actionLog.setCtdpgm(Constant.PGM_REST);
 		save(actionLog);
 		
 	}
 
 	@Override
 	public void updateAction(ActionLog actionLog) {
-		actionLog.setMdfusr("HuyNQ-test");
+		actionLog.setMdfusr(Constant.USER_SYS);
+		actionLog.setMdfpgm(Constant.PGM_REST);
 		actionLog.setLstmdf(Utils.now());
-		actionLog.setMdfpgm("RestWS");
+		
 		update(actionLog);
 
 		

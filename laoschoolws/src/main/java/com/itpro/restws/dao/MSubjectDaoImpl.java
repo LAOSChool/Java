@@ -10,8 +10,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.MSubject;
+import com.itpro.restws.model.User;
 
 @Repository("msubjectDao")
 @Transactional
@@ -46,27 +49,59 @@ public class MSubjectDaoImpl extends AbstractDao<Integer, MSubject> implements M
 	}
 
 	@Override
-	public void saveSubject(MSubject msubject) {
+	public void saveSubject(User me,MSubject msubject) {
+		
+		
 		msubject.setActflg("A");
-		msubject.setCtdusr("HuyNQ-test");
+		msubject.setCtdusr(Constant.USER_SYS);
 		msubject.setCtddtm(Utils.now());
-		msubject.setCtdpgm("RestWS");
-		msubject.setCtddtm(Utils.now());
+		msubject.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			msubject.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				msubject.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		this.persist(msubject);
 		
 	}
 
 	@Override
-	public void updateSubject(MSubject msubject) {
-		msubject.setMdfusr("HuyNQ-test");
+	public void updateSubject(User me,MSubject msubject) {
+		
+		msubject.setMdfusr(Constant.USER_SYS);
 		msubject.setLstmdf(Utils.now());
-		msubject.setMdfpgm("RestWS");
+		msubject.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			msubject.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				msubject.setMdfwks(device);
+			}
+		}
+		
+		
 		update(msubject);
 		
 	}
 
 	@Override
-	public void delSubject(MSubject msubject) {
+	public void delSubject(User me,MSubject msubject) {
 		delete(msubject);
 		
 	}

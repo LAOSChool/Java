@@ -40,15 +40,15 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 
 	@Override
-	public SchoolYear insertSchoolYear(User user, SchoolYear schoolYear) {
-		validateSchoolYear(user, schoolYear);
-		schoolYearDao.saveSchoolYear(schoolYear);
+	public SchoolYear insertSchoolYear(User me, SchoolYear schoolYear) {
+		validateSchoolYear(me, schoolYear);
+		schoolYearDao.saveSchoolYear(me,schoolYear);
 		return schoolYear;
 	}
 
 	@Override
-	public SchoolYear updateSchoolYear(User user, SchoolYear schoolYear) {
-		validateSchoolYear(user, schoolYear);
+	public SchoolYear updateSchoolYear(User me, SchoolYear schoolYear) {
+		validateSchoolYear(me, schoolYear);
 		
 		if (schoolYear.getId() == null ){
 			throw new ESchoolException("schoolYear.id is null", HttpStatus.BAD_REQUEST);
@@ -60,11 +60,11 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 			throw new ESchoolException("SchoolYear.id is not exising: "+schoolYear.getId().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
-		if (year_db.getSchool_id().intValue() != user.getSchool_id().intValue()){
+		if (year_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("year_db.SchooId is not same with user.school_id", HttpStatus.BAD_REQUEST);
 		}
 		year_db = SchoolYear.updateChanges(year_db, schoolYear);
-		schoolYearDao.updateSchoolYear(year_db);
+		schoolYearDao.updateSchoolYear(me,year_db);
 		return year_db;
 	}
 
@@ -211,16 +211,16 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 
 	@Override
-	public void delSchoolYear(User user, Integer id) {
+	public void delSchoolYear(User me, Integer id) {
 		SchoolYear schYear = findById(id);
 		if (schYear == null ){
 			throw new ESchoolException("id is not existing:"+id.intValue(), HttpStatus.BAD_REQUEST);
 		}
-		if (user.getSchool_id().intValue() != schYear.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != schYear.getSchool_id().intValue()){
 			throw new ESchoolException("User.school_id is not same with SchoolYear.school_id", HttpStatus.BAD_REQUEST);
 		}
 		schYear.setActflg("D");
-		schoolYearDao.updateSchoolYear(schYear);
+		schoolYearDao.updateSchoolYear(me,schYear);
 		
 	}
 

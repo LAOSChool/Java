@@ -17,10 +17,16 @@ import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
+import com.itpro.restws.helper.AuthenticationRequestWrapper;
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.helper.MultipartFromWrapper;
 import com.itpro.restws.model.ActionLog;
 import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.ActionLogService;
@@ -41,6 +47,7 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	ActionLogService actionLogService;
 	
 	private static final Logger logger = Logger.getLogger(TokenAuthenticationFilter.class);
+	public static String LOG_METHODS="GET,POST,PUT, DELETE";
 
 //	private static final String HEADER_TOKEN = "X-Auth-Token";
 //	private static final String HEADER_USERNAME = "X-Username";
@@ -92,6 +99,10 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 				if (canRequestProcessingContinue(httpRequest)) {
 					checkActivedApiKey(httpRequest,httpResponse);
 				}
+				// Disable Admin from to Mobile (API_KEY)
+				if (canRequestProcessingContinue(httpRequest)) {
+					disableAdminToMobile(httpRequest,httpResponse);
+				}
 				
 			}else{
 				checkLogin(httpRequest, httpResponse);// Login and save api_key + sso_id to 2 tables ( auth_key and api_key)
@@ -99,51 +110,108 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		}
 		// Process chain 
 		if (canRequestProcessingContinue(httpRequest)) {
+			// Support access non-security API
 			if (SecurityContextHolder.getContext().getAuthentication()  == null ){
 				chain.doFilter (httpRequest, httpResponse);
 			}else{
-				// Dump start
 				UserContext usercontext = (UserContext) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-				ActionLog act = actionLogService.start_trace(httpRequest,usercontext.getUser());
+				ActionLog act = null;
 				long startTime = System.currentTimeMillis();
-				httpRequest.setAttribute("x-actlog_id", act.getId());
+				// Request wrapper Start
+				// Neu muon log byte[] thi thay bang AuthenticationRequestWrapper
 				
+				// End
 				HttpServletResponseCopier responseCopier = new HttpServletResponseCopier(httpResponse);
 				
-				
-				try {
-					//chain.doFilter (httpRequest, httpResponse);
-
-//					String origin = httpRequest.getHeader("origin");
-//		            origin = (origin == null || origin.equals("")) ? "null" : origin;
-//		            responseCopier.addHeader("Access-Control-Allow-Origin", origin);
-//		            responseCopier.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, DELETE, OPTIONS");
-//		            responseCopier.addHeader("Access-Control-Allow-Credentials", "true");
-//		            responseCopier.addHeader("Access-Control-Allow-Headers",
-//		                    "Authorization, origin, content-type, accept, x-requested-with");
-//		            
-		            
+				//boolean wrap_request_ok = true;
+				boolean is_upload_file = false;
+				if (	httpRequest.getRequestURL().toString().contains("upload") ||
+						httpRequest.getRequestURL().toString().contains("notifies/create")
+						){
+					is_upload_file = true;
 					
-					chain.doFilter(request, responseCopier);
-		            responseCopier.flushBuffer();
-		        } finally {
-		        	  byte[] copy = responseCopier.getCopy();
-		        	  long endTime = System.currentTimeMillis();
-		        	  long executeTime = endTime - startTime;
-		        	if  (httpRequest.getMethod().equals("GET")){
-		        		actionLogService.end_trace(act.getId(),"",responseCopier.getStatus(),executeTime);
-		        	}else{
-		        		actionLogService.end_trace(act.getId(),new String(copy, response.getCharacterEncoding()),responseCopier.getStatus(),executeTime);
-		        	}
-		        }
-				
-				// Dump end
+				}
+				if (!is_upload_file){
+					// Dump start
+					// MyRequestWrapper myRequestWrapper = new MyRequestWrapper( httpRequest);
+					AuthenticationRequestWrapper myRequestWrapper = new AuthenticationRequestWrapper(httpRequest);
+					act = null;
+					if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
+						//act = actionLogService.start_tracewrapper(myRequestWrapper,usercontext.getUser());
+						act = actionLogService.start_tracewrapper2(myRequestWrapper,usercontext.getUser());
+						myRequestWrapper.setAttribute("x-actlog_id", act.getId());
+					}
+					
+					
+					try {
+						chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
+			            responseCopier.flushBuffer();
+			        } finally {
+						byte[] copy = responseCopier.getCopy();
+						long endTime = System.currentTimeMillis();
+						long executeTime = endTime - startTime;
+						
+						if (act !=null ){
+							
+							actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
+									responseCopier.getStatus(), executeTime);
+							
+						}
+			        	
+			        }
+					
+					// Dump end
+				}else if (isMultipartForm(httpRequest)) {
+					// Dump start
+					act = null;
+					MultipartFromWrapper myRequestWrapper = new MultipartFromWrapper(httpRequest);
+					if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
+						act = actionLogService.start_tracewrapper3(myRequestWrapper,usercontext.getUser());
+						myRequestWrapper.setAttribute("x-actlog_id", act.getId());
+					}
+					try {
+			            
+						chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
+						responseCopier.flushBuffer();
+			        } finally {
+			        	if (act != null ){
+							byte[] copy = responseCopier.getCopy();
+							long endTime = System.currentTimeMillis();
+							long executeTime = endTime - startTime;
+							if (act != null ){
+									actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
+											responseCopier.getStatus(), executeTime);
+								}							
+			        	}
+			        }
+				}else{
+					// Dump start
+					act = null;
+					if (LOG_METHODS.toUpperCase().indexOf(httpRequest.getMethod().toUpperCase()) >= 0){
+						act = actionLogService.start_trace(httpRequest,usercontext.getUser());
+						httpRequest.setAttribute("x-actlog_id", act.getId());
+					}
+					try {
+						chain.doFilter(request, responseCopier); //chain.doFilter (httpRequest, httpResponse);
+			            responseCopier.flushBuffer();
+			        } finally {
+			        	if (act != null ){
+							byte[] copy = responseCopier.getCopy();
+							long endTime = System.currentTimeMillis();
+							long executeTime = endTime - startTime;
+							if (act != null ){
+									actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
+											responseCopier.getStatus(), executeTime);
+								
+							}
+			        	}
+			        }
+				}
+			
 			}
 			
-			
-			
-			
 		}
+		
 		logger.info(" === AUTHENTICATION: " + SecurityContextHolder.getContext().getAuthentication());
 
 	}
@@ -382,5 +450,50 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		}
 
     }
-  
+	
+//	/** Returns true, if request contains valid apk_key. */
+	private void disableAdminToMobile(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+		String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+		
+
+		boolean is_admin = hasRole(E_ROLE.ADMIN.getRole());
+		if (canRequestProcessingContinue(httpRequest)){
+			if (is_admin){
+				String[] ignores_devices = Constant.NON_DEVICE_API_KEY;
+				for (int i = 0;i< ignores_devices.length;i++){
+					if (api_key.equalsIgnoreCase(ignores_devices[i])){
+						return;
+					}
+				}
+				doNotContinueWithRequestProcessing(httpRequest);
+				httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			}
+			
+		}
+		
+		
+	}
+	protected boolean hasRole(String role) {
+        // get security context from thread local
+        SecurityContext context = SecurityContextHolder.getContext();
+        if (context == null)
+            return false;
+
+        Authentication authentication = context.getAuthentication();
+        if (authentication == null)
+            return false;
+
+        for (GrantedAuthority auth : authentication.getAuthorities()) {
+            if (role.equals(auth.getAuthority()))
+                return true;
+        }
+
+        return false;
+    }
+	 private boolean isMultipartForm(HttpServletRequest aRequest){
+		    return     
+		      aRequest.getMethod().equalsIgnoreCase("POST") && 
+		      aRequest.getContentType().startsWith("multipart/form-data")
+		    ;
+		  }
 }

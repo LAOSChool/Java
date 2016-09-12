@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.itpro.restws.dao.SchoolDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.User;
@@ -46,16 +48,25 @@ public class SchoolServiceImpl implements SchoolService{
 	}
 
 	@Override
-	public School insertSchool(School school) {
-		schoolDao.saveSchool(school);
+	public School insertSchool(User me, School school) {
+		schoolDao.saveSchool(me,school);
 		return school;
 	}
 
 	@Override
-	public School updateSchool(School school) {
+	public School updateSchool(User me,School school) {
+		
+		valid_update_school(me,school);// [UT]20160907
+		
 		School schoolDB = schoolDao.findById(school.getId());
+		
+		if (schoolDB == null ){
+			throw new ESchoolException("school_id is not existing", HttpStatus.BAD_REQUEST);
+		}
+		
+		
 		schoolDB = School.updateChanges(schoolDB, school);
-		schoolDao.updateSchool(schoolDB);
+		schoolDao.updateSchool(me,schoolDB);
 		return schoolDB;
 	}
 
@@ -107,7 +118,7 @@ public class SchoolServiceImpl implements SchoolService{
 			
 			// Save NotifyImg to DB
 			school.setPhoto(filePath.replaceFirst(upload_dir, urlbase));
-			schoolDao.updateSchool(school);
+			schoolDao.updateSchool(me,school);
 			
 		} catch (Exception e) {
 			throw new ESchoolException("You failed to upload " + fileName + " => " + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
@@ -131,5 +142,31 @@ public class SchoolServiceImpl implements SchoolService{
 //	}
 
 
-
+	void valid_update_school(User me, School school){
+		if (!me.hasRole(E_ROLE.ADMIN.getRole_short())){
+			throw new ESchoolException("Only Admin can update school info", HttpStatus.BAD_REQUEST);
+		}
+		if (school.getId() == null || school.getId().intValue() == 0){
+			throw new ESchoolException("school_id is required", HttpStatus.BAD_REQUEST);
+		}
+		if (me.getSchool_id().intValue() != school.getId().intValue()){
+			throw new ESchoolException("school_id is not belong to current user", HttpStatus.BAD_REQUEST);
+		}
+		// Check state
+		if (school.getState() != null ){
+			Integer sts = Utils.parseInteger(school.getState());
+			if (sts == null ){
+				throw new ESchoolException("invalid state, must be 0,1,2,3", HttpStatus.BAD_REQUEST);
+			}
+			if ((sts.intValue() < E_STATE.PENDING.value())|| 
+			   (sts.intValue() > E_STATE.CLOSED.value())){
+				throw new ESchoolException("invalid state, must be 0,1,2,3", HttpStatus.BAD_REQUEST);
+			}
+		}
+//		// check title
+//		if (school.getTitle() == null || 
+//				school.getTitle().trim().length() == 0){
+//			throw new ESchoolException("title is required", HttpStatus.BAD_REQUEST);
+//		}
+	}
 }

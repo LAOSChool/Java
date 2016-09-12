@@ -71,19 +71,20 @@ public class ClassServiceImpl implements ClassService{
 		return list;
 	}
 	@Override
-	public EClass newClass(User admin, EClass eClass) {
+	public EClass newClass(User me, EClass eClass) {
 		
-		valid_new_class(admin,eClass);
-		classDao.saveClass(eClass);
+		valid_new_class(me,eClass);
+		classDao.saveClass(me,eClass);
 		// assign head teacher to class auto
-		assignHeadTeacher(admin,eClass);
+		assignHeadTeacher(me,eClass);
+		
 		updateTermVal(eClass);
 		return eClass;
 
 	}
 
 	@Override
-	public EClass updateClass(User admin,EClass eClass) {
+	public EClass updateClass(User me,EClass eClass) {
 		if (eClass.getId() == null || eClass.getId().intValue() <= 0){
 			throw new ESchoolException("class.id is required to update", HttpStatus.BAD_REQUEST);
 		}
@@ -98,9 +99,9 @@ public class ClassServiceImpl implements ClassService{
 		
 		eClassDB = EClass.updateChanges(eClassDB, eClass);
 		
-		valid_new_class(admin,eClass);
+		valid_new_class(me,eClass);
 		
-		classDao.updateClass(eClassDB);
+		classDao.updateClass(me,eClassDB);
 		
 		if (new_teacher_id == null || new_teacher_id.intValue() <=0) {
 			if (old_teacher_id != null && old_teacher_id.intValue() >0){
@@ -111,7 +112,7 @@ public class ClassServiceImpl implements ClassService{
 		}else {
 			if (old_teacher_id == null || old_teacher_id.intValue() != new_teacher_id.intValue()){
 				// update user2class
-				assignHeadTeacher(admin,eClass);
+				assignHeadTeacher(me,eClass);
 			}
 		}
 		updateTermVal(eClass);
@@ -258,7 +259,7 @@ public class ClassServiceImpl implements ClassService{
 		user2ClassService.delClass(me, class_id);
 		
 		eClass.setActflg("D");
-		classDao.updateClass(eClass);
+		classDao.updateClass(me,eClass);
 		
 		
 		

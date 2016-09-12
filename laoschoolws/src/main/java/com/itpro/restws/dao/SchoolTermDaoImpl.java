@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.SchoolTerm;
+import com.itpro.restws.model.User;
 
 @Repository("schoolTermDao")
 @Transactional
@@ -24,22 +27,51 @@ public class SchoolTermDaoImpl extends AbstractDao<Integer, SchoolTerm> implemen
 
 
 	@Override
-	public void saveSchoolTerm(SchoolTerm schoolTerm) {
+	public void saveSchoolTerm(User me,SchoolTerm schoolTerm) {
+			
+		
 		schoolTerm.setActflg("A");
-		schoolTerm.setCtdusr("HuyNQ-test");
+		schoolTerm.setCtdusr(Constant.USER_SYS);
 		schoolTerm.setCtddtm(Utils.now());
-		schoolTerm.setCtdpgm("RestWS");
-		schoolTerm.setCtddtm(Utils.now());
+		schoolTerm.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolTerm.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolTerm.setCtdwks(device);
+			}
+			
+		}
+		
+		
 		save(schoolTerm);
 		
 	}
 
 
 	@Override
-	public void updateSchoolTerm(SchoolTerm schoolTerm) {
-		schoolTerm.setMdfusr("HuyNQ-test");
+	public void updateSchoolTerm(User me,SchoolTerm schoolTerm) {
+
+		schoolTerm.setMdfusr(Constant.USER_SYS);
 		schoolTerm.setLstmdf(Utils.now());
-		schoolTerm.setMdfpgm("RestWS");
+		schoolTerm.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolTerm.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolTerm.setMdfwks(device);
+			}
+		}
 		update(schoolTerm);
 		
 	}

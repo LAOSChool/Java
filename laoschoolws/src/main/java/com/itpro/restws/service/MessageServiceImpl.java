@@ -14,6 +14,7 @@ import com.itpro.restws.dao.MessageDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_DEST_TYPE;
 import com.itpro.restws.helper.E_ENTITY;
+import com.itpro.restws.helper.E_MSG_CHANNEL;
 import com.itpro.restws.helper.E_RIGHT;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.E_SCOPE;
@@ -135,7 +136,7 @@ public class MessageServiceImpl implements MessageService{
 	        }
 		  
 		
-		 messageDao.updateMessage(messageDB);
+		 messageDao.updateMessage(me,messageDB);
 		 return messageDB;
 	//   20160823 END		
 		
@@ -236,28 +237,28 @@ public class MessageServiceImpl implements MessageService{
 		
 		
 		// Validation mandatory parameters
-		if (msg == null || msg.getSchool_id() == null || msg.getSchool_id().intValue() == 0 ){
-			throw new ESchoolException("Message's school_id is NULL or zero", HttpStatus.BAD_REQUEST);
-		}else if (msg.getSchool_id() != me.getSchool_id() ){
-			throw new ESchoolException("Message's school_id:"+msg.getSchool_id()+" is not belong to user's school:"+me.getSchool_id(), HttpStatus.BAD_REQUEST);
-		}
+		
 				
-		if (msg.getFrom_usr_id() == null || msg.getFrom_usr_id() == 0 || msg.getFrom_usr_id() != me.getId()){
-			String err = "Message's from_user_id="+msg.getFrom_usr_id()==null?"null":msg.getFrom_usr_id().intValue()+" is not valid (user_id="+me.getId()+")";
+		if (msg.getFrom_user_id() == null || msg.getFrom_user_id() == 0 || msg.getFrom_user_id() != me.getId()){
+			String err = "Message's from_user_id="+msg.getFrom_user_id()==null?"null":msg.getFrom_user_id().intValue()+" is not valid (user_id="+me.getId()+")";
 			throw new ESchoolException(err, HttpStatus.BAD_REQUEST);
 		}
 
 		
 		
-		if (msg.getTo_usr_id() == null || msg.getTo_usr_id() == 0  ){
-			throw new ESchoolException("Message's to_user_id is not valid="+msg.getTo_usr_id()==null?"null":msg.getTo_usr_id().toString(), HttpStatus.BAD_REQUEST);
+		if (msg.getTo_user_id() == null || msg.getTo_user_id() == 0  ){
+			throw new ESchoolException("Message's to_user_id is not valid="+msg.getTo_user_id()==null?"null":msg.getTo_user_id().toString(), HttpStatus.BAD_REQUEST);
 		}
-		// Check if class_id existing
-		if (msg.getClass_id() == null ||  msg.getClass_id().intValue() ==0   ){
-			throw new ESchoolException("Message's class_id is NULL or zero", HttpStatus.BAD_REQUEST);
-		}
-		else if (!userService.isBelongToClass(msg.getTo_usr_id(),msg.getClass_id() )){
-			throw new ESchoolException("Message's to_user_id="+msg.getTo_usr_id()+" is not belong to class_id="+msg.getClass_id(), HttpStatus.BAD_REQUEST);
+		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
+			
+		}else{
+			// Check if class_id existing
+			if (msg.getClass_id() == null ||  msg.getClass_id().intValue() ==0   ){
+				throw new ESchoolException("Message's class_id is NULL or zero", HttpStatus.BAD_REQUEST);
+			}
+			else if (!userService.isBelongToClass(msg.getTo_user_id(),msg.getClass_id() )){
+				throw new ESchoolException("Message's to_user_id="+msg.getTo_user_id()+" is not belong to class_id="+msg.getClass_id(), HttpStatus.BAD_REQUEST);
+			}
 		}
 
 		if (msg.getContent() == null || msg.getContent().equals("")  ){
@@ -271,12 +272,12 @@ public class MessageServiceImpl implements MessageService{
 		}
 		
 		// Validate access scope
-		User toUser = userService.findById(msg.getTo_usr_id());
+		User toUser = userService.findById(msg.getTo_user_id());
 		if (toUser == null ){
-			throw new ESchoolException("ToUser_ID not existing:"+msg.getTo_usr_id().intValue(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("ToUser_ID not existing:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		if (toUser.getSchool_id().intValue() != me.getSchool_id().intValue()){
-			throw new ESchoolException("to_user_id not belong to same school with current user:"+msg.getTo_usr_id().intValue(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("to_user_id not belong to same school with current user:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		msg.setTo_sso_id(toUser.getSso_id());
 		msg.setSchool_id(toUser.getSchool_id());
@@ -307,8 +308,8 @@ public class MessageServiceImpl implements MessageService{
 		
 		
 		else if ( E_SCOPE.PERSON.getValue() == (permit.getScope() & E_SCOPE.PERSON.getValue() )){
-			if (!userService.isHeadTeacherOf(me, msg.getTo_usr_id())){
-		    	throw new ESchoolException("To User:"+msg.getTo_usr_id()+" is not Head teacher of class", HttpStatus.UNAUTHORIZED);
+			if (!userService.isHeadTeacherOf(me, msg.getTo_user_id())){
+		    	throw new ESchoolException("To User:"+msg.getTo_user_id()+" is not Head teacher of class", HttpStatus.UNAUTHORIZED);
 		    }
 			
 			if ((msg.getCc_list() != null && !msg.getCCList().equals(""))){
@@ -434,150 +435,9 @@ public class MessageServiceImpl implements MessageService{
 		return null;
 	}
 
-//	private ArrayList<Message> insertClassMessage(User me,Message message,EClass eclass, String filter_roles) {
-//		ArrayList<Message> list = new ArrayList<>();
-//		
-//		//validate mandatory
-//		if (me == null || message == null || eclass == null ){
-//			throw new ESchoolException(" Input mandatory paramester is NULL", HttpStatus.BAD_REQUEST);
-//		}
-//			
-//	
-//		if (	
-//				me.getSchool_id() != eclass.getSchool_id()){
-//			throw new ESchoolException("From User and Class are not in the same School, user_id="+me.getId()+", class_id="+eclass.getId(), HttpStatus.BAD_REQUEST);
-//		}
-//		// Get list of users from class
-//		HashSet<User> users = null; 
-//		// validate filter_roles
-//		if (filter_roles != null && !filter_roles.equals("")){
-//			for (String role: filter_roles.split(",")){
-//				if (!E_ROLE.contain(role)){
-//					throw new ESchoolException("Invalid filter_roles="+filter_roles, HttpStatus.BAD_REQUEST);
-//				}
-//			}
-//			users = (HashSet<User>) eclass.getUserByRoles(filter_roles);
-//		}else{
-//			// Get list of users from class
-//			users = new HashSet<User>(eclass.getUsers());
-//		}
-//		
-//		
-//		
-//		if (users != null && users.size() > 0)	{
-//			// Get list of users from class				
-//			for (User to_user : users){
-//					
-//					Message new_message = message.copy();
-//					
-//					new_message.setSchool_id(to_user.getSchool_id());
-//					
-//					new_message.setFrom_usr_id(me.getId());
-//					new_message.setFrom_user_name(me.getFullname());
-//					
-//					new_message.setTo_usr_id(to_user.getId());
-//					new_message.setTo_user_name(to_user.getFullname());
-//					new_message.setTo_sso_id(to_user.getSso_id());
-//					new_message.setTo_phone(to_user.getPhone());
-//					
-//					new_message.setSent_dt(Utils.now());
-//					new_message.setIs_sent(1);// Disable sent			
-//					
-//					messageDao.saveMessage(new_message);
-//					list.add(new_message);
-//			}
-//		}
-//		return list;
-//		
-//	}
-//	private ArrayList<Message> insertClassMessageExt(User user,Message message,String filter_roles) {
-//		
-//		if (message.getDest_type() != E_DEST_TYPE.CLASS.getValue() ){
-//			throw new ESchoolException("Destination type is not for whole class, dest_type="+message.getDest_type(), HttpStatus.BAD_REQUEST);
-//		}
-//
-//		
-//		EClass eclass= classService.findById(message.getClass_id());
-//		if (eclass == null){
-//			throw new ESchoolException("Class is not existing, class_id="+message.getClass_id(), HttpStatus.BAD_REQUEST);
-//		}
-//
-//		return insertClassMessage(user, message, eclass, filter_roles);
-//		
-//	}
-//	@Override
-//	public ArrayList<Message> broadcastMessage(User user, Message message, String filter_roles) {
-//		ArrayList<Message> list = null;
-//		if (message.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
-//			
-//			
-//			message = createTaskMsg(user,message);
-//			list = insertClassMessageExt(user, message, filter_roles);
-//			// 
-//			String cc_list = message.getCc_list();
-//			if (cc_list != null ){
-//				message.setCc_list("");// rest cc list
-//				// CC List
-//				for (String str : cc_list.split(",")){
-//					Integer class_id = Utils.parseInteger(str);
-//					if (class_id != null &&  (class_id.intValue() != message.getClass_id())){
-//						Message new_msg = message.copy();
-//						new_msg.setSchool_id(message.getSchool_id());
-//						new_msg.setClass_id(class_id);
-//						new_msg = createTaskMsg(user,new_msg);
-//						list.addAll(insertClassMessageExt(user, new_msg, filter_roles));
-//					}
-//				}	
-//			}
-//		}else {
-//			throw new ESchoolException("Unknow Dest_type="+ message.getDest_type(), HttpStatus.BAD_REQUEST);
-//		}
-//		// Reset is_sent flg = 0
-//		if (list != null){
-//			for (Message e : list){
-//				if (e.getIs_sent() == 1){
-//					e.setIs_sent(0);
-//					messageDao.updateMessage(e);
-//				}
-//			}
-//		}
-//		return list;
-//	}
-
-//	private Message createTaskMsg(User me, Message message) {
-//		boolean ignored_school = false;
-//		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
-//			ignored_school =true;
-//		}
-//		if (message.getClass_id() == null ){
-//			throw new ESchoolException("createTaskMsg(): class_id = NULL", HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		EClass eclass = classService.findById(message.getClass_id());
-//		if (eclass == null ){
-//			throw new ESchoolException("createTaskMsg(): class_id not existing:"+message.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
-//		}
-//		if (!ignored_school && 
-//				eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
-//			throw new ESchoolException("createTaskMsg(): class_id not in same school with current user, me_id="+me.getId().intValue()+"///class_id="+message.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
-//		}
-//		if (message.getContent() == null || message.getContent().trim().length() == 0){
-//			throw new ESchoolException("createTaskMsg(): message.Content is BLANK", HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		message.setId(null); // 20160822
-//		message.setTo_usr_id(null);// MUST BE NULL
-//		
-//		message.setSent_dt(Utils.now());
-//		message.setIs_sent(99);
-//		messageDao.saveMessage(message);
-//		
-//		message.setTask_id(message.getId());
-//		return message;
-//	}
 
 	@Override
-	public Message newSimpleMessage(Integer from_user_id, Integer to_user_id, String content) {
+	public Message newSimpleMessage(Integer from_user_id, Integer to_user_id, String content, int channel) {
 		Message msg = new Message();
 		User frm_user = userService.findById(from_user_id);
 		User to_user = userService.findById(to_user_id);
@@ -593,6 +453,7 @@ public class MessageServiceImpl implements MessageService{
 		msg.setSchool_id(to_user.getSchool_id());
 		msg.setFrom_user_id(from_user_id);
 		msg.setTo_user_id(to_user_id);
+		msg.setChannel(channel);
 		
 		msg.setContent(content);
 		
@@ -704,8 +565,8 @@ public class MessageServiceImpl implements MessageService{
 				Message new_message = message.copy();
 				// Send to Class, always set from Me user, only ADMIN can send to class or school
 				// TEACHER: can only send personal message with CC
-				new_message.setFrom_usr_id(me.getId());
-				new_message.setTo_usr_id(to_user.getId());
+				new_message.setFrom_user_id(me.getId());
+				new_message.setTo_user_id(to_user.getId());
 				insertUserMessage(me,new_message);
 				list.add(new_message);
 		}
@@ -752,12 +613,12 @@ public class MessageServiceImpl implements MessageService{
 				msg_task.setId(null); // 20160822
 				msg_task.setSchool_id(me.getSchool_id());
 				msg_task.setClass_id(Utils.parseInteger(class_id));
-				msg_task.setTo_usr_id(null);// MUST BE NULL
+				msg_task.setTo_user_id(null);// MUST BE NULL
 				msg_task.setSent_dt(Utils.now());
 				msg_task.setIs_sent(99); // Used to identify main task only
 
 				// This is Main Task, not a real message
-				messageDao.saveMessage(msg_task); // ==> gen task ID
+				messageDao.saveMessage(me,msg_task); // ==> gen task ID
 				// Update task ID
 				msg_task.setTask_id(msg_task.getId());
 				
@@ -774,17 +635,17 @@ public class MessageServiceImpl implements MessageService{
 		
 		if (!is_new){
 			if (message.getId() == null || message.getId().intValue() == 0){
-				throw new RuntimeException("message.id == NULL, cannot update");
+				throw new ESchoolException("message.id == NULL, cannot update",HttpStatus.BAD_REQUEST);
 			}	
 		}
 		
 		// From user_id
-		if (message.getFrom_usr_id() == null || message.getFrom_usr_id().intValue() <= 0){
-			throw new RuntimeException("from_user_id is NUll");
+		if (message.getFrom_user_id() == null || message.getFrom_user_id().intValue() <= 0){
+			throw new ESchoolException("from_user_id is NUll",HttpStatus.BAD_REQUEST);
 		}
-		User frm_user = userService.findById(Integer.valueOf(message.getFrom_usr_id()));
+		User frm_user = userService.findById(Integer.valueOf(message.getFrom_user_id()));
 		if (frm_user == null){
-			throw new RuntimeException("From user_id not existing");
+			throw new ESchoolException("From user_id not existing",HttpStatus.BAD_REQUEST);
 		}
 		boolean ignored_school =false;
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
@@ -797,31 +658,34 @@ public class MessageServiceImpl implements MessageService{
 		
 		if (	!ignored_school && 
 				frm_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
-			throw new RuntimeException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue());
+			throw new ESchoolException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue(),HttpStatus.BAD_REQUEST);
 		}
 		
 		message.setFrom_user_name(frm_user.getFullname());
 		
 		// To user_id
 		if (message.getTo_user_id() == null || message.getTo_user_id().intValue() <= 0){
-			throw new RuntimeException("to_user_id is NUll");
+			throw new ESchoolException("to_user_id is NUll",HttpStatus.BAD_REQUEST);
 		}
 		User to_user = userService.findById(Integer.valueOf(message.getTo_user_id()));
 		if (to_user == null){
-			throw new RuntimeException("to_user_id not existing");
+			throw new ESchoolException("to_user_id not existing",HttpStatus.BAD_REQUEST);
 		}
 		
 		if (!ignored_school && 
 				to_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
-			throw new RuntimeException("ToUserId"+to_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue());
+			throw new ESchoolException("ToUserId"+to_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue(),HttpStatus.BAD_REQUEST);
 		}
 		
 		message.setSchool_id(to_user.getSchool_id());
 		message.setTo_user_name(to_user.getFullname());		
 		message.setTo_sso_id(to_user.getSso_id());
 		message.setTo_phone(to_user.getPhone());
-		message.setSent_dt(Utils.now());
-		message.setIs_sent(1);
+		if (is_new){
+			message.setSent_dt(Utils.now());
+			message.setIs_sent(1);
+		}
+		
 		
 		// Check channel
 		
@@ -829,13 +693,13 @@ public class MessageServiceImpl implements MessageService{
 				message.getChannel().intValue()==1 && // SEND SMS
 				message.getTo_phone() == null || 
 				message.getTo_phone().trim().length() == 0){
-			throw new RuntimeException("to_phone is NULL, cannot send SMS");
+			throw new ESchoolException("to_phone is NULL, cannot send SMS",HttpStatus.BAD_REQUEST);
 		}
 		
 		
 		// Message content
 		if (message.getContent() == null || message.getContent().trim().length()==0){
-			throw new RuntimeException("Message content is BLANK");
+			throw new ESchoolException("Message content is BLANK",HttpStatus.BAD_REQUEST);
 		}
 		
 				
@@ -846,8 +710,8 @@ public class MessageServiceImpl implements MessageService{
 		Message new_msg = null;
 		String[] to_user_list =null; 
 		String cc_list = message.getCc_list()==null?"": message.getCc_list();
-		if (message.getTo_usr_id() > 0 ){
-			cc_list = cc_list + ","+message.getTo_usr_id() ;
+		if (message.getTo_user_id() > 0 ){
+			cc_list = cc_list + ","+message.getTo_user_id() ;
 			cc_list.replaceAll(",+",",");
 			
 			// Remove duplicated user_id
@@ -855,7 +719,7 @@ public class MessageServiceImpl implements MessageService{
 			to_user_list = Utils.duplicateRemove(cc_list.split(","));
 			
 		}
-		User frm_user = userService.findById(Integer.valueOf(message.getFrom_usr_id()));
+		User frm_user = userService.findById(Integer.valueOf(message.getFrom_user_id()));
 		if (frm_user == null){
 			throw new RuntimeException("From user is NUll");
 		}
@@ -869,8 +733,8 @@ public class MessageServiceImpl implements MessageService{
 					(to_user != null && (to_user.getSchool_id() == frm_user.getSchool_id()))) {
 				new_msg = message.copy();
 				
-				new_msg.setFrom_usr_id(frm_user.getId());
-				new_msg.setTo_usr_id(Integer.valueOf(to_id));
+				new_msg.setFrom_user_id(frm_user.getId());
+				new_msg.setTo_user_id(Integer.valueOf(to_id));
 				// Insert to DB
 				insertUserMessage(me, new_msg);
 			}else{
@@ -888,9 +752,16 @@ public class MessageServiceImpl implements MessageService{
 	public Message insertUserMessage(User me, Message message) {
 		// Valid message before send
 		valid_message(me,message,true);
-		messageDao.saveMessage(message);
+		messageDao.saveMessage(me,message);
+		if (message.getChannel() == null ){
+			message.setChannel(E_MSG_CHANNEL.FIREBASE.getValue());
+		}
 		// Send firebase
-		firebaseMsgService.create_from_message(message);
+		if  (    message.getChannel().intValue() == E_MSG_CHANNEL.FIREBASE.getValue() ||
+				message.getChannel().intValue() == E_MSG_CHANNEL.BOTH_FIREBASE_SMS.getValue()){
+			firebaseMsgService.create_from_message(message);	
+		}
+		
 		return message;
 	}
 }

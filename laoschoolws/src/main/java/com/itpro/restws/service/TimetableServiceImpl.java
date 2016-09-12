@@ -76,7 +76,7 @@ public class TimetableServiceImpl implements TimetableService{
 	@Override
 	public Timetable insertTimetable(User user, Timetable timetable) {
 		validateTimetable(user,timetable,true);
-		timetableDao.saveTimeTable(timetable);
+		timetableDao.saveTimeTable(user,timetable);
 		return timetable;
 	}
 
@@ -111,7 +111,7 @@ public class TimetableServiceImpl implements TimetableService{
 			   timetableDao.setFlushMode(FlushMode.AUTO);
 	        }
 		  
-		  timetableDao.updateTimetable(tlb_db);
+		  timetableDao.updateTimetable(me,tlb_db);
 		return tlb_db;
 	}
 
@@ -164,7 +164,7 @@ public class TimetableServiceImpl implements TimetableService{
 			throw new ESchoolException("User and timetable is not in same school", HttpStatus.BAD_REQUEST);
 		}
 		timetable.setActflg("D");
-		timetableDao.updateTimetable(timetable);
+		timetableDao.updateTimetable(user, timetable);
 		
 	}
 	private void validateTimetable(User me, Timetable timetable, boolean is_new) {
@@ -214,7 +214,7 @@ public class TimetableServiceImpl implements TimetableService{
 			throw new ESchoolException("session_id is not existing", HttpStatus.BAD_REQUEST);
 		}
 		if (mtemp.getSchool_id().intValue() != me.getSchool_id().intValue()){
-			throw new ESchoolException("session_id not belong to same school with current user", HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("session_id:"+timetable.getSession_id().intValue()+" is not belong to same school with current user, me.school_id:"+me.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		// Check Subject
 		

@@ -11,8 +11,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.ExamResult;
+import com.itpro.restws.model.User;
 
 @Repository("examResultDao")
 @Transactional
@@ -93,30 +96,61 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 	}
 
 	@Override
-	public void saveExamResult(ExamResult examResult) {
+	public void saveExamResult(User me,ExamResult examResult) {
+		
 		examResult.setActflg("A");
-		examResult.setCtdusr("HuyNQ-test");
+		examResult.setCtdusr(Constant.USER_SYS);
 		examResult.setCtddtm(Utils.now());
-		examResult.setCtdpgm("RestWS");
-		examResult.setCtddtm(Utils.now());
+		examResult.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			examResult.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				examResult.setCtdwks(device);
+			}
+			
+		}
+		
 		
 		save(examResult);
 
 	}
 
 	@Override
-	public void updateExamResult(ExamResult examResult) {
-		examResult.setMdfusr("HuyNQ-test");
+	public void updateExamResult(User me,ExamResult examResult) {
+			
+		
+
+		examResult.setMdfusr(Constant.USER_SYS);
 		examResult.setLstmdf(Utils.now());
-		examResult.setMdfpgm("RestWS");
+		examResult.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			examResult.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				examResult.setMdfwks(device);
+			}
+		}
+		
+		
 		update(examResult);
 
 	}
 
 		@Override
-	public void deleteExamResult(ExamResult examResult) {
+	public void deleteExamResult(User me,ExamResult examResult) {
 		examResult.setActflg("D");
-		update(examResult);
+		updateExamResult(me, examResult);
 
 	}
 

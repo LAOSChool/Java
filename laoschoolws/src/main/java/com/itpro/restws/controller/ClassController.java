@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.User;
@@ -104,26 +105,17 @@ public class ClassController extends BaseController {
 	 public EClass getClass(@PathVariable int  id,@Context final HttpServletResponse response) {
 		logger.info(" *** MainRestController.getClass/{id}:"+id);
 		EClass eclass = null;
-	    try {
-	    	User user = getCurrentUser();
-	    	eclass = classService.findById(Integer.valueOf(id));
-	    	if (eclass != null && user.getSchool_id() != eclass.getSchool_id()){
-	    		logger.info("Eclass is not in same school with current user");
-	    		eclass = null;
-	    	}
-			logger.info("eclass: "+eclass.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController  ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
+	    
+    	User user = getCurrentUser();
+    	eclass = classService.findById(Integer.valueOf(id));
+    	
+    	if (eclass == null ){
+    		throw new ESchoolException("id not existing",HttpStatus.BAD_REQUEST);
+    	}
+    	if (user.getSchool_id().intValue() != eclass.getSchool_id().intValue()){
+    		throw new ESchoolException("Eclass is not in same school with current user",HttpStatus.BAD_REQUEST);
+    	}
+	   
 	    return eclass;
 	 }
 	

@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -16,12 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.itpro.restws.dao.AuthenKeyDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_MSG_CHANNEL;
 import com.itpro.restws.helper.E_ROLE;
+import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.Password;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.AuthenKey;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
@@ -44,6 +50,11 @@ public class UserServiceImpl implements UserService{
 	protected EduProfileService eduProfileService;
 	@Autowired
 	protected ClassService classService;
+	
+	@Autowired
+	private AuthenKeyDao authenKeyDao;
+	@Autowired
+	protected ApiKeyService apiKeyService;
 	
 	public User findById(Integer id) {
 		User user = userDao.findById(id);
@@ -139,26 +150,43 @@ public class UserServiceImpl implements UserService{
 	        }
 		  
 		
-		  userDao.updateUser(userDB);
+		  userDao.updateUser(me,userDB);
+		  // Logout user if not active
+		  if (userDB.getState().intValue() != E_STATE.ACTIVE.value()){
+			  List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDB.getSso_id());
+				if (list != null && list.size() > 0){
+					for (AuthenKey authKey: list){
+						authenKeyDao.deleteToken(authKey);
+						apiKeyService.logoutByAuthKey(authKey.getAuth_key());	
+					}
+				}
+		  }
 		return userDB;
-		
-		
-		
-		
-		
 		
 		
 	}
 
 	@Override
 	public boolean isValidState(int State) {
-		if (State  >= 0 && State <= 4 ){
+		if (State == E_STATE.PENDING.value()){
 			return true;
 		}
+		if (State == E_STATE.ACTIVE.value()){
+			return true;
+		}
+		if (State == E_STATE.SUSPENSE.value()){
+			return true;
+		}
+		if (State == E_STATE.CLOSED.value()){
+			return true;
+		}
+		
 		return false;
 	}
-
-
+	@Override
+	public void logout(User me, User user){
+		
+	}
 
 	@Override
 	public boolean isValidPassword(String pass) {
@@ -170,23 +198,62 @@ public class UserServiceImpl implements UserService{
 		return false;
 	}
 	@Override
-	public boolean isValidUserName(String username) {
-		
-		if (username != null && !username.equals("")){
-			User tmp = userDao.findBySSO(username);
-			if (tmp != null ){
-				throw new RuntimeException("User already existing:"+username);
-			}
-			
-			if ( (username.length() >= 4 ) &&
-					(username.length() <= 20 ) && 
-					!Character.isDigit(username.charAt(0))
-					){
-				return true;
-				
-			}
+	public void validSSO_ID(String sso,E_ROLE role) {
+		 
+		 
+		if (sso == null || sso.trim().length() == 0){
+			throw new ESchoolException("SSO is blank or NULL",HttpStatus.BAD_REQUEST);
 		}
-		return false;
+		
+		
+		if (role.getRole_short().equalsIgnoreCase("TEACHER")){
+			if (!sso.toUpperCase().startsWith("TEA")){
+				throw new ESchoolException("SSO of teacher must start by \"tea\" ",HttpStatus.BAD_REQUEST);
+			}
+		}else{
+			if (sso.toUpperCase().startsWith("TEA")){
+				throw new ESchoolException("\"TEA\" is prefix of TEACHER user only",HttpStatus.BAD_REQUEST);
+			}	
+		}
+		
+		
+		
+		
+		if (role.getRole_short().equalsIgnoreCase("ADMIN")){
+			if (!sso.toUpperCase().startsWith("ADM")){
+				throw new ESchoolException("SSO of admin must start by \"adm\" ",HttpStatus.BAD_REQUEST);
+			}
+		}else{
+			if (sso.toUpperCase().startsWith("ADM")){
+				throw new ESchoolException("\"ADM\" is prefix of ADMIN user only",HttpStatus.BAD_REQUEST);
+			}	
+		}
+
+		
+		
+		User tmp = userDao.findBySSO(sso);
+		if (tmp != null ){
+			throw new ESchoolException("User already existing sso_id:"+sso,HttpStatus.BAD_REQUEST);
+		}
+		
+		if ( (sso.length() >= 4 ) &&
+				(sso.length() <= 20 ) && 
+				!Character.isDigit(sso.charAt(0)  
+						)
+				){
+		}else{
+			throw new RuntimeException("Username is not in correct format ( Correct format: 4<= name.length<=20 and not start by a Number)");
+		}
+		String USERNAME_PATTERN = "^[a-z0-9_-]{4,20}$";
+		 Pattern  pattern = Pattern.compile(USERNAME_PATTERN);
+		  Matcher matcher = pattern.matcher(sso);
+		  if (!matcher.matches()){
+			  throw new ESchoolException("Invaid user name, only accept characters in ( 0-9 or a-z, A-Z -, _), max length = 20, min length = 4 ",HttpStatus.BAD_REQUEST);  
+		  }
+		
+
+		
+		
 	}
 
 	@Override
@@ -247,17 +314,17 @@ public class UserServiceImpl implements UserService{
 		// Send message
 		 Message msg = new Message();
 
-		 msg.setFrom_usr_id(Integer.valueOf(1));
+		 msg.setFrom_user_id(Integer.valueOf(1));
 		 msg.setFrom_user_name("SYS_ADMIN");
-		 msg.setTo_usr_id(reset_user.getId());
-		 String content = "[LaoSchool] Your password has been reset by Admin, new pass: "+newPass;
+		 msg.setTo_user_id(reset_user.getId());
+		 String content = "Your password has been reset by Admin, new pass: "+newPass;
 		 if (is_forgot_request){
-			 content = "[LaoSchool]Your password has been reset due to forgot-pass request, new pass: "+newPass;	 
+			 content = "Your password has been reset due to forgot-pass request, new pass: "+newPass;	 
 		 }
 		 
 		 msg.setContent(content);
 		 
-		 msg.setChannel(Constant.SMS_CHANNEL);
+		 msg.setChannel(E_MSG_CHANNEL.SMS.getValue());
 		 
 		 messageService.sendUserMessageWithCC(me, msg);
 		logger.info("resetPassword END, sso_id="+sso_id);
@@ -265,22 +332,30 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public User createUser(User user, E_ROLE role) {
+	public User createUser(User me, User user, E_ROLE role) {
 	
 		// Update Student sso_id to unique value
 		if (role == E_ROLE.STUDENT){
 			user.setSso_id(user.getSso_id()+Utils.now());
-		}else if (!isValidUserName(user.getSso_id())){
-			throw new RuntimeException("Username is not in correct format ( Correct format: 4<= name.length<=20 and not start by a Number)");
+		}
+		else{
+			validSSO_ID(user.getSso_id(),role);
 		}
 		valid_user(user,true);
 		// Insert into DB
-		userDao.saveUser(user);
+		userDao.saveUser(me,user);
 		// Change sso_id to DB ID
 		if (role == E_ROLE.STUDENT){
-			user.setSso_id(String.format("%08d", user.getId()));
+			if (user.getId().intValue() <= 9999999 ){
+				user.setSso_id(String.format("%08d", user.getId()));
+			//}
+//			else if (user.getId().intValue() <= 999999999 ){
+//				user.setSso_id(String.format("%010d", user.getId()));
+			}else{
+				user.setSso_id(""+user.getId());
+			}
 			//updateUser(user);
-			userDao.saveUser(user);
+			userDao.saveUser(me,user);
 		}
 		
 		return user;
@@ -389,16 +464,18 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public User createAdmin(String sso_id, String pass,Integer school_id) {
+		
+		validSSO_ID(sso_id, E_ROLE.ADMIN);
+		
 		User user = new User();
 		user.setActflg("A");
 		user.setSchool_id(Integer.valueOf(0));
 		user.setSso_id(sso_id);
 		user.setPassword(encryptPass(pass));
 		user.setRoles(E_ROLE.ADMIN.getRole_short());
-		user.setPhone("1234567890");
 		user.setState(1);
 		user.setSchool_id(school_id);
-		userDao.saveUser(user);
+		userDao.saveUser(null,user);
 		return user;
 	}
 
@@ -573,7 +650,7 @@ public class UserServiceImpl implements UserService{
 				user.setPhoto(filePath.replaceFirst(upload_dir, urlbase));
 				
 				
-				userDao.updateUser(user);
+				userDao.updateUser(me,user);
 				
 				
 				
@@ -619,4 +696,5 @@ public class UserServiceImpl implements UserService{
 			}
 			
 		}
+		
 }

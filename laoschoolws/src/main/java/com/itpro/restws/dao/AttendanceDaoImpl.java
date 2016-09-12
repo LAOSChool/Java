@@ -10,8 +10,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.Attendance;
+import com.itpro.restws.model.User;
 
 
 @Repository("attendanceDao")
@@ -87,24 +90,55 @@ public class AttendanceDaoImpl extends AbstractDao<Integer, Attendance> implemen
 	}
 
 	@Override
-	public void saveAttendance(Attendance attendance) {
+	public void saveAttendance(User me, Attendance attendance) {
+	
+
 		attendance.setActflg("A");
-		attendance.setCtdusr("HuyNQ-test");
+		attendance.setCtdusr(Constant.USER_SYS);
 		attendance.setCtddtm(Utils.now());
-		attendance.setCtdpgm("RestWS");
+		attendance.setCtdpgm(Constant.PGM_REST);
+
+		if (me != null ){
+			attendance.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				attendance.setCtdwks(device);
+			}
+			
+		}
+		
+		
 		attendance.setCtddtm(Utils.now());
 		save(attendance);
 		
 	}
 
 	@Override
-	public void updateAttendance(Attendance attendance) {
+	public void updateAttendance(User me,Attendance attendance) {
 //		Attendance current_att = getByKey(attendance.getId());
 		
-		attendance.setMdfusr("HuyNQ-test");
+		attendance.setMdfusr(Constant.USER_SYS);
 		attendance.setLstmdf(Utils.now());
-		attendance.setMdfpgm("RestWS");
-//		update(attendance);
+		attendance.setMdfpgm(Constant.PGM_REST);
+
+		
+		
+		if (me != null ){
+			attendance.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				attendance.setMdfwks(device);
+			}
+		}
+		
 		merge(attendance);
 		
 	}

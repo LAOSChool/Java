@@ -64,8 +64,8 @@ public class EduProfileController extends BaseController {
 			
 			) {
 		//	 Get User info 
-			User student = getCurrentUser();
-			ArrayList<EduProfile> profiles =  eduProfileService.getUserProfile(student, filter_year_id);
+			User me = getCurrentUser();
+			ArrayList<EduProfile> profiles =  eduProfileService.getUserProfile(me, filter_year_id);
 			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 			rsp.setMessageObject(profiles);
 		    return rsp;

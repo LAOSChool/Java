@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.EduProfile;
+import com.itpro.restws.model.User;
 
 
 @Repository("eduProfileDao")
@@ -27,21 +30,36 @@ public class EduProfileDaoImpl extends AbstractDao<Integer, EduProfile> implemen
 
 	
 	@Override
-	public void saveStudentProfile(EduProfile pro) {
+	public void saveStudentProfile(User me, EduProfile pro) {
+		
 		pro.setActflg("A");
-		pro.setCtdusr("HuyNQ-test");
+		pro.setCtdusr(Constant.USER_SYS);
 		pro.setCtddtm(Utils.now());
-		pro.setCtdpgm("RestWS");
-		pro.setCtddtm(Utils.now());
-		persist(pro);
+		pro.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			pro.setCtdusr(me.getSso_id());	
+			
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				pro.setCtdwks(device);
+			}
+			
+		}
+		
+		save(pro);
 		
 	}
 
 	@Override
-	public void updateStudentProfile(EduProfile pro) {
-		pro.setMdfusr("HuyNQ-test");
+	public void updateStudentProfile(User me, EduProfile pro) {
+		pro.setMdfusr(Constant.USER_SYS);
 		pro.setLstmdf(Utils.now());
-		pro.setMdfpgm("RestWS");
+		pro.setMdfusr(Constant.PGM_REST);
 		update(pro);
 		
 	}

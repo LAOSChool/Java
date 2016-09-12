@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.User;
 import com.itpro.restws.security.AuthenticationService;
@@ -118,6 +119,7 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 		if (authentication == null) {
 			return null;
 		}
+		
 		User user = userService.findBySso(authentication.getPrincipal().toString());
 		if (user != null ){
 			return new UserContext(user);
@@ -161,10 +163,22 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 		//ArrayList<ApiKey> list = apiKeyService.findByApiKey(api_key); // Phai check theo ca auth_key
 		ArrayList<ApiKey> list = apiKeyService.findActivedApiKey(api_key, auth_key);
 		if (list != null && list.size() > 0){
-//			for (ApiKey on_api_key : list){
-//				on_api_key.setLast_request_dt(Utils.now());
-//				apiKeyService.updateApiKey(on_api_key);
-//			}
+			// Update last request DT
+			for (ApiKey tmp : list){
+				tmp.setLast_request_dt(Utils.now());
+				apiKeyService.updateApiKey(tmp);
+				break;
+			}
+			// update user context
+			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			if (principal instanceof UserContext) {
+				User user =  ((UserContext)principal).getUser();
+				if (user != null){
+					user.setApi_key(list.get(0));
+				}
+			}
+
+			
 			return true;
 		}else {
 			return false;

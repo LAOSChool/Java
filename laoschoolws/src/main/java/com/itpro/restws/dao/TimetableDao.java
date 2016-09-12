@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.Timetable;
+import com.itpro.restws.model.User;
 
 
 public interface TimetableDao {
@@ -19,9 +20,9 @@ public interface TimetableDao {
 	List<Timetable> findByClass(Integer class_id,int from_row,int max_result) ;
 	List<Timetable> findByWeekDay(Integer class_id,Integer weekday_id) ;
 	
-	void saveTimeTable(Timetable timetable);
-	void updateTimetable(Timetable timetable);
-	void delTimetable(Timetable timetable);
+	void saveTimeTable(User me,Timetable timetable);
+	void updateTimetable(User me,Timetable timetable);
+	void delTimetable(User me,Timetable timetable);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 }

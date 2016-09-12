@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.EduProfile;
+import com.itpro.restws.model.User;
 
 
 public interface EduProfileDao {
@@ -18,8 +19,8 @@ public interface EduProfileDao {
 	
 	
 	
-	void saveStudentProfile(EduProfile profile);
-	void updateStudentProfile(EduProfile profile);
+	void saveStudentProfile(User me, EduProfile profile);
+	void updateStudentProfile(User me, EduProfile profile);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 }

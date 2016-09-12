@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.SchoolExam;
+import com.itpro.restws.model.User;
 
 
 @Repository("schoolExamDao")
@@ -41,22 +44,52 @@ public class SchoolExamDaoImpl extends AbstractDao<Integer, SchoolExam> implemen
 	
 
 	@Override
-	public void saveSchoolExam(SchoolExam schoolExam) {
+	public void saveSchoolExam(User me,SchoolExam schoolExam) {
+		
+		
 		schoolExam.setActflg("A");
-		schoolExam.setCtdusr("HuyNQ-test");
+		schoolExam.setCtdusr(Constant.USER_SYS);
 		schoolExam.setCtddtm(Utils.now());
-		schoolExam.setCtdpgm("RestWS");
-		schoolExam.setCtddtm(Utils.now());
+		schoolExam.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolExam.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolExam.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		save(schoolExam);
 
 		
 	}
 
 	@Override
-	public void updateSchoolExam(SchoolExam schoolExam) {
-		schoolExam.setMdfusr("HuyNQ-test");
+	public void updateSchoolExam(User me,SchoolExam schoolExam) {
+
+		schoolExam.setMdfusr(Constant.USER_SYS);
 		schoolExam.setLstmdf(Utils.now());
-		schoolExam.setMdfpgm("RestWS");
+		schoolExam.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			schoolExam.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				schoolExam.setMdfwks(device);
+			}
+		}
 		update(schoolExam);
 
 		

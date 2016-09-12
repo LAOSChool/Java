@@ -44,11 +44,17 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 		}
 		//AbstractModel model = (AbstractModel) getSession().get(persistentClass, key);
 	}
-
+/***
+ * Persist As mentioned above, this is used on transient objects. It does not return the generated ID.
+ * @param entity
+ */
 	public void persist(T entity) {
 		getSession().persist(entity);
 		
-		
+	/**
+	 * Save Persists an entity. 
+	 * Will assign an identifier if one doesn't exist. If one does, it's essentially doing an update. Returns the generated ID of the entity.	
+	 */
 	}
 	public Integer save(T entity) {
 		//getSession().evict(entity);

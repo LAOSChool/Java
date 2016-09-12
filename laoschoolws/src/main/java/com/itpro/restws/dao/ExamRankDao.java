@@ -6,6 +6,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.ExamRank;
+import com.itpro.restws.model.User;
 
 public interface ExamRankDao {
 
@@ -24,11 +25,11 @@ public interface ExamRankDao {
 	List<ExamRank> findByStudent(Integer user_id, int from_row, int max_result);
 
 	
-	void saveExamRank(ExamRank examRank);
+	void saveExamRank(User me,ExamRank examRank);
 
-	void updateExamRank(ExamRank examRank);
+	void updateExamRank(User me,ExamRank examRank);
 
-	void deleteExamRank(ExamRank examRank);
+	void deleteExamRank(User me,ExamRank examRank);
 
 	
 		ArrayList<ExamRank> findExamRankExt(Integer school_id, Integer class_id, Integer student_id, Integer sch_year_id);

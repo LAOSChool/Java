@@ -7,8 +7,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.MFee;
+import com.itpro.restws.model.User;
 
 @Repository("mfeeDao")
 @Transactional
@@ -38,26 +41,58 @@ public class MFeeDaoImpl extends AbstractDao<Integer, MFee> implements MFeeDao {
 	}
 
 	@Override
-	public void saveFee(MFee mfee) {
+	public void saveFee(User me,MFee mfee) {
+
+	
+		
 		mfee.setActflg("A");
-		mfee.setCtdusr("HuyNQ-test");
+		mfee.setCtdusr(Constant.USER_SYS);
 		mfee.setCtddtm(Utils.now());
-		mfee.setCtdpgm("RestWS");
-		mfee.setCtddtm(Utils.now());
+		mfee.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			mfee.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mfee.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		save(mfee);
 	}
 
 	@Override
-	public void updateFee(MFee mfee) {
-		mfee.setMdfusr("HuyNQ-test");
+	public void updateFee(User me,MFee mfee) {
+		mfee.setMdfusr(Constant.USER_SYS);
 		mfee.setLstmdf(Utils.now());
-		mfee.setMdfpgm("RestWS");
+		mfee.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			mfee.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mfee.setMdfwks(device);
+			}
+		}
+	
 		update(mfee);
 	}
 
 	@Override
-	public void delFee(MFee mfee) {
-		delete(mfee);
+	public void delFee(User me,MFee mfee) {
+		mfee.setActflg("D");
+		updateFee(me, mfee);
 		
 	}
 	

@@ -12,8 +12,11 @@ import org.hibernate.type.Type;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.Permit;
+import com.itpro.restws.model.User;
 
 @Repository("permitDao")
 @Transactional
@@ -37,21 +40,51 @@ public class PermitDaoImpl extends AbstractDao<Integer, Permit> implements Permi
 	}
 
 	@Override
-	public void savePermission(Permit permission) {
+	public void savePermission(User me,Permit permission) {
+	
 		permission.setActflg("A");
-		permission.setCtdusr("HuyNQ-test");
+		permission.setCtdusr(Constant.USER_SYS);
 		permission.setCtddtm(Utils.now());
-		permission.setCtdpgm("RestWS");
-		permission.setCtddtm(Utils.now());
+		permission.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			permission.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				permission.setCtdwks(device);
+			}
+			
+		}
+		
 		save(permission);
 		
 	}
 
 	@Override
-	public void updatePermission(Permit permission) {
-		permission.setMdfusr("HuyNQ-test");
+	public void updatePermission(User me,Permit permission) {
+
+			
+		permission.setMdfusr(Constant.USER_SYS);
 		permission.setLstmdf(Utils.now());
-		permission.setMdfpgm("RestWS");
+		permission.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			permission.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				permission.setMdfwks(device);
+			}
+		}
+		
+		
 		update(permission);
 		
 	}

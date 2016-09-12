@@ -162,144 +162,6 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	
-//	private Notify insertNotify(Notify notify) {
-//		notifyDao.saveNotify(notify);
-//		return notify;
-//	}
-
-//	@Override
-//	public Notify saveUploadData(MultipartFile file, String jsonInString ) {
-//		Notify notify = null;
-//		String fileName = null;
-//		String filePath = null;
-//		String upload_dir = environment.getRequiredProperty("upload_base");
-//		String urlbase = environment.getRequiredProperty("file_url_base");
-//    	if (!file.isEmpty()) {
-//            try {
-//            	
-//            	String str_dir = Utils.makeFolderByTime(upload_dir);
-//            	
-//                fileName = file.getOriginalFilename();
-//                filePath = str_dir+ "/" + fileName;
-//                byte[] bytes = file.getBytes();
-//                
-//                
-//                BufferedOutputStream buffStream = new BufferedOutputStream(new FileOutputStream(new File(filePath)));
-//                buffStream.write(bytes);
-//                buffStream.close();
-//                logger.info(" *** successfully uploaded:"+filePath);
-//            } catch (Exception e) {
-//            	logger.error("Failed to upload " + filePath== null?"":filePath + ": " + e.getMessage());
-//            }
-//        } else {
-//        	logger.error("Unable to upload. File is empty.");
-//        	throw new ESchoolException("Unable to upload. File is empty.",HttpStatus.BAD_REQUEST);
-//        }
-//    	
-//    	
-//    	
-//    	//JSON from String to Object
-//    	ObjectMapper mapper = new ObjectMapper();
-//    	try {
-//			notify = mapper.readValue(jsonInString, Notify.class);
-////			notify.setFile_path(filePath);
-////			notify.setFile_url(filePath.replaceFirst(upload_dir, urlbase));
-//			
-//			insertNotify(notify);
-//		} catch (IOException e) {
-//			// 
-//			e.printStackTrace();
-//		}
-//		return notify;
-//	}
-
-//	@Override
-//	public Notify saveUploadData(
-//			User user,
-//			MultipartFile[] files, 
-//			String[] captions, 
-//			String content, 
-//			String title,
-//			String json_str_notify) {
-//		// Validation Data
-//		if (files == null  || captions== null || content== null ||title == null ||json_str_notify == null){
-//			throw new ESchoolException("Input mandatory data is null",HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		if (files.length != captions.length){
-//			throw new ESchoolException("file.length != captions.leghth",HttpStatus.BAD_REQUEST);
-//		}
-//
-//		
-//		//Convert JSON from String to Object
-//    	ObjectMapper mapper = new ObjectMapper();
-//    	Notify notify=null;
-//    	try {
-//			notify = mapper.readValue(json_str_notify, Notify.class);
-//			// Save to DB
-//			insertNotify(notify);
-//		} catch (IOException e) {
-//			throw new ESchoolException("Cannot convert STRING to JSON =>" + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//    	
-//    	if (notify == null || notify.getId() <= 0){
-//    		throw new ESchoolException("Cannot convert JSON to Notify, Notify is NULL",HttpStatus.INTERNAL_SERVER_ERROR);
-//    	}
-//		String upload_dir = environment.getRequiredProperty("upload_base");
-//		String urlbase = environment.getRequiredProperty("file_url_base");
-//		String fileName="";
-//		String filePath ="";
-//		for (int i = 0; i < files.length; i++) {
-//			
-//			MultipartFile file = files[i];
-//			String caption = captions[i];
-//			
-//			if (file.isEmpty() ){
-//				throw new ESchoolException("File is emtpy", HttpStatus.BAD_REQUEST);
-//			}
-//			try {
-//				byte[] bytes = file.getBytes();
-//				String str_dir = Utils.makeFolderByTime(upload_dir);
-//				fileName = file.getOriginalFilename();            	
-//                filePath = str_dir+ "/" + fileName;
-//                
-//				// Create the file on server
-//				File serverFile = new File(filePath);
-//				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
-//				stream.write(bytes);
-//				stream.close();
-//				logger.info("Server File Location="+ serverFile.getAbsolutePath());
-//				// Save NotifyImg to DB
-//				NotifyImg  notifyImg = new NotifyImg();
-//				notifyImg.setFile_name(fileName);
-//				notifyImg.setFile_path(filePath);
-//				notifyImg.setFile_url(filePath.replaceFirst(upload_dir, urlbase));
-//				notifyImg.setCaption(caption);
-//				notifyImg.setUpload_dt(Utils.now());
-//				notifyImg.setUser_id(user.getId());
-//				notifyImg.setNotify_id(notify.getId());
-//				// Default fields
-//				notifyImg.setActflg("A");
-//				notifyImg.setCtdusr("HuyNQ-test");
-//				notifyImg.setCtddtm(Utils.now());
-//				notifyImg.setCtdpgm("RestWS");
-//				notifyImg.setCtddtm(Utils.now());
-//				notifyImg.setMdfusr("HuyNQ-test");
-//				notifyImg.setLstmdf(Utils.now());
-//				notifyImg.setMdfpgm("RestWS");
-//				
-//				// Save to DB
-//				notify.addImageToNotify(notifyImg);
-//				notifyDao.updateNotify(notify);
-//				
-//			} catch (Exception e) {
-//				throw new ESchoolException("You failed to upload " + fileName + " => " + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-//			}
-//		}
-//		
-//		
-//		return notify;
-//	}
 
 	@Override
 	public Notify saveUploadData(User me, MultipartFile[] files, String[] captions,String[]orders, String json_str_notify) {
@@ -347,7 +209,7 @@ public class NotifyServiceImpl implements NotifyService{
 			// Create task, not real notify
 			notify.setSent_dt(Utils.now());
 			notify.setIs_sent(99);// Will not sent this
-			notifyDao.saveNotify(notify);
+			notifyDao.saveNotify(me,notify);
 			notify.setTask_id(notify.getId());
 		} catch (IOException e) {
 			throw new ESchoolException("Cannot convert STRING to JSON =>" + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
@@ -411,7 +273,7 @@ public class NotifyServiceImpl implements NotifyService{
 				notifyImg.setMdfpgm("RestWS");
 				
 				// Save to DB
-				notifyImgDao.saveImg(notifyImg);
+				notifyImgDao.saveImg(me,notifyImg);
 				//notify.addImageID(notifyImg.getId());
 				notify.addImageToNotify(notifyImg);
 				//notifyDao.updateNotify(notify);
@@ -420,7 +282,7 @@ public class NotifyServiceImpl implements NotifyService{
 			}
 		}
 		// Persist Notify & Images
-		notifyDao.updateNotify(notify);
+		notifyDao.updateNotify(me,notify);
 		
 	
 		return notify;
@@ -750,8 +612,8 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	@Override
-	public Notify updateNotify(Notify notify) {
-		notifyDao.updateNotify(notify);
+	public Notify updateNotify(User me,Notify notify) {
+		notifyDao.updateNotify(me,notify);
 		
 		return notify;
 	}
@@ -760,7 +622,7 @@ public class NotifyServiceImpl implements NotifyService{
 		// Valid message before send
 		valid_user_notify(me, new_notify,true);
 		
-		notifyDao.saveNotify(new_notify);
+		notifyDao.saveNotify(me,new_notify);
 		// Send firebase
 		firebaseMsgService.create_from_notify(new_notify);
 		return new_notify;

@@ -11,7 +11,9 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.User;
 
 @Repository("userDao")
@@ -67,11 +69,27 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 	}
 
 	@Override
-	public void saveUser(User user) {
+	public void saveUser(User me, User user) {
+		
+		
 		user.setActflg("A");
-		user.setCtdusr("HuyNQ-test");
+		user.setCtdusr(Constant.USER_SYS);
 		user.setCtddtm(Utils.now());
-		user.setCtdpgm("RestWS");
+		user.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			user.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				user.setCtdwks(device);
+			}
+			
+		}
+		
 		
 		save(user);
 
@@ -79,9 +97,24 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 	}
 
 	@Override
-	public void updateUser(User user) {
-		user.setMdfusr("HuyNQ-test");
-		user.setMdfpgm("RestWS");
+	public void updateUser(User me,User user) {
+
+		user.setMdfusr(Constant.USER_SYS);
+		user.setLstmdf(Utils.now());
+		user.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			user.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				user.setMdfwks(device);
+			}
+		}
+		
 		update(user);
 	}
 

@@ -26,6 +26,7 @@ import com.itpro.restws.helper.Utils;
 //)
 
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name="message")
 @DynamicInsert(value=true)
@@ -36,7 +37,7 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	
 
 	@Id
 	@GeneratedValue
@@ -148,9 +149,9 @@ public class Message extends AbstractModel implements java.io.Serializable{
 		Message copy = new Message();
 		copy.setSchool_id(this.school_id);
 		copy.setClass_id(this.class_id);
-		copy.setFrom_usr_id(this.from_user_id);
+		copy.setFrom_user_id(this.from_user_id);
 		copy.setFrom_user_name(this.from_user_name);
-		copy.setTo_usr_id(this.to_user_id);
+		copy.setTo_user_id(this.to_user_id);
 		copy.setTo_user_name(this.to_user_name);
 		copy.setTo_sso_id(this.to_sso_id);
 		copy.setTo_phone(this.to_phone);
@@ -202,9 +203,7 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	}
 
 
-	public Integer getFrom_usr_id() {
-		return from_user_id;
-	}
+	
 
 
 	public String getFrom_user_name() {
@@ -212,9 +211,7 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	}
 
 
-	public Integer getTo_usr_id() {
-		return to_user_id;
-	}
+	
 
 
 	public String getTo_user_name() {
@@ -292,9 +289,7 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	}
 
 
-	public void setFrom_usr_id(Integer from_usr_id) {
-		this.from_user_id = from_usr_id;
-	}
+	
 
 
 	public void setFrom_user_name(String from_user_name) {
@@ -302,10 +297,7 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	}
 
 
-	public void setTo_usr_id(Integer to_usr_id) {
-		this.to_user_id = to_usr_id;
-	}
-
+	
 
 	public void setTo_user_name(String to_user_name) {
 		this.to_user_name = to_user_name;

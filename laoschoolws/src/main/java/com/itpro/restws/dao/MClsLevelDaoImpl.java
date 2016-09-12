@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.MClsLevel;
+import com.itpro.restws.model.User;
 
 @Repository("mclslevelDao")
 @Transactional
@@ -43,21 +46,53 @@ public class MClsLevelDaoImpl extends AbstractDao<Integer, MClsLevel> implements
 	}
 
 	@Override
-	public void saveLevel(MClsLevel mClsLevel) {
+	public void saveLevel(User me, MClsLevel mClsLevel) {
+		
 		mClsLevel.setActflg("A");
-		mClsLevel.setCtdusr("HuyNQ-test");
+		mClsLevel.setCtdusr(Constant.USER_SYS);
 		mClsLevel.setCtddtm(Utils.now());
-		mClsLevel.setCtdpgm("RestWS");
-		mClsLevel.setCtddtm(Utils.now());
+		mClsLevel.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			mClsLevel.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mClsLevel.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		this.persist(mClsLevel);
 		
 	}
 
 	@Override
-	public void updateLevel(MClsLevel mClsLevel) {
-		mClsLevel.setMdfusr("HuyNQ-test");
+	public void updateLevel(User me,MClsLevel mClsLevel) {
+		mClsLevel.setMdfusr(Constant.USER_SYS);
 		mClsLevel.setLstmdf(Utils.now());
-		mClsLevel.setMdfpgm("RestWS");
+		mClsLevel.setMdfpgm(Constant.PGM_REST);
+		
+	
+		
+		if (me != null ){
+			mClsLevel.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mClsLevel.setMdfwks(device);
+			}
+		}
+		
+		
 		update(mClsLevel);
 		
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.Notify;
+import com.itpro.restws.model.User;
 
 
 public interface NotifyDao {
@@ -23,8 +24,8 @@ public interface NotifyDao {
 	
 	int sendTask(List<Integer> task_id_list);
 	
-	void saveNotify(Notify notify);
-	void updateNotify(Notify notify);
+	void saveNotify(User me,Notify notify);
+	void updateNotify(User me,Notify notify);
 	public Integer countNotifyExt(Integer school_id,
 			//int from_row, int max_result,
 			// Secure filter

@@ -7,6 +7,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.ApiKey;
 
@@ -44,18 +45,23 @@ public class ApiKeyDaoImpl extends AbstractDao<Integer, ApiKey> implements ApiKe
 
 	@Override
 	public void saveApiKey(ApiKey apikey) {
+
 		apikey.setActflg("A");
-		apikey.setCtdusr("HuyNQ-test");
+		apikey.setCtdusr(Constant.USER_SYS);
 		apikey.setCtddtm(Utils.now());
-		apikey.setCtdpgm("RestWS");
-		apikey.setCtddtm(Utils.now());
+		apikey.setCtdpgm(Constant.PGM_REST);
+		
 		save(apikey);
 	}
 	@Override
 	public void updateApiKey(ApiKey apiKey) {
-		apiKey.setMdfusr("HuyNQ-test");
+
+		
+		apiKey.setMdfusr(Constant.USER_SYS);
 		apiKey.setLstmdf(Utils.now());
-		apiKey.setMdfpgm("RestWS");
+		apiKey.setMdfpgm(Constant.PGM_REST);
+		
+		
 		update(apiKey);
 
 		

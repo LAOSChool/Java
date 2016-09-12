@@ -9,8 +9,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.MSession;
+import com.itpro.restws.model.User;
 
 @Repository("msessionDao")
 @Transactional
@@ -44,28 +47,64 @@ public class MSessionDaoImpl extends AbstractDao<Integer, MSession> implements M
 	}
 
 	@Override
-	public void saveSession(MSession msession) {
+	public void saveSession(User me, MSession msession) {
+		
+		
+		
 		msession.setActflg("A");
-		msession.setCtdusr("HuyNQ-test");
+		msession.setCtdusr(Constant.USER_SYS);
 		msession.setCtddtm(Utils.now());
-		msession.setCtdpgm("RestWS");
-		msession.setCtddtm(Utils.now());
+		msession.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			msession.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				msession.setCtdwks(device);
+			}
+			
+		}
+		
+		
 		this.persist(msession);
 		
 	}
 
 	@Override
-	public void updateSession(MSession msession) {
-		msession.setMdfusr("HuyNQ-test");
+	public void updateSession(User me, MSession msession) {
+		
+		
+		
+		msession.setMdfusr(Constant.USER_SYS);
 		msession.setLstmdf(Utils.now());
-		msession.setMdfpgm("RestWS");
+		msession.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			msession.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				msession.setMdfwks(device);
+			}
+		}
+		
+		
 		update(msession);
 		
 	}
 
 	@Override
-	public void delSession(MSession msession) {
-		delete(msession);
+	public void delSession(User me, MSession msession) {
+		msession.setActflg("D");
+		updateSession(me, msession);
+		
 		
 	}
 

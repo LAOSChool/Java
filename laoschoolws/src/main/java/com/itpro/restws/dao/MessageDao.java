@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.Message;
+import com.itpro.restws.model.User;
 
 
 public interface MessageDao {
@@ -55,8 +56,8 @@ public interface MessageDao {
 			) ;
 	
 	
-	void saveMessage(Message message);
-	void updateMessage(Message message);
+	void saveMessage(User me,Message message);
+	void updateMessage(User me,Message message);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 	

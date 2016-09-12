@@ -3,6 +3,7 @@ package com.itpro.restws.dao;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.FirebaseMsg;
 
@@ -16,11 +17,14 @@ public class FirebaseMsgDaoImpl extends AbstractDao<Integer, FirebaseMsg> implem
 
 	@Override
 	public void saveMsg(FirebaseMsg msg) {
+		
+		
 		msg.setActflg("A");
-		msg.setCtdusr("HuyNQ-test");
+		msg.setCtdusr(Constant.USER_SYS);
 		msg.setCtddtm(Utils.now());
-		msg.setCtdpgm("RestWS");
-		msg.setCtddtm(Utils.now());
+		msg.setCtdpgm(Constant.PGM_REST);
+		
+		
 		//Integer id = save(message);
 		save(msg);
 		// message.setId(id);
@@ -29,9 +33,9 @@ public class FirebaseMsgDaoImpl extends AbstractDao<Integer, FirebaseMsg> implem
 
 	@Override
 	public void updateMsg(FirebaseMsg msg) {
-		msg.setMdfusr("HuyNQ-test");
+		msg.setMdfusr(Constant.PGM_REST);
 		msg.setLstmdf(Utils.now());
-		msg.setMdfpgm("RestWS");
+		msg.setMdfusr(Constant.USER_SYS);
 		update(msg);
 
 	}

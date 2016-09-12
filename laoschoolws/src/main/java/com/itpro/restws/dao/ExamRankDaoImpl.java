@@ -11,8 +11,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.ExamRank;
+import com.itpro.restws.model.User;
 
 @Repository("examRankDao")
 @Transactional
@@ -92,28 +95,60 @@ public class ExamRankDaoImpl extends AbstractDao<Integer, ExamRank> implements E
 	}
 
 	@Override
-	public void saveExamRank(ExamRank examRank) {
+	public void saveExamRank(User me, ExamRank examRank) {
 		examRank.setActflg("A");
-		examRank.setCtdusr("HuyNQ-test");
+		examRank.setCtdusr(Constant.USER_SYS);
 		examRank.setCtddtm(Utils.now());
-		examRank.setCtdpgm("RestWS");
-		examRank.setCtddtm(Utils.now());
+		examRank.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			examRank.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				examRank.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		save(examRank);
 
 	}
 
 	@Override
-	public void updateExamRank(ExamRank examRank) {
-		examRank.setMdfusr("HuyNQ-test");
+	public void updateExamRank(User me, ExamRank examRank) {
+		
+		examRank.setMdfusr(Constant.USER_SYS);
 		examRank.setLstmdf(Utils.now());
-		examRank.setMdfpgm("RestWS");
+		examRank.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			examRank.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				examRank.setMdfwks(device);
+			}
+		}
+		
+		
+		
 		update(examRank);
 
 	}
 	@Override
-	public void deleteExamRank(ExamRank examRank) {
+	public void deleteExamRank(User me,ExamRank examRank) {
 		examRank.setActflg("D");
-		update(examRank);
+			
+		updateExamRank(me,examRank);
 
 	}
 

@@ -18,9 +18,6 @@ public class Constant {
 	public static final int SMALL_SIZE = 90 ;
 	public static final int BIG_SIZE = 300;
 	
-	public static final int SMS_CHANNEL = 1;
-	public static final int APP_MESSAGE_CHANNEL = 0;
-	public static final int EMAIL_CHANNEL = 2;
 	
 	public static final String HEADER_USERNAME = "sso_id";
 	public static final String HEADER_PASSWORD = "password";
@@ -28,6 +25,8 @@ public class Constant {
 	
 	public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
     public static final Charset UTF_8 = Charset.forName("UTF-8");
+    public static final String PGM_REST = "REST";
+    public static final String USER_SYS = "SYS";
     
 	public static final String[] exam_keys ={
 			  "m1", 
@@ -53,9 +52,10 @@ public class Constant {
 			  
 			};
 	public static final String[] NON_DEVICE_API_KEY ={
-			  "WEB", 
-			  "TEST", 
-			  "TEST_API_KEY"
+			  "WEB",
+			  "SMS",
+			 // "TEST", 
+			  // "TEST_API_KEY"
 			};
 	
 	public static final String[] datetime_formats ={

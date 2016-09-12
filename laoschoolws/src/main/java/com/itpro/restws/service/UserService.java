@@ -27,14 +27,13 @@ public interface UserService {
 	
 	public boolean isValidState(int State);
 	public boolean isValidPassword(String pass);
-	public boolean isValidUserName(String username);
+	public void validSSO_ID(String username,E_ROLE role);
 	public String encryptPass(String password);
 	public String changePassword(User me, String sso_id, String old_pass, String new_pass);
 	public String forgotPassword(User me, String sso_id, String phone);
 	public String resetPassword(User me, String sso_id,boolean by_forgot_request);
 	
-	public User createUser(User user,E_ROLE role);
-	public User createAdmin(String sso_id,String pass,Integer school_id);
+	
 	
 	boolean isSameClass(User user1, User user2);
 	boolean isSameClass(Integer id, List<Integer> list);
@@ -56,5 +55,8 @@ public interface UserService {
 	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result);
 	void updateClassTerm(User user);
 	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
+	public User createUser(User me, User user,E_ROLE role);
+	public User createAdmin(String sso_id,String pass,Integer school_id);
+	void logout(User me, User user);
 	
 }

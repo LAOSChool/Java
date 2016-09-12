@@ -8,8 +8,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.MGrade;
+import com.itpro.restws.model.User;
 
 @Repository("mgradeDao")
 @Transactional
@@ -43,28 +46,61 @@ public class MGradeDaoImpl extends AbstractDao<Integer, MGrade> implements MGrad
 	}
 
 	@Override
-	public void saveGrade(MGrade mgrade) {
+	public void saveGrade(User me,MGrade mgrade) {
+	
 		mgrade.setActflg("A");
-		mgrade.setCtdusr("HuyNQ-test");
+		mgrade.setCtdusr(Constant.USER_SYS);
 		mgrade.setCtddtm(Utils.now());
-		mgrade.setCtdpgm("RestWS");
-		mgrade.setCtddtm(Utils.now());
+		mgrade.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			mgrade.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mgrade.setCtdwks(device);
+			}
+			
+		}
+		
+		
+		
 		this.persist(mgrade);
 		
 	}
 
 	@Override
-	public void updateGrade(MGrade mgrade) {
-		mgrade.setMdfusr("HuyNQ-test");
+	public void updateGrade(User me,MGrade mgrade) {
+		
+		mgrade.setMdfusr(Constant.USER_SYS);
 		mgrade.setLstmdf(Utils.now());
-		mgrade.setMdfpgm("RestWS");
+		mgrade.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			mgrade.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				mgrade.setMdfwks(device);
+			}
+		}
+		
+		
+		
 		update(mgrade);
 		
 	}
 
 	@Override
-	public void delGrade(MGrade mgrade) {
-		delete(mgrade);
+	public void delGrade(User me,MGrade mgrade) {
+		mgrade.setActflg("D");
+		updateGrade(me, mgrade);
 		
 	}
 

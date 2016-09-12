@@ -12,8 +12,8 @@ public interface SchoolService {
 	School findById(Integer id);
 	ArrayList<School> findActive();
 	
-	School insertSchool(School school);
-	School updateSchool(School school);
+	School insertSchool(User me,School school);
+	School updateSchool(User me,School school);
 	void saveUploadPhoto(User me, MultipartFile[] file);
 	
 //	SchoolTerm createTerm(User me,SchoolTerm schoolTerm);

@@ -157,15 +157,18 @@ public class User2ClassServiceImpl implements User2ClassService{
 		
 		
 		user2Class.setSchool_id(admin.getSchool_id());
+		
 		user2Class.setClass_id(class_id);
-		user2Class.setUser_id(user_id);
+		user2Class.setCls_title(eclass.getTitle());
+		user2Class.setUser_id(user.getId());
+		user2Class.setSso_id(user.getSso_id());
 		user2Class.setSchool_year_id(schoolYear.getId());
 		
 		user2Class.setAssigned_dt(Utils.now());
 		user2Class.setNotice(notice);
 		user2Class.setClosed(0);
 		
-		user2ClassDao.saveUser2Class(user2Class);
+		user2ClassDao.saveUser2Class(admin,user2Class);
 		
 		return user2Class;
 		
@@ -202,14 +205,14 @@ public class User2ClassServiceImpl implements User2ClassService{
 		if (eclass.getHead_teacher_id() != null && eclass.getHead_teacher_id().intValue() == user.getId().intValue()){
 			eclass.setHead_teacher_id(null);
 			eclass.setHeadTeacherName(null);
-			classesDao.updateClass(eclass);
+			classesDao.updateClass(me,eclass);
 		}
 		// Remove relationship
 		for (User2Class user2Class: list){
 			user2Class.setClosed(1);
 			user2Class.setClosed_dt(Utils.now());
-			user2Class.setNotice("AUTO when class");
-			user2ClassDao.updateUser2Class(user2Class);
+			user2Class.setNotice("AUTO when call: removeUserToClass()");
+			user2ClassDao.updateUser2Class(me,user2Class);
 		}
 		
 	
@@ -237,7 +240,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 				if (cls.getHead_teacher_id() != null && cls.getHead_teacher_id().intValue() == user.getId().intValue()){
 					cls.setHead_teacher_id(null);
 					cls.setHeadTeacherName(null);
-					classesDao.updateClass(cls);
+					classesDao.updateClass(me,cls);
 				}
 			}
 		}
@@ -250,7 +253,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 				user2Class.setClosed(1);
 				user2Class.setClosed_dt(Utils.now());
 				user2Class.setNotice("AUTO when del_user");
-				user2ClassDao.updateUser2Class(user2Class);
+				user2ClassDao.updateUser2Class(me,user2Class);
 			}	
 		}
 		
@@ -279,7 +282,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 			user2Class.setActflg("D");
 			user2Class.setClosed(1);
 			user2Class.setClosed_dt(Utils.now());
-			user2ClassDao.updateUser2Class(user2Class);
+			user2ClassDao.updateUser2Class(me,user2Class);
 		}
 		
 		

@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.SchoolExam;
+import com.itpro.restws.model.User;
 
 
 public interface SchoolExamDao {
@@ -20,8 +21,8 @@ public interface SchoolExamDao {
 	
 	List<SchoolExam> findBySchool(Integer school_id,int from_row,int max_result) ;
 	
-	void saveSchoolExam(SchoolExam schoolExam);
-	void updateSchoolExam(SchoolExam schoolExam);
+	void saveSchoolExam(User me,SchoolExam schoolExam);
+	void updateSchoolExam(User me,SchoolExam schoolExam);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 	

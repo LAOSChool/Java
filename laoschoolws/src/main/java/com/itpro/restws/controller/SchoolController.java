@@ -1,7 +1,6 @@
 package com.itpro.restws.controller;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,45 +53,37 @@ public class SchoolController extends BaseController {
 	protected SchoolYearService schoolYearService;
 	
 	
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/schools",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
-	public List<School> getSchools(
-			@RequestParam(value="filter_class_id",required =false) String filter_class_id,
-			@RequestParam(value="filter_user_id",required =false) String filter_user_id,			
-			@RequestParam(value="filter_sts", defaultValue="Active",required =false) String filter_sts
+	public RespInfo  getSchools(
+			@Context final HttpServletRequest request
 			) {
 		
-		logger.info(" *** MainRestController.getSchools");
-	   	return schoolService.findActive();
+		
+		User me = getCurrentUser();
+		 RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		
+		School school = schoolService.findById(me.getSchool_id());
+		rsp.setMessageObject(school);
+	   	return rsp;
 	}
 	
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value = "/api/schools/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public School getSchool(
 				@PathVariable int  id,
 				@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getSchool/{id}:"+id);
-		School school = null;
-
-	    response.setStatus(HttpServletResponse.SC_OK);
-	    try {
-	    	school = schoolService.findById(Integer.valueOf(id));
-			logger.info("Schoo : "+school.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    return school;
+		logger.info(" *** getSchool/{id}:"+id);
+		
+		User me = getCurrentUser();
+		if (me.getSchool_id().intValue() == id){
+			School school = schoolService.findById(Integer.valueOf(id));
+		    return school;
+		}else{
+			throw new ESchoolException("Current user cannot get other school info, user.school_id="+me.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
 	 }
 	
 	//@Secured("ROLE_ANONYMOUS")
@@ -111,41 +102,12 @@ public class SchoolController extends BaseController {
 	 public School nonsecureGetSchool(
 				@PathVariable int  id,
 				@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getSchool/{id}:"+id);
-		School school = null;
-
-	    response.setStatus(HttpServletResponse.SC_OK);
-	    try {
-	    	school = schoolService.findById(Integer.valueOf(id));
-			logger.info("Schoo : "+school.toString());
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.ERROR:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }
-	    finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
+		
+		logger.info(" *** nonsecureGetSchool/{id}:"+id);
+		School school= schoolService.findById(Integer.valueOf(id));
 	    return school;
 	 }
 
-	@Secured({ "ROLE_SYS_ADMIN" })
-	@RequestMapping(value="/api/schools/create",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public School createSchool(
-			@RequestBody School school,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.school.create");
-
-		 return schoolService.insertSchool(school);
-		 
-	}
-	
 	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value="/api/schools/update",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -154,33 +116,16 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.schools.update");
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		
-		if (user.getSchool_id().intValue() != school.getId().intValue()){
-			throw new ESchoolException("school.id is not belong to current user - current_user.school_id:"+user.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+		if (me.getSchool_id().intValue() != school.getId().intValue()){
+			throw new ESchoolException("school.id is not belong to current user - current_user.school_id:"+me.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
-		 return schoolService.updateSchool(school);
+		 return schoolService.updateSchool(me,school);
 	}
 	
 	
-	
-	
-	@Secured({ "ROLE_SYS_ADMIN" })
-	@RequestMapping(value = "/api/schools/delete/{id}", method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	 public String delSchool(
-			 @PathVariable int  id,
-			@Context final HttpServletResponse response
-			 
-			 ) {
-		logger.info(" *** MainRestController.delSchool/{school_id}:"+id);
-		School school = schoolService.findById(id);
-		school.setActflg("D");
-		schoolService.updateSchool(school);
-	    return "Request was successfully, delete school of id: "+id;
-	 }
-	
-
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/schools/exams",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo getSchoolExams(
@@ -209,7 +154,8 @@ public class SchoolController extends BaseController {
 			rsp.setMessageObject(schoolExams);
 		    return rsp;
 		}
-
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })	
 	@RequestMapping(value="/api/schools/exams/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo getSchoolExam(
@@ -222,16 +168,20 @@ public class SchoolController extends BaseController {
 		//	 Get User info 
 			User user = getCurrentUser();
 			SchoolExam ret= schoolExamService.findById(id);
-			if (ret.getSchool_id().intValue() != user.getSchool_id().intValue()){
-				throw new ESchoolException("SchooID of user is not same with SchoolID of exam", HttpStatus.BAD_REQUEST);
+			if (ret == null ){
+				throw new ESchoolException("id not existing", HttpStatus.BAD_REQUEST);
 			}
-			
+			if (ret.getSchool_id().intValue() != user.getSchool_id().intValue()){
+				throw new ESchoolException("SchooID of user is not same with exam", HttpStatus.BAD_REQUEST);
+			}	
+		
 			
 			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 			rsp.setMessageObject(ret);
 		    return rsp;
 		}
 
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/schools/years/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo getSchoolYear(
@@ -244,6 +194,9 @@ public class SchoolController extends BaseController {
 		//	 Get User info 
 			User user = getCurrentUser();
 			SchoolYear ret= schoolYearService.findById(id);
+			if (ret == null ){
+				throw new ESchoolException("id not existing", HttpStatus.BAD_REQUEST);
+			}
 			if (ret.getSchool_id().intValue() != user.getSchool_id().intValue()){
 				throw new ESchoolException("SchooID of user is not same with SchoolID of exam", HttpStatus.BAD_REQUEST);
 			}
@@ -254,7 +207,7 @@ public class SchoolController extends BaseController {
 		    return rsp;
 		}
 
-	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/schools/years",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo getSchoolYears(
@@ -272,7 +225,7 @@ public class SchoolController extends BaseController {
 			rsp.setMessageObject(years);
 		    return rsp;
 		}
-	
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/schools/terms",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getCurrentTerm(
@@ -427,7 +380,7 @@ public class SchoolController extends BaseController {
 	
 	@RequestMapping(value="/api/schools/upload_photo",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo createNotify(
+	public RespInfo upload_photo(
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
 			 @Context final HttpServletRequest request)
 			 {
@@ -478,6 +431,7 @@ public class SchoolController extends BaseController {
 		return rsp;
 	}
 
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value = "/api/schools/terms/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public RespInfo getTerm(@PathVariable Integer  id,
@@ -485,12 +439,19 @@ public class SchoolController extends BaseController {
 				@Context final HttpServletResponse response
 			 ) {
 		
-		User admin = getCurrentUser();
+		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
-		SchoolTerm term = schoolTermService.findTermById(admin, id);;
+		SchoolTerm term = schoolTermService.findTermById(me, id);
+		if (term == null ){
+			throw new ESchoolException("id not existing", HttpStatus.BAD_REQUEST);
+		}
+		if (term.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("SchooID of user is not same with term", HttpStatus.BAD_REQUEST);
+		}	
 		rsp.setMessageObject(term);
 		return rsp;
 	 }
+
 	
 }

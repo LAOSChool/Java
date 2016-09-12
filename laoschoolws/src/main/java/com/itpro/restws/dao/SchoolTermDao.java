@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.FlushMode;
 
 import com.itpro.restws.model.SchoolTerm;
+import com.itpro.restws.model.User;
 
 
 public interface SchoolTermDao {
@@ -13,8 +14,8 @@ public interface SchoolTermDao {
 	List<SchoolTerm> findBySchoolId(Integer school_id,Integer active);
 	List<SchoolTerm> findBySchoolAndYear(Integer school_id, Integer year_id, Integer actived);
 	
-	void saveSchoolTerm(SchoolTerm schoolTerm);
-	void updateSchoolTerm(SchoolTerm schoolTerm);
+	void saveSchoolTerm(User me,SchoolTerm schoolTerm);
+	void updateSchoolTerm(User me,SchoolTerm schoolTerm);
 	
 	void setFlushMode(FlushMode mode);
 	void clearChange();

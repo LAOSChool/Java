@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.FlushMode;
 
+import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
 
 public interface User2ClassDao {
@@ -23,8 +24,8 @@ public interface User2ClassDao {
 	List<User2Class> findByUserAndClass(Integer user_id, Integer class_id, Integer closed);
 	
 	
-	void saveUser2Class(User2Class user2Class);
-	void updateUser2Class(User2Class user2Class);
+	void saveUser2Class(User me,User2Class user2Class);
+	void updateUser2Class(User me,User2Class user2Class);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 	

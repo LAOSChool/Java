@@ -13,8 +13,11 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.Notify;
+import com.itpro.restws.model.User;
 
 @Repository("notifyDao")
 @Transactional
@@ -121,12 +124,28 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 
 
 	@Override
-	public void saveNotify(Notify notify) {
+	public void saveNotify(User me,Notify notify) {
+				
+		
 		notify.setActflg("A");
-		notify.setCtdusr("HuyNQ-test");
+		notify.setCtdusr(Constant.USER_SYS);
 		notify.setCtddtm(Utils.now());
-		notify.setCtdpgm("RestWS");
-		notify.setCtddtm(Utils.now());
+		notify.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			notify.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				notify.setCtdwks(device);
+			}
+			
+		}
+		
+		
 		save(notify);
 		//getSession().flush() ;
 		
@@ -135,10 +154,26 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 
 
 	@Override
-	public void updateNotify(Notify notify) {
-		notify.setMdfusr("HuyNQ-test");
+	public void updateNotify(User me,Notify notify) {
+
+	
+		notify.setMdfusr(Constant.USER_SYS);
 		notify.setLstmdf(Utils.now());
-		notify.setMdfpgm("RestWS");
+		notify.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			notify.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				notify.setMdfwks(device);
+			}
+		}
+		
+		
 		update(notify);
 		//getSession().flush() ;
 		

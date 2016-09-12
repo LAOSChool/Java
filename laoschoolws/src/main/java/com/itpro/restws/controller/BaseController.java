@@ -115,15 +115,7 @@ public class BaseController {
 			String sso = principal.toString();
 			user = userService.findBySso(sso);
 		}
-//		String sso =null;
-//		
-//		if (principal instanceof UserContext) {
-//			 sso = ((UserContext) principal).getUsername();
-//	} else {
-//		sso = principal.toString();
-//		
-//	}
-//		user = userService.findBySso(sso);
+
 		return user;
 	}
 
@@ -270,6 +262,7 @@ public class BaseController {
 		return act;
 	}
 	
+
 	
 
 }

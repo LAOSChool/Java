@@ -7,20 +7,39 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.NotifyImg;
+import com.itpro.restws.model.User;
 
 @Repository("notifyImgDao")
 @Transactional
 public class NotifyImgDaoImpl extends AbstractDao<Integer, NotifyImg> implements NotifyImgDao {
 
 	@Override
-	public void saveImg(NotifyImg img) {
+	public void saveImg(User me,NotifyImg img) {
+	
+		
 		img.setActflg("A");
-		img.setCtdusr("HuyNQ-test");
+		img.setCtdusr(Constant.USER_SYS);
 		img.setCtddtm(Utils.now());
-		img.setCtdpgm("RestWS");
-		img.setCtddtm(Utils.now());
+		img.setCtdpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			img.setCtdusr(me.getSso_id());	
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				img.setCtdwks(device);
+			}
+			
+		}
+		
+		
 		save(img);
 		
 	}
@@ -28,10 +47,25 @@ public class NotifyImgDaoImpl extends AbstractDao<Integer, NotifyImg> implements
 
 
 	@Override
-	public void updateImg(NotifyImg img) {
-		img.setMdfusr("HuyNQ-test");
+	public void updateImg(User me,NotifyImg img) {
+
+		
+		img.setMdfusr(Constant.USER_SYS);
 		img.setLstmdf(Utils.now());
-		img.setMdfpgm("RestWS");
+		img.setMdfpgm(Constant.PGM_REST);
+		
+		if (me != null ){
+			img.setMdfusr(me.getSso_id());
+			ApiKey apiKey = me.getApi_key();
+			String device = null;
+			if (apiKey != null && apiKey.getApi_key() != null ){
+				device = apiKey.getApi_key();
+			}
+			if (device != null ){
+				img.setMdfwks(device);
+			}
+		}
+		
 		update(img);
 		
 	}
