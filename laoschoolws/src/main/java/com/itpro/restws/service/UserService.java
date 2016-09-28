@@ -51,8 +51,8 @@ public interface UserService {
 	ArrayList<SchoolYear> getSchoolYears(User student);
 	
 
-	int countAvailableUser(Integer school_id);
-	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result);
+	int countAvailableUser(Integer school_id, String filter_user_role);
+	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result,String filter_user_role);
 	void updateClassTerm(User user);
 	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
 	public User createUser(User me, User user,E_ROLE role);

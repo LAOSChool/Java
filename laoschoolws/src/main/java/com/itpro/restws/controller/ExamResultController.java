@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,9 +22,12 @@ import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.ErrInfo;
 import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.RespInfo;
+import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.Command;
 import com.itpro.restws.model.ExamRank;
 import com.itpro.restws.model.ExamResult;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.CommandService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -36,7 +40,8 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class ExamResultController extends BaseController {
-	
+	@Autowired
+	protected CommandService commandService;
 
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
 	@RequestMapping(value="/api/exam_results/{id}",method = RequestMethod.GET)
@@ -95,6 +100,7 @@ public class ExamResultController extends BaseController {
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,			
 			@RequestParam(value="filter_subject_id", required =false) Integer filter_subject_id,
+			
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -201,13 +207,53 @@ public class ExamResultController extends BaseController {
 	    return rsp;
 		 
 	}
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value="/api/exam_results/ranks/process",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo rankProcessAveAndOrder(
+			@RequestParam(value="class_ids", required =false) String class_ids,
+			@RequestParam(value="ex_key", required =false) String ex_key,
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
+		logger.info(" *** MainRestController.execRank");
+		User me = getCurrentUser();
+	
+		if (class_ids == null||class_ids.trim().length() == 0){
+			throw new ESchoolException("class_ids is required",HttpStatus.BAD_REQUEST);
+		}
+		if (ex_key == null||ex_key.trim().length() == 0){
+			throw new ESchoolException("ex_key is required",HttpStatus.BAD_REQUEST);
+		}
+		
+		// Calculate Average value by Month (m1,m2..m20)
+//		ArrayList<ExamRank> examRanks = examResultService.execClassMonthAve(me, filter_class_id);
+//		// Ranking average value by Month (m1,m2..m20)		
+//		examResultService.procAllocation(me,examRanks);
+//	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+//		rsp.setMessageObject("DONE, to get result, plz call : /api/exam_results/ranks");
+		
+		String err_msg = examResultService.valid_rank_process(me,class_ids, ex_key);
+		if (err_msg != null && err_msg.length() > 0){
+			err_msg = Utils.removeTxtLastComma(err_msg);
+			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"ERROR", request.getRequestURL().toString(),err_msg);
+			rsp.setMessageObject("Cannot execute ranking due to error");
+			return rsp;
+		}
+		
+		
+		Command cmd = commandService.create_rank_process(me, class_ids,ex_key);
+	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
+	    rsp.setMessageObject("Plz wait ~ 30s, background taks_id:"+cmd.getId().intValue() + " is in processing");
+	    return rsp;
+	}
 	
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/exam_results/ranks",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo rankGetExamRanks(
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
-			@RequestParam(value="filter_class_id",required =true) Integer filter_class_id,
+			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
 			
 			@Context final HttpServletRequest request,
@@ -248,61 +294,7 @@ public class ExamResultController extends BaseController {
 	}
 
 
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
-	@RequestMapping(value="/api/exam_results/ranks/process",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo rankProcessAveAndOrder(
-			@RequestParam(value="filter_year_id", required =true) Integer filter_year_id,			
-			@RequestParam(value="filter_class_id", required =true) Integer filter_class_id,
-			
-			@Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** MainRestController.execRank");
-		User user = getCurrentUser();
 	
-		// Update average value
-		ArrayList<ExamRank> examRanks = examResultService.execClassMonthAve(user, filter_year_id, filter_class_id);
-		examResultService.procAllocation(user,examRanks);
-//		// Update ranking
-		
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-		rsp.setMessageObject("DONE, to get result, plz call : /api/exam_results/ranks");
-	    return rsp;
-	}
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
-	@RequestMapping(value="/api/exam_results/ranks/month_ave",method = RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo rankProcessAve(
-			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
-			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
-			@RequestParam(value="filter_class_id", required =false) Integer filter_class_id,
-			
-			@Context final HttpServletRequest request,
-			@Context final HttpServletResponse response
-			) {
-		logger.info(" *** ExamResultController.month_ave");
-		User me = getCurrentUser();
-		
-		if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
-			if (!me.is_belong2class(filter_class_id)){
-				throw new ESchoolException("Current User is TEACHER - who not assigned to class_id:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
-			}
-		}
-		ArrayList<ExamRank> list = new ArrayList<ExamRank>();
-		if (filter_student_id == null  || filter_student_id.intValue() <= 0){
-			list = examResultService.execClassMonthAve(me, filter_year_id, filter_class_id);
-		}else{
-			ExamRank examRank = examResultService.execUserMonthAve(me,filter_student_id, filter_year_id,filter_class_id);
-			if (examRank != null ){
-				list.add(examRank);
-			}
-		}
-		
-	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"Done, no error", request.getRequestURL().toString(), "Successful");
-		rsp.setMessageObject(list);
-		
-	    return rsp;
-	}
+	
 	
 }

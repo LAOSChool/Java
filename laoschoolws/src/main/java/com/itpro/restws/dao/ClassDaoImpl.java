@@ -35,11 +35,11 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 	public List<EClass> findBySchool(Integer school_id, int from_row, int max_result) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("school_id", school_id));
-		crit_list.setMaxResults(max_result);
-        crit_list.setFirstResult(from_row);
+//		crit_list.setMaxResults(max_result);
+//        crit_list.setFirstResult(from_row);
         
         crit_list.addOrder(Order.asc("id"));
-        
+//        crit_list.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 	     @SuppressWarnings("unchecked")
 		List<EClass> classes = crit_list.list();
 	     

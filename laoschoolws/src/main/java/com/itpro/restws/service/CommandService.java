@@ -9,5 +9,6 @@ public interface CommandService {
 	Command create_class_message_cmd(User me, Message msg_task, String filter_roles);
 	Command create_notify_cmd(User me, Notify notify_task, String filter_roles);
 	Command create_user_forgot_pass_cmd(User me, String sso_id, String phone);
+	Command create_rank_process(User me, String class_ids, String ex_key);
 	
 }

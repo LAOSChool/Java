@@ -14,6 +14,7 @@ public interface ClassDao {
 	EClass findById(Integer id);
 	List<EClass> findBySchool(Integer school_id,int from_row,int max_result) ;
 	List<EClass> findByUser(Integer user_id,int from_row,int max_result) ;
+	
 	void saveClass(User me, EClass eClass);
 	void updateClass(User me, EClass eClass);
 	void setFlushMode(FlushMode mode);

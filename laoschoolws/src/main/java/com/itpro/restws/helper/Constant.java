@@ -7,9 +7,12 @@ public class Constant {
 	public static final String LOGIN_LINK="/login";
 	public static final String FORGOT_PASS="/forgot_pass";
 	public static final String LOGOUT_LINK="/api/logout";
+	
 	public static final String CMD_FOROT_PASS = "FOROT_PASS";
 	public static final String CMD_MESSAGE = "MESSAGE";
 	public static final String CMD_NOTIFY = "NOTIFY";
+	public static final String CMD_RANK_PROCESS = "RANK_PROCESS";
+	
 	public static final String actlog_id ="x-actlog_id";
 	
 	public static final String HEADER_API_KEY = "api_key";
@@ -27,6 +30,8 @@ public class Constant {
     public static final Charset UTF_8 = Charset.forName("UTF-8");
     public static final String PGM_REST = "REST";
     public static final String USER_SYS = "SYS";
+    
+    public static final String POINT_FORMAT = "%.2f";
     
 	public static final String[] exam_keys ={
 			  "m1", 
@@ -49,6 +54,19 @@ public class Constant {
 			  "m18",
 			  "m19",
 			  "m20"
+			  
+			};
+	/***
+	 * 1: Month Exam, 2: Term Contest, 3: Ave 4 months , 4:  Ave Term, 5: Ave year, 6: retest, 7: final level contest
+	 */
+	public static final int[] exam_types ={
+			  1,//Month Exam
+			  2,//Term Contest
+			  3,// Ave 4 months
+			  4,//Ave Term
+			  5,//Ave year
+			  6,// Re-test
+			  7//final level contest
 			  
 			};
 	public static final String[] NON_DEVICE_API_KEY ={

@@ -437,7 +437,7 @@ public class MessageServiceImpl implements MessageService{
 
 
 	@Override
-	public Message newSimpleMessage(Integer from_user_id, Integer to_user_id, String content, int channel) {
+	public Message newSimpleMessage(Integer from_user_id, Integer to_user_id, String content, Integer channel, Integer class_id) {
 		Message msg = new Message();
 		User frm_user = userService.findById(from_user_id);
 		User to_user = userService.findById(to_user_id);
@@ -445,6 +445,9 @@ public class MessageServiceImpl implements MessageService{
 		if (frm_user == null || to_user == null ){
 			throw new ESchoolException("newMessage() from_user_id or to_user_id is not exsiting", HttpStatus.BAD_REQUEST);
 		}
+		
+	
+		
 		if (       (!frm_user.hasRole(E_ROLE.SYS_ADMIN.getRole_short()))
 				&&  (frm_user.getSchool_id().intValue() != to_user.getSchool_id().intValue())){
 			throw new RuntimeException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+to_user.getId().intValue());
@@ -454,6 +457,9 @@ public class MessageServiceImpl implements MessageService{
 		msg.setFrom_user_id(from_user_id);
 		msg.setTo_user_id(to_user_id);
 		msg.setChannel(channel);
+		if (class_id != null || class_id.intValue() > 0){
+			msg.setClass_id(class_id);
+		}
 		
 		msg.setContent(content);
 		

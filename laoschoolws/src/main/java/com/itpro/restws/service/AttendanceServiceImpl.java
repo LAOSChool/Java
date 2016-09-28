@@ -387,7 +387,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 //		Message msg = messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content);
 //		messageService.insertMessageExt(msg);
-		messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content, E_MSG_CHANNEL.FIREBASE.getValue());
+		messageService.newSimpleMessage(request.getStudent_id(), head_teacher_id, msg_content, new Integer(E_MSG_CHANNEL.FIREBASE.getValue()),class_id);
 		
 	}
 
@@ -648,7 +648,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 //		Message msg = messageService.newMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
 //		messageService.insertMessageExt(msg);
-		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content, E_MSG_CHANNEL.FIREBASE.getValue());
+		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content, new Integer(E_MSG_CHANNEL.FIREBASE.getValue()),class_id);
 
 
 		

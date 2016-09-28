@@ -10,8 +10,12 @@ public interface SchoolExamService {
 	SchoolExam findById(Integer id);
 	ArrayList<SchoolExam> findBySchool(Integer school_id);
 	
-	SchoolExam insertSchoolExam(User user, SchoolExam schoolExam);
-	SchoolExam updateSchoolExam(User user,SchoolExam schoolExam);
+	SchoolExam insertSchoolExam(User me, SchoolExam schoolExam);
+	
+	SchoolExam updateSchoolExam(User me,SchoolExam schoolExam);
+	
+	boolean valid_ex_key(User me,String ex_key);
+	
 	void delById(User user,Integer id);
 	 
 }

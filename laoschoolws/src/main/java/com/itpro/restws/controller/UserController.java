@@ -514,6 +514,8 @@ public class UserController extends BaseController {
 		public ListEnt getAvailableUsers(
 				@RequestHeader(value="auth_key",required =true) String auth_key,
 				
+				@RequestParam(value="filter_user_role",required =false) String filter_user_role,
+				
 				@Context final HttpServletResponse response,
 				@Context final HttpServletRequest request
 				) {
@@ -531,7 +533,7 @@ public class UserController extends BaseController {
 			
 		    try {
 		    	// Count user
-		    	total_row = userService.countAvailableUser(school_id);
+		    	total_row = userService.countAvailableUser(school_id,filter_user_role);
 		    	if (total_row > Constant.MAX_RESP_ROW){
 		    		max_result = Constant.MAX_RESP_ROW;    	
 		    	}else{
@@ -540,7 +542,7 @@ public class UserController extends BaseController {
 		    		
 				logger.info("user count: total_row : "+total_row);
 				// Query user
-				users = userService.findAvailableUser(school_id,from_row,max_result); 
+				users = userService.findAvailableUser(school_id,from_row,max_result,filter_user_role); 
 				rspEnt.setList(users);
 			    rspEnt.setFrom_row(from_row);
 			    rspEnt.setTo_row(from_row + max_result);

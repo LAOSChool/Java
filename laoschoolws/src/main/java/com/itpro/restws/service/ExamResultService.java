@@ -32,13 +32,14 @@ public interface ExamResultService {
 	// Ranking
 	ArrayList<ExamRank> getUserRank(User me, User student,Integer class_id,Integer year_id);
 	ArrayList<ExamRank> getClassRank(User me, Integer class_id,Integer year_id);
-	ExamRank execUserMonthAve(User me, Integer user_id,Integer filter_year_id,Integer filter_class_id);
-	public ArrayList<ExamRank> execClassMonthAve(User me, Integer filter_year_id, Integer filter_class_id);
+	ExamRank execUserMonthAve(User me, Integer user_id,Integer filter_year_id, Integer filter_class_id, String filter_ex_key);
+	
+	public ArrayList<ExamRank> execClassMonthAve(User me, Integer filter_class_id, String filter_ex_key);
 	ArrayList<ExamRank> procAllocation(User me,ArrayList<ExamRank> ranks );
 	
 	void orderExamResultByID(ArrayList<ExamResult> list, int order);	
 	void orderRankByID(ArrayList<ExamRank> list, int order);
-	
+	String valid_rank_process(User me,  String class_ids, String ex_key);
 	
 	 
 }

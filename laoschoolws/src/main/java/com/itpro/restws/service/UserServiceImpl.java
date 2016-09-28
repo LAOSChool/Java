@@ -579,13 +579,13 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public int countAvailableUser(Integer school_id) {
-		return userDao.countAvailableUser(school_id);
+	public int countAvailableUser(Integer school_id, String filter_user_role) {
+		return userDao.countAvailableUser(school_id,filter_user_role);
 	}
 
 	@Override
-	public ArrayList<User> findAvailableUser(Integer school_id, int from_num, int max_result) {
-		return (ArrayList<User>) userDao.findAvailableUser(school_id, from_num, max_result);
+	public ArrayList<User> findAvailableUser(Integer school_id, int from_num, int max_result, String filter_user_role) {
+		return (ArrayList<User>) userDao.findAvailableUser(school_id, from_num, max_result,filter_user_role);
 	}
 
 	@Override

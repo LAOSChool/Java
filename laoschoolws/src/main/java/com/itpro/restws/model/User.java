@@ -128,6 +128,7 @@ public class User extends AbstractModel {
 		return classes;
 	}
 	
+	@JsonIgnore
 	@NotFound(action=NotFoundAction.IGNORE)
 	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
 	@JoinTable(name = "user2class", 

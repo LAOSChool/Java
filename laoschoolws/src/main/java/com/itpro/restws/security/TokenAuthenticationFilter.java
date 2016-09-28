@@ -132,58 +132,62 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 					
 				}
 				if (!is_upload_file){
-					// Dump start
-					// MyRequestWrapper myRequestWrapper = new MyRequestWrapper( httpRequest);
-					AuthenticationRequestWrapper myRequestWrapper = new AuthenticationRequestWrapper(httpRequest);
-					act = null;
-					if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
-						//act = actionLogService.start_tracewrapper(myRequestWrapper,usercontext.getUser());
-						act = actionLogService.start_tracewrapper2(myRequestWrapper,usercontext.getUser());
-						myRequestWrapper.setAttribute("x-actlog_id", act.getId());
-					}
-					
-					
-					try {
-						chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
-			            responseCopier.flushBuffer();
-			        } finally {
-						byte[] copy = responseCopier.getCopy();
-						long endTime = System.currentTimeMillis();
-						long executeTime = endTime - startTime;
+					if (isMultipartForm(httpRequest)) {
 						
-						if (act !=null ){
-							
-							actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
-									responseCopier.getStatus(), executeTime);
-							
+						// Dump start
+						act = null;
+						MultipartFromWrapper myRequestWrapper = new MultipartFromWrapper(httpRequest);
+						if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
+							act = actionLogService.start_tracewrapper3(myRequestWrapper,usercontext.getUser());
+							myRequestWrapper.setAttribute("x-actlog_id", act.getId());
 						}
-			        	
-			        }
-					
-					// Dump end
-				}else if (isMultipartForm(httpRequest)) {
-					// Dump start
-					act = null;
-					MultipartFromWrapper myRequestWrapper = new MultipartFromWrapper(httpRequest);
-					if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
-						act = actionLogService.start_tracewrapper3(myRequestWrapper,usercontext.getUser());
-						myRequestWrapper.setAttribute("x-actlog_id", act.getId());
-					}
-					try {
-			            
-						chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
-						responseCopier.flushBuffer();
-			        } finally {
-			        	if (act != null ){
+						try {
+							
+							chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
+							responseCopier.flushBuffer();
+				        } finally {
+				        	if (act != null ){
+								byte[] copy = responseCopier.getCopy();
+								long endTime = System.currentTimeMillis();
+								long executeTime = endTime - startTime;
+								if (act != null ){
+										actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
+												responseCopier.getStatus(), executeTime);
+									}							
+				        	}
+				        }
+					}else{
+						// Dump start
+						// MyRequestWrapper myRequestWrapper = new MyRequestWrapper( httpRequest);
+						AuthenticationRequestWrapper myRequestWrapper = new AuthenticationRequestWrapper(httpRequest);
+						act = null;
+						if (LOG_METHODS.toUpperCase().indexOf(myRequestWrapper.getMethod().toUpperCase()) >= 0){
+							//act = actionLogService.start_tracewrapper(myRequestWrapper,usercontext.getUser());
+							act = actionLogService.start_tracewrapper2(myRequestWrapper,usercontext.getUser());
+							myRequestWrapper.setAttribute("x-actlog_id", act.getId());
+						}
+						
+						
+						try {
+							chain.doFilter(myRequestWrapper, responseCopier); //chain.doFilter (httpRequest, httpResponse);
+				            responseCopier.flushBuffer();
+				        } finally {
 							byte[] copy = responseCopier.getCopy();
 							long endTime = System.currentTimeMillis();
 							long executeTime = endTime - startTime;
-							if (act != null ){
-									actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
-											responseCopier.getStatus(), executeTime);
-								}							
-			        	}
-			        }
+							
+							if (act !=null ){
+								
+								actionLogService.end_trace(act.getId(), new String(copy, response.getCharacterEncoding()),
+										responseCopier.getStatus(), executeTime);
+								
+							}
+				        	
+				        }
+					}
+					
+					// Dump end
+				
 				}else{
 					// Dump start
 					act = null;
@@ -228,7 +232,10 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			
 		}
 		else{
-			// Update last_request_dt api_key
+			// Do nothing to support non-secure access non-secure/test
+			// /non-secure/schools/{id}
+//			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+//			doNotContinueWithRequestProcessing(httpRequest);
 		}
 		
 	}

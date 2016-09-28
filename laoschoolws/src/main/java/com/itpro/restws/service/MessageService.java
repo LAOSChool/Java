@@ -49,7 +49,7 @@ public interface MessageService {
 	
 	//Message insertMessageExt(User me, Message message);
 	Message updateMessage(User me, Message message);
-	Message newSimpleMessage(Integer from_user,Integer to_user, String content, int channel);
+	Message newSimpleMessage(Integer from_user,Integer to_user, String content, Integer channel, Integer class_id);
 	//ArrayList<Message> broadcastMessage(User me, Message message, String filter_roles) ;
 	ArrayList<Message> findUnProcSMS(User me, String api_key);
 	void smsDone(User me, String api_key,Integer id);

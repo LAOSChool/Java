@@ -10,11 +10,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.itpro.restws.dao.CommandDao;
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_DEST_TYPE;
 import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Command;
+import com.itpro.restws.model.ExamRank;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.User;
@@ -35,7 +37,8 @@ public class AsyncRunner {
 	
 	@Autowired
 	protected NotifyService notifyService;
-	
+	@Autowired
+	protected ExamResultService examResultService;
 	static int cron_id=0;
 	 @Async
 	 public void doIt(){
@@ -53,16 +56,19 @@ public class AsyncRunner {
 						command.setProcessed_dt(Utils.now());
 						logger.info("command[cron_id]="+cron_id+"///"+command.toString());
 						// Forgot Password
-						if ("FOROT_PASS".equals(command.getCommand())){
+						if (Constant.CMD_FOROT_PASS.equals(command.getCommand())){
 							proc_gorgot_pass(command);
 								
 						}
 						// Send Message To Classes
-						else if ("MESSAGE".equals(command.getCommand())){
+						else if (Constant.CMD_MESSAGE.equals(command.getCommand())){
 							proc_message(command);
 								
-						}else if ("NOTIFY".equals(command.getCommand())){
+						}else if (Constant.CMD_NOTIFY.equals(command.getCommand())){
 							proc_notify(command);
+								
+						}else if (Constant.CMD_RANK_PROCESS.equals(command.getCommand())){
+							proc_rank_process(command);
 								
 						}
 	
@@ -88,6 +94,71 @@ public class AsyncRunner {
 		
 		
 		
+		private void proc_rank_process(Command command) {
+			logger.info("proc_rank_process() START, command:"+command.toString());
+			if  (command.getParams() == null ){
+				throw new ESchoolException("RANK_PROCESS, no params: please check param format: me_id=[0-9]+&class_ids=x,y,z&ex_key=mXYZ",HttpStatus.BAD_REQUEST);
+			}
+			
+			if (command.getParams().matches("me_id=[0-9]+&class_ids=[0-9,]+&ex_key=[a-zA-Z0-9-_]+")){
+				String[] params = command.getParams().split("&");
+				
+				Integer me_id = Utils.parseInteger(params[0].split("=")[1]);
+				String class_ids = params[1].split("=")[1];
+				String ex_key = params[2].split("=")[1];
+				
+				String[] ids = class_ids.split("=");
+					
+				// Check user
+				if (me_id == null || me_id.intValue()==0){
+					command.setSuccess(0);
+					command.setMessage("Error:me_id is null");
+					return;
+				}
+				User me = userService.findById(me_id);
+				if (me == null ){
+					command.setSuccess(0);
+					command.setMessage("user_id not existing:"+me_id.intValue());
+					return;
+				}
+				// Check class_id
+				if (ids == null || ids.length == 0){
+					command.setSuccess(0);
+					command.setMessage("Error: class_ids is null or blank");
+					return;
+				}
+				
+				command.setSuccess(0);
+				command.setMessage("Unknow error");
+				int cnt = 0;
+				for (String str_id: ids){
+					Integer class_id = Utils.parseInteger(str_id);
+					if (class_id != null && class_id.intValue() > 0){
+						// Calculate Average value by Month (m1,m2..m20)
+						ArrayList<ExamRank> examRanks = examResultService.execClassMonthAve(me, class_id,ex_key);
+						// Ranking average value by Month (m1,m2..m20)		
+						if (examRanks != null && examRanks.size() > 0){
+							examResultService.procAllocation(me,examRanks);
+							cnt += examRanks.size();
+						}
+					}
+				}
+				
+				String info ="result: results items:"+cnt;
+				logger.info("proc_rank_process():"+info);
+				command.setSuccess(1);
+				command.setMessage("Finished at:"+Utils.now()+"///"+info);
+				
+				
+			}else{
+				throw new ESchoolException("NOTIFY, invalid params: correct format:me_id=[0-9]+&task_id=[0-9]+&filter_roles=[^=]*",HttpStatus.BAD_REQUEST);
+			}
+			logger.info("proc_notify() START, command:"+command.toString());
+		
+		}
+
+
+
 		private void proc_gorgot_pass(Command command){
 			logger.info("proc_gorgot_pass() START, command:"+command.toString());
 			if  (command.getParams() == null ){

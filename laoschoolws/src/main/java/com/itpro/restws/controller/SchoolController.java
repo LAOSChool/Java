@@ -116,6 +116,11 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.schools.update");
+		
+		if (school.getId() == null ){
+			throw new ESchoolException("schoo.id = null", HttpStatus.BAD_REQUEST);
+		}
+		
 		User me = getCurrentUser();
 		
 		if (me.getSchool_id().intValue() != school.getId().intValue()){
@@ -377,7 +382,7 @@ public class SchoolController extends BaseController {
 		
 	    return rsp;
 	 }
-	
+	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value="/api/schools/upload_photo",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo upload_photo(

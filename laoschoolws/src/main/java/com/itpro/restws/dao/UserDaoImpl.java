@@ -202,19 +202,22 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 	}
 
 	@Override
-	public Integer countAvailableUser(Integer school_id) {
+	public Integer countAvailableUser(Integer school_id, String role) {
 		
 		String query = 	"select count(*)  from User user LEFT JOIN user.classes as cls where  user.actflg = 'A' AND user.school_id ='"+school_id +"'";
 		query = query +" and cls is NULL "; 
 		query = query +" and user.roles != 'ADMIN' ";
 		query = query +" and user.roles != 'SYS_ADMIN' ";
 		
+		if (role != null && role.length() > 0){
+			query = query +" and user.roles = '"+role+"'"; 
+		}
 		int count = ((Long)getSession().createQuery(query).uniqueResult()).intValue();
 		return count;
 	}
 
 	@Override
-	public List<User> findAvailableUser(Integer school_id, int from_row, int max_result) {
+	public List<User> findAvailableUser(Integer school_id, int from_row, int max_result, String role) {
 
 		//String str = 	"SELECT user from User user join user.classes cls where user.school_id ='"+school_id +"'";
 		String str = 	"SELECT user from User as user left join FETCH user.classes as cls where user.actflg = 'A' AND user.school_id ='"+school_id +"'";
@@ -222,6 +225,9 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		str = str +" and user.roles != 'ADMIN' ";
 		str = str +" and user.roles != 'SYS_ADMIN' ";
 		
+		if (role != null && role.length() > 0){
+			str = str +" and user.roles = '"+role+"'"; 
+		}
 		str = str +" order by user.id asc";
 		
 		Query query =  getSession().createQuery(str);

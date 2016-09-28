@@ -39,6 +39,9 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public SchoolTerm insertSchoolTerm(User me, SchoolTerm schoolTerm) {
+		if (schoolTerm.getId() != null ){
+			throw new ESchoolException("Cannot create new term when id != null", HttpStatus.BAD_REQUEST);
+		}
 		validTerm(me,schoolTerm,true);
 		schoolTermDao.saveSchoolTerm(me,schoolTerm);
 		return schoolTerm;
@@ -98,14 +101,20 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	@Override
 	public ArrayList<SchoolTerm> findAllTermByYear(Integer school_id,Integer year_id) {
 		 
-		SchoolYear schoolYear = schoolYearDao.findById(year_id);
-		if (schoolYear !=null && schoolYear.getSchool_id().intValue() == school_id.intValue()){
-			// return  genTermFromYear(schoolYear);
-			return (ArrayList<SchoolTerm>) schoolTermDao.findBySchoolAndYear(school_id, schoolYear.getId(),null);
-			
-		}else{
-			return null;
+		if (year_id == null ){
+			throw new ESchoolException("findAllTermByYear(): year_id is null", HttpStatus.BAD_REQUEST);
 		}
+		if (school_id == null ){
+			throw new ESchoolException("findAllTermByYear(): school_id is null", HttpStatus.BAD_REQUEST);
+		}
+		SchoolYear schoolYear = schoolYearDao.findById(year_id);
+		if (schoolYear == null ){
+			throw new ESchoolException("findAllTermByYear(): year_id not existing", HttpStatus.BAD_REQUEST);
+		}
+		if (schoolYear.getSchool_id().intValue() != school_id.intValue()){
+			throw new ESchoolException("findAllTermByYear(): schoolYear.school_id != me.school_id", HttpStatus.BAD_REQUEST);
+		}
+		return (ArrayList<SchoolTerm>) schoolTermDao.findBySchoolAndYear(school_id, schoolYear.getId(),null);
 	}
 
 	

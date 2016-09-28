@@ -239,6 +239,9 @@ public class ClassServiceImpl implements ClassService{
 			if (schoolYear == null ){
 				throw new ESchoolException("year_id is not existing", HttpStatus.BAD_REQUEST);
 			}
+			if (schoolYear.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("year_id is not be long to same school with me", HttpStatus.BAD_REQUEST);
+			}
 		}
 		eclass.setYear_id(schoolYear.getId());
 		eclass.setYears(schoolYear.getYears());

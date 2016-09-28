@@ -8,14 +8,21 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.SelectBeforeUpdate;
+import org.hibernate.annotations.WhereJoinTable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -26,11 +33,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @SelectBeforeUpdate(value=true) 
 
 public class EClass extends AbstractModel{
+	
 	@Id
 	@GeneratedValue
 	@Column(name="id")
-	private Integer id;
-
+	Integer  id;
+	
 	
 	@Column(name="school_id")
 	private Integer school_id;
@@ -77,11 +85,47 @@ public class EClass extends AbstractModel{
 	}
 
 	@JsonIgnore
-	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "classes")
-	private Set<User> users;
+	@NotFound(action=NotFoundAction.IGNORE)
+
+	//@ManyToMany(fetch = FetchType.LAZY)	
+	/**
+	 * Neu su dung FetType.LAZY
+	 * thi phai goi API tra ve data voi session nhu: classDao.getUsers(EClass eclass)
+	 * Neu ko lam vay se bao loi do  sau day:
+	 * 
+	 * All data is fetched when eager marked data in the object when session is connected. 
+	 * However, in case of lazy loading strategy, lazy loading marked object does not 
+	 * retrieve data if session is disconnected (after session.close() statement).
+	 */
+	@Fetch(FetchMode.SUBSELECT)
+	/**
+	 * With "subselect" enabled, it will create two select statements.
+	1. Select statement to retrieve all the Stock records.
+	2. Select all its related collections in a sub select query.
+	 */	
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "user2class", 
+             joinColumns        = { @JoinColumn(name = "class_id") }, 
+             inverseJoinColumns = { @JoinColumn(name = "user_id") })
+	@WhereJoinTable(clause="actflg='A' AND closed = 0")
+	
+	private Set<User> users = new HashSet<User>();
 	public Set<User> getUsers() {
 		return users;
 	}
+	
+	
+	
+	
+//	@JsonIgnore
+//	@NotFound(action=NotFoundAction.IGNORE)
+//	@ManyToMany(fetch = FetchType.EAGER,mappedBy = "classes")
+//	private Set<User> users;
+//	public Set<User> getUsers() {
+//		return users;
+//	}
+//	
+	
 	public void setUsers(Set<User> users) {
 		this.users = users;
 	}
@@ -192,15 +236,29 @@ public class EClass extends AbstractModel{
 	
 	public  Set<User>  getUserByRoles(String fileter_roles) {
 		HashSet<User> ret = new HashSet<>();
-		for (User user: this.users){
-			for (String role:fileter_roles.split(",")){
-				if (user.hasRole(role)){
-					ret.add(user);
-					break;
-				}
+		Set<User> users = getUsers();
+		if (users == null || users.size() <= 0){
+			return null;
+		}
+		String [] filters  = null;
+		if (fileter_roles != null ){
+			filters = fileter_roles.split(",");
+		}
+		for (User user: users){
+			if (filters != null && filters.length > 0) {
+				for (String role:filters){
+					if (user.hasRole(role)){
+						ret.add(user);
+						break;
+					}
+				}	
+			}else{
+				ret.add(user);
 			}
 			
 		}
+		
+		
 		return ret;
 	}
 	public Integer getLevel() {
@@ -224,6 +282,5 @@ public class EClass extends AbstractModel{
 	public void setYears(String years) {
 		this.years = years;
 	}
-
 
 }

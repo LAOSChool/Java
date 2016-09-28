@@ -41,6 +41,9 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear insertSchoolYear(User me, SchoolYear schoolYear) {
+		if (schoolYear.getId() != null ){
+			throw new ESchoolException("cannot create new Year, id is not NULL", HttpStatus.BAD_REQUEST);
+		}
 		validateSchoolYear(me, schoolYear);
 		schoolYearDao.saveSchoolYear(me,schoolYear);
 		return schoolYear;
@@ -48,21 +51,33 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear updateSchoolYear(User me, SchoolYear schoolYear) {
-		validateSchoolYear(me, schoolYear);
-		
-		if (schoolYear.getId() == null ){
-			throw new ESchoolException("schoolYear.id is null", HttpStatus.BAD_REQUEST);
+		if (schoolYear.getId() == null ||  schoolYear.getId().intValue() == 0){
+			throw new ESchoolException("cannot update schoolYear, id is null", HttpStatus.BAD_REQUEST);
 		}
-		
+		validateSchoolYear(me, schoolYear);
 		
 		SchoolYear year_db= schoolYearDao.findById(schoolYear.getId());
 		if (year_db == null ){
 			throw new ESchoolException("SchoolYear.id is not exising: "+schoolYear.getId().intValue(), HttpStatus.BAD_REQUEST);
 		}
-		
 		if (year_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("year_db.SchooId is not same with user.school_id", HttpStatus.BAD_REQUEST);
 		}
+		
+		// Valid existing from_year to year
+		boolean valid_years = false;
+		ArrayList<SchoolYear> lst = (ArrayList<SchoolYear>) schoolYearDao.findFromOrTo(me.getSchool_id(), schoolYear.getFrom_year(), schoolYear.getTo_year());
+		if (lst != null && lst.size() > 0){
+			for (SchoolYear tmp : lst){
+				if (tmp.getId().intValue() == schoolYear.getId().intValue()){
+					valid_years =true;
+				}
+			}
+		}
+		if (!valid_years){
+			throw new ESchoolException("Already existing Unique key: school_id/from_year/to_year:"+me.getSchool_id()+"/"+schoolYear.getFrom_year().intValue()+"/"+schoolYear.getTo_year(), HttpStatus.BAD_REQUEST);
+		}
+		
 		year_db = SchoolYear.updateChanges(year_db, schoolYear);
 		schoolYearDao.updateSchoolYear(me,year_db);
 		return year_db;
@@ -190,9 +205,9 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 		if (schoolYear.getTo_year() == null || schoolYear.getTo_year().intValue() == 0){
 			throw new ESchoolException("ToYear is required", HttpStatus.BAD_REQUEST);
 		}
-		if (schoolYear.getYears() == null || schoolYear.getYears().trim().length() <=0){
+		//if (schoolYear.getYears() == null || schoolYear.getYears().trim().length() <=0){
 			schoolYear.setYears(""+schoolYear.getFrom_year().intValue()+"-"+schoolYear.getTo_year().intValue()+"");
-		}
+		//}
 		
 		if (schoolYear.getStart_dt() == null || schoolYear.getStart_dt().trim().length() <=0){
 			throw new ESchoolException("StartDate is required", HttpStatus.BAD_REQUEST);

@@ -20,8 +20,8 @@ public interface UserDao {
 	Integer countUserExt(Integer school_id,Integer class_id,String role,Integer state,Integer from_row_id);
 	List<User>  findUserExt(Integer school_id,int from_row,int max_result,Integer class_id,String role,Integer state,Integer from_row_id);
 	
-	Integer countAvailableUser(Integer school_id);
-	List<User>  findAvailableUser(Integer school_id,int from_row,int max_result);
+	Integer countAvailableUser(Integer school_id, String filter_user_role);
+	List<User>  findAvailableUser(Integer school_id,int from_row,int max_result, String filter_user_role);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
 

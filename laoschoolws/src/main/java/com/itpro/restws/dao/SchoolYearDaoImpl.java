@@ -139,5 +139,7 @@ public class SchoolYearDaoImpl extends AbstractDao<Integer, SchoolYear> implemen
 	public void setFlushMode(FlushMode mode){
 		getSession().setFlushMode(mode);
 		
-	}	
+	}
+
+
 }

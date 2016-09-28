@@ -62,6 +62,27 @@ public class CommandServiceImpl implements CommandService{
 		commandDao.saveCommand(cmd);
 		return cmd;
 	}
+
+	@Override
+	public Command create_rank_process(User me, String class_ids, String ex_key) {
+		if (class_ids == null || class_ids.trim().length() == 0){
+			return null;
+		}
+		
+		Command cmd = new Command();
+		cmd = new Command();
+		cmd.setCommand(Constant.CMD_RANK_PROCESS);
+		
+		cmd.setSchool_id(me.getSchool_id());
+		
+		
+		cmd.setParams("me_id="+me.getId().intValue()+"&class_ids="+class_ids+"&ex_key="+ex_key);
+		cmd.setCmd_dt(Utils.now());
+		cmd.setProcessed(0);
+		cmd.setMessage("Waiting");
+		commandDao.saveCommand(cmd);
+		return cmd;
+	}
 	
 	
 	

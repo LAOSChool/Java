@@ -60,14 +60,10 @@ public class ApiKeyController  extends BaseController {
 	 }
 
 		
-	//@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/tokens/save",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo saveToke(
-			//@RequestBody String sso_id,
-			//@RequestParam String token,
 			@RequestHeader String token,
-			
 			@RequestHeader String api_key,
 			@RequestHeader String auth_key,
 			
@@ -77,15 +73,9 @@ public class ApiKeyController  extends BaseController {
 		logger.info(" *** createToke START");
 		User user = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-		if (api_key.equalsIgnoreCase("WEB")){
-			rsp.setMessageObject("WEB-IGNORED");
-		}else if ( api_key.equals("TEST_API_KEY")){
-			rsp.setMessageObject("TEST_API_KEY-IGNORED");
-		}
-		else{
-			apiKeyService.saveFireBaseToken(user.getSso_id(), api_key, auth_key, token);
-			rsp.setMessageObject("SUCCESS");
-		}
+		apiKeyService.saveFireBaseToken(user.getSso_id(), api_key, auth_key, token);
+		rsp.setMessageObject("SUCCESS");
+		
 	    return rsp;	
 		 
 	}
