@@ -1,7 +1,6 @@
 package com.itpro.restws;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -16,6 +15,7 @@ import org.junit.runners.MethodSorters;
 import com.itpro.restws.helper.Utils;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Ignore
 public class SchoolTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(SchoolTest.class);
 	
@@ -888,6 +888,7 @@ public class SchoolTest extends FunctionalTest {
 		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
 				
 		} 
+		@Ignore
 		@Test 
 		 public void upload_school_photo_true() {
 			 logger.info("upload_school_photo_true() START");
@@ -926,7 +927,7 @@ public class SchoolTest extends FunctionalTest {
 			  	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
 		} 
 
-		//@Ignore
+		@Ignore
 		@Test 
 		 public void createTerm_normal_true() {
 			 logger.info("createTerm_normal_true() START");
@@ -940,8 +941,9 @@ public class SchoolTest extends FunctionalTest {
 				term.put("school_id", "1");
 				term.put("year_id","1");
 				term.put("start_dt", "2017-02-01 00:00:00");
-				term.put("term_val", "2");
-				term.put("actived", "0");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
 				term.put("notice", "N/A");
 				
 
@@ -956,4 +958,443 @@ public class SchoolTest extends FunctionalTest {
 		        	assertThat().statusCode(200);
 				
 		} 
+		
+		
+		@Test 
+		 public void createTerm_teacher_role_false() {
+			 logger.info("createTerm_teacher_role_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				//year.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1");
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",TEA1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+				
+		} 
+		@Test 
+		 public void createTerm_id_existing_false() {
+			 logger.info("createTerm_id_existing_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1");
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void createTerm_year_id_not_existing_false() {
+			 logger.info("createTerm_id_existing_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","100000"); // invalid data
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void createTerm_year_id_other_school_false() {
+			 logger.info("createTerm_year_id_other_school_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","3"); // invalid data => belong to other schooln
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void createTerm_invalid_start_dt_after_from_dt_false() {
+			 logger.info("createTerm_invalid_start_dt_after_from_dt_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1"); 
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2016-05-31 00:00:00"); // end_dt before start_dt => error
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void createTerm_term_val_existing_false() {
+			 logger.info("createTerm_term_val_existing_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1"); 
+				term.put("start_dt", "2016-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "1");  // already existing
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void updateTerm_normal_true() {
+			 logger.info("updateTerm_normal_true() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("notice", "Junit: "+Utils.now());
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY).
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(200);
+				
+		} 
+		
+		
+		@Test 
+		 public void updateTerm_teacher_role_false() {
+			 logger.info("createTerm_teacher_role_false() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				//year.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1");
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",TEA1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+				
+		} 
+		@Test 
+		 public void updateTerm_id_null_false() {
+			 logger.info("updateTerm_id_null_false() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				// term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1");
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void updateTerm_year_id_not_existing_false() {
+			 logger.info("updateTerm_year_id_not_existing_false() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","100000"); // invalid data
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void updateTerm_year_id_other_school_false() {
+			 logger.info("updateTerm_year_id_other_school_false() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","3"); // invalid data => belong to other schooln
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void updateTerm_invalid_start_dt_after_from_dt_false() {
+			 logger.info("updateTerm_invalid_start_dt_after_from_dt_false() START");
+
+				String path = "/api/schools/terms/update";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1"); 
+				term.put("start_dt", "2017-02-01 00:00:00");
+				term.put("end_dt", "2016-05-31 00:00:00"); // end_dt before start_dt => error
+				term.put("term_val", "3");
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		} 
+		@Test 
+		 public void updateTerm_term_val_existing_false() {
+			 logger.info("updateTerm_term_val_existing_false() START");
+
+				String path = "/api/schools/terms/create";
+				
+				 
+				Map<String,String> term = new HashMap<>();
+				
+				term.put("id", "1");
+				term.put("school_id", "1");
+				term.put("year_id","1"); 
+				term.put("start_dt", "2016-02-01 00:00:00");
+				term.put("end_dt", "2017-05-31 00:00:00");
+				term.put("term_val", "2");  // already existing in term.id = 2 already
+				term.put("actived", "2");
+				term.put("notice", "N/A");
+				
+
+				given().
+					header("api_key",WEB_API_KEY).
+					header("auth_key",ADM1_AUTH_KEY). // Teacher => false
+					contentType("application/json;charset=UTF-8").
+				body(term).			
+				
+				when().post(path).then().
+		        	log().ifValidationFails().
+		        	assertThat().statusCode(400);
+				
+		}
+		
+		@Test 
+	    public void getTerm_normal_true() {
+			logger.info("getTerm_normal_true() START");
+
+			String path = "/api/schools/terms";
+			//logger.info("       path:"+path);
+			
+			given().
+				header("api_key",WEB_API_KEY).
+				header("auth_key",TEA1_AUTH_KEY).
+				pathParam("id", 1). // id = 4 not belong to school_id =1
+			
+			when().get(path+"/{id}").then().
+	        	log().ifValidationFails().
+	        	assertThat().statusCode(200);
+	    } 
+		
+		@Test 
+	    public void getTerm_id_other_school_false() {
+			logger.info("getTerm_id_other_school_false() START");
+
+			String path = "/api/schools/terms";
+			//logger.info("       path:"+path);
+			
+			given().
+				header("api_key",WEB_API_KEY).
+				header("auth_key",TEA1_AUTH_KEY).
+				pathParam("id", 4). // id = 4 not belong to school_id =1
+			
+			when().get(path+"/{id}").then().
+	        	log().ifValidationFails().
+	        	assertThat().statusCode(400).body("message", containsString("Bad Request"));
+	    } 
+		
+		@Test 
+	    public void getTerm_id_not_existing_false() {
+			logger.info("getTerm_id_not_existing_false() START");
+
+			String path = "/api/schools/terms";
+			//logger.info("       path:"+path);
+			
+			given().
+				header("api_key",WEB_API_KEY).
+				header("auth_key",TEA1_AUTH_KEY).
+				pathParam("id", 9999).
+			
+			when().get(path+"/{id}").then().
+	        	log().ifValidationFails().
+	        	assertThat().statusCode(400).body("message", containsString("Bad Request"));
+	    } 
 }

@@ -129,7 +129,12 @@ public class ClassController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** MainRestController.users.create");
-		// eclass = classService.findById(1);
+		
+		
+		if (eclass.getId() != null ){
+			
+			throw new ESchoolException("Cannot create new Class, id != null", HttpStatus.BAD_REQUEST);
+		}
 		User admin = getCurrentUser();
 		 return classService.newClass(admin, eclass);
 		 

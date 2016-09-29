@@ -336,18 +336,29 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 	@Override
-	public ArrayList<ExamResult> findExamResultExt(Integer school_id, Integer class_id, Integer student_id,
+	public ArrayList<ExamResult> findExamResultExt(User me, Integer school_id, Integer class_id, Integer student_id,
 			Integer subject_id, Integer year_id) {
+		
+		if (me.getSchool_id().intValue() != school_id.intValue() ){
+			throw new ESchoolException("findExamResultExt() ERROR: me.school_id != school_id", HttpStatus.BAD_REQUEST);
+		}
+		
 		return examResultDao.findExamResultExt(school_id, class_id, student_id, subject_id, year_id);
 	}
 
 	@Override
-	public ArrayList<ExamResult>  getUserProfile(User student, Integer filter_subject_id, Integer filter_year_id) {
+	public ArrayList<ExamResult>  getUserProfile(User me, User student, Integer filter_subject_id, Integer filter_year_id) {
 		// lay danh sach mon hoc cua truong
 		// count key: school, user, subject, year
 		// Neu chua ton tai, tao new exam result
 		ArrayList<ExamResult> examResults = new ArrayList<ExamResult>();
 		ArrayList<MSubject> subjects = new ArrayList<MSubject>();
+		
+		if (me.getSchool_id().intValue() != student.getSchool_id().intValue() ){
+			throw new ESchoolException("findExamResultExt() ERROR: student.school_id != school_id", HttpStatus.BAD_REQUEST);
+		}
+
+		
 		
 		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
 		if (filter_year_id== null || filter_year_id.intValue()<=0){
@@ -411,7 +422,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 	@Override
-	public ArrayList<ExamResult> getClassProfile(
+	public ArrayList<ExamResult> getClassProfile(User me,
 			Integer school_id, 
 			Integer filter_class_id, 
 			Integer filter_student_id, 
@@ -430,6 +441,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 			if (!filter_student.hasRole(E_ROLE.STUDENT.getRole_short())){
 				throw new ESchoolException("filter_student_id is not STUDENT ROLE", HttpStatus.BAD_REQUEST);
 			}
+			if (me.getSchool_id().intValue() != filter_student.getSchool_id().intValue() ){
+				throw new ESchoolException("getClassProfile() ERROR: me.school_id != filter_student.school_id", HttpStatus.BAD_REQUEST);
+			}
+			
 			filter_users.add(filter_student);
 		}
 		// check class
@@ -438,7 +453,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 			if (filter_eclass == null){
 				throw new ESchoolException(" filter_class_id is not existing: "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
 			}
-			
+			if (me.getSchool_id().intValue() != filter_eclass.getSchool_id().intValue() ){
+				throw new ESchoolException("getClassProfile() ERROR: me.school_id != filter_eclass.school_id", HttpStatus.BAD_REQUEST);
+			}
 			
 			Set<User> tmpUsers = filter_eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
 			if (tmpUsers == null || tmpUsers.size() <= 0){
@@ -452,8 +469,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 		ArrayList<ExamResult> examResults = new ArrayList<ExamResult>();
 		if (filter_users != null && filter_users.size() > 0){
-			for (User user: filter_users){
-				ArrayList<ExamResult> list = getUserProfile(user, subject_id, year_id);
+			for (User student: filter_users){
+				ArrayList<ExamResult> list = getUserProfile(me,student, subject_id, year_id);
 				if (list != null && list.size() > 0){
 					examResults.addAll(list);
 				}
@@ -1051,7 +1068,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 		
 		// Get existing exam result
-		ArrayList<ExamResult> examResults = findExamResultExt(student.getSchool_id(), null, user_id, null, filter_year_id);
+		ArrayList<ExamResult> examResults = findExamResultExt(me,student.getSchool_id(), null, user_id, null, filter_year_id);
 		if (examResults == null ){
 			throw new ESchoolException("There isn't any exam result for user_id:"+user_id.intValue()+" and year_id:"+filter_year_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
@@ -1438,6 +1455,67 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 		
 	}
+	
+	@Override
+	public void orderRankByAllocation(User me, ArrayList<ExamRank> list, String ex_key) {
+		if (list == null || list.size() <= 1){
+			return;
+		}
+		if (ex_key == null || ex_key.trim().length()==0){
+			// throw new ESchoolException("ex_key is NULL", HttpStatus.BAD_REQUEST);
+			return;
+		}
+		if (!schoolExamService.valid_ex_key(me, ex_key)){
+			// throw new ESchoolException("ex_key is not existing:"+ex_key, HttpStatus.BAD_REQUEST);
+			return;
+		}
+		for (int i = 0; i< list.size()-1;i++){
+			String sresult1 = null;
+			ExamRankDetail rank_detail_1 = null;
+			ExamRank rank1 = list.get(i);
+			if (rank1 != null ){
+				sresult1 = rank1.getByExKey(ex_key);
+				if (sresult1 != null && sresult1.trim().length() > 0 ){
+					rank_detail_1 = ExamRankDetail.strJson2ExamDetail(sresult1);
+				}
+			}
+			 
+					
+			for (int j = i+1;j< list.size(); j++){
+				String sresult2 = null;
+				ExamRankDetail rank_detail_2 = null;
+				
+				ExamRank rank2 = list.get(j);
+				if (rank2 != null ){
+					sresult2 = rank2.getByExKey(ex_key);
+				}
+				
+				if ( sresult2 != null &&  sresult2.trim().length() > 0){
+					rank_detail_2 = ExamRankDetail.strJson2ExamDetail(sresult2);
+				}
+				
+				if (rank_detail_1 != null && rank_detail_2 != null ){
+					Integer allo1 = rank_detail_1.getAllocation();
+					Integer allo2 = rank_detail_2.getAllocation();
+					if (allo1 != null && allo1.intValue() > 0 && allo2 != null && allo2.intValue() > 0){
+						if (allo1.intValue() > allo2.intValue()){
+							ExamRank tmp = list.get(i);
+							list.set(i, list.get(j));
+							list.set(j, tmp);			
+						}else if (allo1.intValue() == allo2.intValue()){
+							if (list.get(i).getId().intValue() > list.get(j).getId().intValue()){
+								ExamRank tmp = list.get(i);
+								list.set(i, list.get(j));
+								list.set(j, tmp);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+	}
 
 	@Override
 	public String valid_rank_process(User me,  String class_ids, String ex_key) {
@@ -1478,7 +1556,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			// Check exam result of each class
 			Set<User> users = eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
 			if (users == null || users.size() <= 0){
-				throw new ESchoolException("There is a class that does not have any user, class_id: "+eclass.getId().intValue()+", title: "+(eclass.getTitle()==null?"":eclass.getTitle()), HttpStatus.BAD_REQUEST);
+				throw new ESchoolException("class_id: "+eclass.getId().intValue()+", class title: "+(eclass.getTitle()==null?"":eclass.getTitle())+ "  is empty (no users), please remove from class_ids first !", HttpStatus.BAD_REQUEST);
 			}
 			
 			
@@ -1486,7 +1564,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			for (User user: users){
 				boolean is_error = false;
 				// Count exam of a user
-				ArrayList <ExamResult> lst = findExamResultExt(user.getSchool_id(), null, user.getId(), null, eclass.getYear_id());
+				ArrayList <ExamResult> lst = findExamResultExt(me,user.getSchool_id(), null, user.getId(), null, eclass.getYear_id());
 				if (lst == null || lst.size() <=0){
 						is_error = true;
 				}else{

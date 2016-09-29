@@ -11,6 +11,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
+import com.itpro.restws.helper.Constant;
+
 @Entity
 @Table(name="exam_rank")
 @DynamicInsert(value=true)
@@ -424,6 +426,71 @@ public class ExamRank extends AbstractModel{
 	}
 	public void setStd_fullname(String std_fullname) {
 		this.std_fullname = std_fullname;
+	}
+	
+	public String getByExKey(String ex_key){
+		
+		if (ex_key.equalsIgnoreCase("m1")){
+			return getM1();
+		}
+		if (ex_key.equalsIgnoreCase("m2")){
+			return getM2();
+		}
+		if (ex_key.equalsIgnoreCase("m3")){
+			return getM3();
+		}
+		if (ex_key.equalsIgnoreCase("m4")){
+			return getM4();
+		}
+		if (ex_key.equalsIgnoreCase("m5")){
+			return getM5();
+		}
+		if (ex_key.equalsIgnoreCase("m6")){
+			return getM6();
+		}
+		if (ex_key.equalsIgnoreCase("m7")){
+			return getM7();
+		}
+		if (ex_key.equalsIgnoreCase("m8")){
+			return getM8();
+		}
+		if (ex_key.equalsIgnoreCase("m9")){
+			return getM9();
+		}
+		if (ex_key.equalsIgnoreCase("m10")){
+			return getM10();
+		}
+		if (ex_key.equalsIgnoreCase("m11")){
+			return getM11();
+		}
+		if (ex_key.equalsIgnoreCase("m12")){
+			return getM12();
+		}
+		if (ex_key.equalsIgnoreCase("m13")){
+			return getM13();
+		}
+		if (ex_key.equalsIgnoreCase("m14")){
+			return getM14();
+		}
+		if (ex_key.equalsIgnoreCase("m15")){
+			return getM15();
+		}
+		if (ex_key.equalsIgnoreCase("m16")){
+			return getM16();
+		}
+		if (ex_key.equalsIgnoreCase("m17")){
+			return getM17();
+		}
+		if (ex_key.equalsIgnoreCase("m18")){
+			return getM18();
+		}
+		if (ex_key.equalsIgnoreCase("m19")){
+			return getM19();
+		}
+		if (ex_key.equalsIgnoreCase("m20")){
+			return getM20();
+		}
+		return null;
 	}
 	
 }

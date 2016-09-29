@@ -73,18 +73,18 @@ public class EduProfileServiceImpl implements EduProfileService{
 	}
 
 	@Override
-	public ArrayList<EduProfile> getUserProfile(User student, Integer filter_year_id) {
+	public ArrayList<EduProfile> getUserProfile(User me, Integer filter_year_id) {
 		
 		ArrayList<EduProfile> eduProfiles = new ArrayList<EduProfile>();
-		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
+		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(me.getSchool_id());
 		
 		
 		if (filter_year_id== null || 
 				(curr_year.getId().intValue() == filter_year_id.intValue())){
 			// Current profile
-			ArrayList<EduProfile> current_profiles =  eduProfileDao.findEx(student.getId(), student.getSchool_id(), null, curr_year.getId());
+			ArrayList<EduProfile> current_profiles =  eduProfileDao.findEx(me.getId(), me.getSchool_id(), null, curr_year.getId());
 			if (current_profiles == null || current_profiles.size() <= 0){
-				EduProfile current_profile = new_blank_edu_profile(student, curr_year.getId());
+				EduProfile current_profile = new_blank_edu_profile(me, curr_year.getId());
 				if (current_profile != null ){
 					eduProfileDao.saveStudentProfile(null,current_profile);
 					eduProfiles.add(current_profile);
@@ -101,13 +101,13 @@ public class EduProfileServiceImpl implements EduProfileService{
 			if (filter_year_id.intValue() > curr_year.getId().intValue()){
 				throw new ESchoolException("filter_year_id:"+filter_year_id.intValue() +" > current year id: "+curr_year.getId().intValue(), HttpStatus.BAD_REQUEST);
 			}
-			eduProfiles = eduProfileDao.findEx(student.getId(), null, null, filter_year_id);
+			eduProfiles = eduProfileDao.findEx(me.getId(), null, null, filter_year_id);
 		}
 		for (EduProfile eduProfile: eduProfiles){
-			ArrayList<ExamResult> examResults = examResultService.getUserProfile(student, null, filter_year_id);
+			ArrayList<ExamResult> examResults = examResultService.getUserProfile(me,me, null, filter_year_id);
 			eduProfile.setExam_results(examResults);
 			// update attendace info
-			ArrayList<Attendance> attendances = attendanceService.findAttendanceExt(student.getSchool_id(), null, student.getId(), null, 0, 999999, null, null, null, null, null, eduProfile.getSchool_year_id());
+			ArrayList<Attendance> attendances = attendanceService.findAttendanceExt(me.getSchool_id(), null, me.getId(), null, 0, 999999, null, null, null, null, null, eduProfile.getSchool_year_id());
 			if (attendances != null ){
 				eduProfile.setDay_absents(attendances.size());
 			}

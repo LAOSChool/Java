@@ -72,13 +72,18 @@ public class ClassServiceImpl implements ClassService{
 	}
 	@Override
 	public EClass newClass(User me, EClass eClass) {
-		
+
 		valid_new_class(me,eClass);
+		
 		classDao.saveClass(me,eClass);
 		// assign head teacher to class auto
-		assignHeadTeacher(me,eClass);
+		try {
+			assignHeadTeacher(me,eClass);
+		}catch (ESchoolException ex){
+			eClass.setHead_teacher_id(null);
+			classDao.saveClass(me, eClass);
+		}
 		
-		updateTermVal(eClass);
 		return eClass;
 
 	}
@@ -227,10 +232,15 @@ public class ClassServiceImpl implements ClassService{
 	}
 
 	private void valid_new_class(User me, EClass eclass){
-		
+		// Check school
 		if (eclass.getSchool_id() == null ){
 			eclass.setSchool_id(me.getSchool_id());
 		}
+		
+		if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("eclass.school_id != me.school_id", HttpStatus.BAD_REQUEST);
+		}
+		// Auto update year
 		SchoolYear schoolYear = null;
 		if (eclass.getYear_id() == null ){
 			schoolYear = schoolYearService.findLatestYearBySchool(eclass.getSchool_id());
@@ -245,6 +255,45 @@ public class ClassServiceImpl implements ClassService{
 		}
 		eclass.setYear_id(schoolYear.getId());
 		eclass.setYears(schoolYear.getYears());
+		// Auto update TERM
+		if (eclass.getTerm() == null ){
+			SchoolTerm term = schoolTermService.findMaxActiveTermBySchool(eclass.getSchool_id());
+			if (term != null ){
+				eclass.setTerm(term.getTerm_val());
+			}
+			
+		}else{
+			if (!schoolTermService.valid_term_val(eclass.getSchool_id(), eclass.getYear_id(), eclass.getTerm())){
+				throw new ESchoolException("Invalide eclass.term, term_val:"+eclass.getTerm().intValue() + " is not belong to year_id:"+ eclass.getYear_id().intValue(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		// Validate head teacher
+		Integer teacher_id = eclass.getHead_teacher_id();
+		if (teacher_id != null && teacher_id.intValue() > 0){
+			User teacher = userDao.findById(teacher_id);
+			if (teacher == null ){
+				throw new ESchoolException("head_teacher_id:"+teacher_id.intValue()+ " not exist", HttpStatus.BAD_REQUEST);
+			}
+			if (teacher.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("head_teacher_id:"+teacher_id.intValue()+ " not in same school with me", HttpStatus.BAD_REQUEST);
+			}
+			
+			if (teacher.getClasses() != null && teacher.getClasses().size() > 0){
+				
+				// Create new class
+				if (eclass.getId() == null ){
+					EClass tmp_cls =teacher.getClasses().iterator().next();
+					throw new ESchoolException("User already assigned to other class_id:"+tmp_cls.getId().intValue(), HttpStatus.BAD_REQUEST);
+				}else{
+					// Update class
+					for (EClass tmp_cls : teacher.getClasses()) {
+				        if (tmp_cls.getId().intValue() != eclass.getId().intValue()){
+				        	throw new ESchoolException("User already assigned to other class_id:"+tmp_cls.getId().intValue(), HttpStatus.BAD_REQUEST);
+				        }
+				     }
+				}
+			}
+		}
 	}
 
 	@Override

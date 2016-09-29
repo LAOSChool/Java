@@ -225,7 +225,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 		User user = userDao.findById(user_id);
 		
 		if (user == null ){
-			throw new ESchoolException("user_id is not existing:"+ user_id.intValue(), HttpStatus.BAD_REQUEST);
+			return;
 		}
 		
 		if (!me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
@@ -266,7 +266,7 @@ public class User2ClassServiceImpl implements User2ClassService{
 		EClass eclass = classesDao.findById(class_id);
 		
 		if (eclass == null ){
-			throw new ESchoolException("class_id is not existing:"+ class_id.intValue(), HttpStatus.BAD_REQUEST);
+			return;
 		}
 		if (!me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue() ){
@@ -275,15 +275,16 @@ public class User2ClassServiceImpl implements User2ClassService{
 		}
 		// Only running user2Class available		
 		List<User2Class> list = user2ClassDao.findByUserAndClass(null, class_id,0);
-		if (list == null || list.size() == 0){
-			throw new ESchoolException("user is not assigned to classed yet", HttpStatus.BAD_REQUEST);
+		if (list != null &&  list.size() > 0){
+			for (User2Class user2Class: list){
+				user2Class.setActflg("D");
+				user2Class.setClosed(1);
+				user2Class.setClosed_dt(Utils.now());
+				user2Class.setNotice("AUTO - When Del Class");
+				user2ClassDao.updateUser2Class(me,user2Class);
+			}
 		}
-		for (User2Class user2Class: list){
-			user2Class.setActflg("D");
-			user2Class.setClosed(1);
-			user2Class.setClosed_dt(Utils.now());
-			user2ClassDao.updateUser2Class(me,user2Class);
-		}
+		
 		
 		
 	}

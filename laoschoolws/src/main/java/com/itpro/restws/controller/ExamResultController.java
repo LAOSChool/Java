@@ -121,7 +121,7 @@ public class ExamResultController extends BaseController {
     	}
     	
 		
-		ArrayList<ExamResult> exam_results  = examResultService.getClassProfile(me.getSchool_id(),filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
+		ArrayList<ExamResult> exam_results  = examResultService.getClassProfile(me,me.getSchool_id(),filter_class_id,filter_student_id, filter_subject_id, filter_year_id);
 		
 		examResultService.orderExamResultByID(exam_results, 0);
 		
@@ -143,13 +143,13 @@ public class ExamResultController extends BaseController {
 		logger.info(" *** MainRestController.getExamResultProfile Start");
 		// Valid class ID
 		
-		User student = getCurrentUser();
+		User me = getCurrentUser();
 		
 		ListEnt rspEnt = new ListEnt();
 		// Initial data if necessary
 	
 		
-		ArrayList<ExamResult> list  = examResultService.getUserProfile(student,filter_subject_id, filter_year_id);
+		ArrayList<ExamResult> list  = examResultService.getUserProfile(me,me,filter_subject_id, filter_year_id);
 		
 		examResultService.orderExamResultByID(list, 0);
 		
@@ -255,6 +255,7 @@ public class ExamResultController extends BaseController {
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
 			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			
+			@RequestParam(value="order_ex_key", required =false) String order_ex_key,
 			
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
@@ -288,6 +289,11 @@ public class ExamResultController extends BaseController {
 		}
 		
 		examResultService.orderRankByID(exam_ranks, 0);
+		
+		if (order_ex_key != null && order_ex_key.trim().length() > 0){
+			examResultService.orderRankByAllocation(me, exam_ranks, order_ex_key);
+		}
+		
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(exam_ranks);
 	    return rsp;

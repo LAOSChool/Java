@@ -12,9 +12,9 @@ public class FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(FunctionalTest.class);
 	protected static String WEB_API_KEY = "WEB";
 	
-	protected static String  ADM1_AUTH_KEY = "aH1OTc8OfgA6WXrpRp2XPe0tJGBNzWd3Umvi2zzl3zI=";
+	protected static String  ADM1_AUTH_KEY = "Y063lfIKNA0uTQ2gYJwNOWJIqYoS7pJgf+g11ux41/I=";
 	protected static String  TEA1_AUTH_KEY = "CiT7+T81LHsdmcMPkESdjJHhQKQe7ftBA3Wi/cGdRlY=";
-	protected static String  STD10_AUTH_KEY = "m7DWYTq5T+K78VLTnbkhXHXuOBLsU/3whDwArrd0Fwo=";
+	protected static String  STD10_AUTH_KEY = "ZQEB7Jt2uTFxv8ZX0jSfFoUR7iVwuYtq+tqqwD7GlNs=";
 	
 	protected static String  INVALID_AUTH_KEY = "abc";
 	

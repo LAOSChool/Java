@@ -24,9 +24,9 @@ public interface ExamResultService {
 	ExamResult inputExam(User teacher,ExamResult examResult);
 	// User Profile
 	int countExamResultExt (Integer school_id, Integer class_id, Integer student_id,Integer subject_id,Integer year_id);
-	ArrayList<ExamResult> findExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer subject_id,Integer year_id);
-	ArrayList<ExamResult>  getUserProfile(User student,Integer subject_id, Integer year_id);
-	ArrayList<ExamResult>  getClassProfile(Integer school_id,Integer filter_class_id,Integer filter_student_id, Integer filter_subject_id, Integer year_id);
+	ArrayList<ExamResult> findExamResultExt(User me, Integer school_id, Integer class_id, Integer student_id, Integer subject_id,Integer year_id);
+	ArrayList<ExamResult>  getUserProfile(User me, User student,Integer subject_id, Integer year_id);
+	ArrayList<ExamResult>  getClassProfile(User me, Integer school_id,Integer filter_class_id,Integer filter_student_id, Integer filter_subject_id, Integer year_id);
 	//void proc_average( User student,ArrayList<ExamResult> examResults);
 	
 	// Ranking
@@ -39,6 +39,7 @@ public interface ExamResultService {
 	
 	void orderExamResultByID(ArrayList<ExamResult> list, int order);	
 	void orderRankByID(ArrayList<ExamRank> list, int order);
+	void orderRankByAllocation(User me, ArrayList<ExamRank> list, String ex_key);
 	String valid_rank_process(User me,  String class_ids, String ex_key);
 	
 	 
