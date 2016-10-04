@@ -50,7 +50,7 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 
 	@Override
-	public SchoolTerm updateSchoolTerm(User me, SchoolTerm schoolTerm) {
+	public SchoolTerm updateTransSchoolTerm(User me, SchoolTerm schoolTerm) {
 		
 		if (schoolTerm.getId() == null ){
 			throw new ESchoolException("schoolTerm.id is null", HttpStatus.BAD_REQUEST);

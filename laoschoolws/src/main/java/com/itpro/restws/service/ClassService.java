@@ -25,7 +25,7 @@ public interface ClassService {
 	EClass newClass(User admin, EClass eClass);
 	EClass delClass(User admin, Integer class_id);
 	
-	EClass updateClass(User admin, EClass eClass);
+	EClass updateTransClass(User admin, EClass eClass);
 	SchoolYear getSchoolYear(EClass eClass);
 	
 }

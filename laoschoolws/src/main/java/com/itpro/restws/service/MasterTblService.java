@@ -18,7 +18,7 @@ public interface MasterTblService {
 	void validMTemplate(User user, String tbl_name,MTemplate template);
 	
 	MTemplate insertMTemplate(User user, String tbl_name,MTemplate template);
-	MTemplate updateMTemplate(User user, String tbl_name,MTemplate template);
+	MTemplate updateTranMTemplate(User user, String tbl_name,MTemplate template);
 	void deleteMTemplate(User user, String tbl_name, Integer id);
 	 
 }

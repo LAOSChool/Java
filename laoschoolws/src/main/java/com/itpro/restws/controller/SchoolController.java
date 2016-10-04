@@ -126,7 +126,7 @@ public class SchoolController extends BaseController {
 		if (me.getSchool_id().intValue() != school.getId().intValue()){
 			throw new ESchoolException("school.id is not belong to current user - current_user.school_id:"+me.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
-		 return schoolService.updateSchool(me,school);
+		 return schoolService.updateTransSchool(me,school);
 	}
 	
 	
@@ -291,7 +291,7 @@ public class SchoolController extends BaseController {
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
-		SchoolExam ret = schoolExamService.updateSchoolExam(user, schoolExam);
+		SchoolExam ret = schoolExamService.updateTransSchoolExam(user, schoolExam);
 		rsp.setMessageObject(ret);
 		
 	    return rsp;
@@ -357,7 +357,7 @@ public class SchoolController extends BaseController {
 		if (schoolYear.getSchool_id().intValue() != user.getSchool_id().intValue()){
 			throw new ESchoolException("schoolYear.school_id != user.schoool_id", HttpStatus.BAD_REQUEST);
 		}
-		SchoolYear ret = schoolYearService.updateSchoolYear(user, schoolYear);
+		SchoolYear ret = schoolYearService.updateTransSchoolYear(user, schoolYear);
 		rsp.setMessageObject(ret);
 		
 	    return rsp;
@@ -431,7 +431,7 @@ public class SchoolController extends BaseController {
 		User admin = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
-		schoolTermService.updateSchoolTerm(admin, schoolTerm);
+		schoolTermService.updateTransSchoolTerm(admin, schoolTerm);
 		rsp.setMessageObject(schoolTerm);
 		return rsp;
 	}

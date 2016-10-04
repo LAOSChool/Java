@@ -287,7 +287,7 @@ public class AttendanceController extends BaseController {
     		throw new ESchoolException("Invalid Class_ID:"+attendance.getClass_id()+", is not belong to current user_id:"+teacher.getId().intValue(), HttpStatus.BAD_REQUEST);
     	}
     	
-    	return attendanceService.updateAttendance(teacher,attendance);
+    	return attendanceService.updateTransAttendance(teacher,attendance);
 		 
 	}
 	
@@ -317,7 +317,7 @@ public class AttendanceController extends BaseController {
     		throw new ESchoolException("Invalid Class_ID:"+attendance.getClass_id()+", is not belong to current user_id:"+auditor.getId().intValue(), HttpStatus.BAD_REQUEST);
     	}
     	attendance.setActflg("D");
-    	attendanceService.updateAttendance(auditor,attendance);
+    	attendanceService.updateAttachedAttendance(auditor,attendance);
 	    return "Request was successfully, delete attendance of id: "+id;
 	 }
 	

@@ -12,7 +12,7 @@ public interface SchoolExamService {
 	
 	SchoolExam insertSchoolExam(User me, SchoolExam schoolExam);
 	
-	SchoolExam updateSchoolExam(User me,SchoolExam schoolExam);
+	SchoolExam updateTransSchoolExam(User me,SchoolExam schoolExam);
 	
 	boolean valid_ex_key(User me,String ex_key);
 	

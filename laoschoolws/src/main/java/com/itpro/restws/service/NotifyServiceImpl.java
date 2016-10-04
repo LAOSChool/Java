@@ -612,7 +612,7 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	@Override
-	public Notify updateNotify(User me,Notify notify) {
+	public Notify updateAttachedNotify(User me,Notify notify) {
 		notifyDao.updateNotify(me,notify);
 		
 		return notify;

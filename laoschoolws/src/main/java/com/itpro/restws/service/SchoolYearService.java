@@ -17,7 +17,7 @@ public interface SchoolYearService {
 	
 	
 	SchoolYear insertSchoolYear(User user,SchoolYear schoolYear);
-	SchoolYear updateSchoolYear(User user,SchoolYear schoolYear);
+	SchoolYear updateTransSchoolYear(User user,SchoolYear schoolYear);
 	void delSchoolYear(User user, Integer id);
 	boolean valid_year_id(Integer school_id,Integer year_id);
 ///////////////////////// TERM 

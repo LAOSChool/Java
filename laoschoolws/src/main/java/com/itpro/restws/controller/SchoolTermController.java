@@ -101,7 +101,7 @@ public class SchoolTermController extends BaseController {
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
-		schoolTermService.updateSchoolTerm(me, schoolTerm);
+		schoolTermService.updateTransSchoolTerm(me, schoolTerm);
 		rsp.setMessageObject(schoolTerm);
 		return rsp;
 	}

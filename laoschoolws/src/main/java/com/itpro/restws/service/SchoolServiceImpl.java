@@ -54,7 +54,7 @@ public class SchoolServiceImpl implements SchoolService{
 	}
 
 	@Override
-	public School updateSchool(User me,School school) {
+	public School updateTransSchool(User me,School school) {
 		
 		valid_update_school(me,school);// [UT]20160907
 		

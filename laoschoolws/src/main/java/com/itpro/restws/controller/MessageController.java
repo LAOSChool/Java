@@ -284,7 +284,7 @@ public class MessageController extends BaseController {
 		}
 		
 		
-		messageService.updateMessage(me,msg);
+		messageService.updateAttachedMessage(me,msg);
 		rsp.setMessageObject(msg);
 		
 		return rsp;

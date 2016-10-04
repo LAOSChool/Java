@@ -149,7 +149,7 @@ public class ClassController extends BaseController {
 		logger.info(" *** MainRestController.classes.update");
 		User admin = getCurrentUser();
 		// eclass = classService.findById(1);
-		 return classService.updateClass(admin,eclass);
+		 return classService.updateTransClass(admin,eclass);
 		 
 	}
 	@Secured({ "ROLE_ADMIN" })

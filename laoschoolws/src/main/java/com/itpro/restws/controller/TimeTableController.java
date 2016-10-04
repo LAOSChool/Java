@@ -155,7 +155,7 @@ public class TimeTableController extends BaseController {
 		logger.info(" *** MainRestController.updateTimetable.update");
 		 //return timetable;
 		User user = getCurrentUser();
-		Timetable tbl = timetableService.updateTimetable(user,timetable);
+		Timetable tbl = timetableService.updateTransTimetable(user,timetable);
 		return timetableService.reloadTimetable(tbl);
 		 
 	}

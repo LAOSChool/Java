@@ -246,7 +246,7 @@ public class NotifyController extends BaseController {
 	@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/notifies/update/{id}",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo updateMessage(
+	public RespInfo updateNotify(
 			@PathVariable int  id,
 			@RequestParam(value="is_read",required =false) String is_read,
 			@RequestParam(value="imp_flg",required =false) String imp_flg,
@@ -290,7 +290,7 @@ public class NotifyController extends BaseController {
 			notify.setImp_flg( Utils.parseInteger(imp_flg));
 		}
 		
-		notifyService.updateNotify(me,notify);
+		notifyService.updateAttachedNotify(me,notify);
 		rsp.setMessageObject(notify);
 		
 		return rsp;

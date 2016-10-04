@@ -12,7 +12,7 @@ public interface SchoolTermService {
 	
 	
 	SchoolTerm insertSchoolTerm(User me,SchoolTerm SchoolTerm);
-	SchoolTerm updateSchoolTerm(User me,SchoolTerm SchoolTerm);
+	SchoolTerm updateTransSchoolTerm(User me,SchoolTerm SchoolTerm);
 	
 	SchoolTerm activeSchoolTerm(User me,Integer term_id, Integer active);
 	

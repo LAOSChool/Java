@@ -89,7 +89,7 @@ public class ClassServiceImpl implements ClassService{
 	}
 
 	@Override
-	public EClass updateClass(User me,EClass eClass) {
+	public EClass updateTransClass(User me,EClass eClass) {
 		if (eClass.getId() == null || eClass.getId().intValue() <= 0){
 			throw new ESchoolException("class.id is required to update", HttpStatus.BAD_REQUEST);
 		}

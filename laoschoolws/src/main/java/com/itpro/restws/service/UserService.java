@@ -23,7 +23,8 @@ public interface UserService {
 	
 	
 	//User insertUser(User me, User user);
-	User updateUser(User me, User user,boolean ignore_pass);
+	User updateTransientUser(User me, User user,boolean ignore_pass);
+	User updateAttachedUser(User me, User user);
 	
 	public boolean isValidState(int State);
 	public boolean isValidPassword(String pass);

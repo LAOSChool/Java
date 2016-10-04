@@ -276,7 +276,7 @@ public class UserController extends BaseController {
 		
 		User me = getCurrentUser();
 		
-		return userService.updateUser(me,user,true);
+		return userService.updateTransientUser(me,user,true);
 		 
 	}
 	
@@ -291,7 +291,12 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		User me = getCurrentUser();
-		
+		if (sso == null || sso.trim().length() == 0){
+			throw new ESchoolException("sso is required", HttpStatus.BAD_REQUEST);
+		}
+		if (me.getSso_id().equalsIgnoreCase(sso)){
+			throw new ESchoolException("sso is same with current user (me) cannot reset password himselft !", HttpStatus.BAD_REQUEST);
+		}
 		logger.info(" *** MainRestController.users.reset_pass");
 		String newpass= userService.resetPassword(me,sso,false);
  	    return  "Reset password success, new_pass:"+newpass;
@@ -326,7 +331,7 @@ public class UserController extends BaseController {
 			}
 			
 			if (!username.equals(getPrincipal())){
-				throw new RuntimeException("username is not mapped with logined sso_id");
+				throw new ESchoolException("username is not mapped with logined sso_id", HttpStatus.BAD_REQUEST);
 			}
 			String msg =  "Request was successfully, newpass:"+userService.changePassword(me,username, old_pass,new_pass);
 			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
@@ -405,20 +410,25 @@ public class UserController extends BaseController {
 			 
 			 ) {
 		User me = getCurrentUser();
+		if (me.getId().intValue() == id){
+			throw new ESchoolException("Cannot del him selft", HttpStatus.BAD_REQUEST);
+		}
 		User del_user = userService.findById(id);
 		if (del_user == null ){
 			throw new ESchoolException("Cannot find user", HttpStatus.NOT_FOUND);
+		}
+		if (del_user.hasRole(E_ROLE.ADMIN.getRole_short())){
+			throw new ESchoolException("Cannot del Admin account", HttpStatus.NOT_FOUND);
 		}
 		
 		if (!userService.isSameSChool(me, del_user)){
 			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
 		}
+		// Delete relationship user <===> class
 		user2ClassService.delUser(me, id);
-		
+		// Delete user info
 		del_user.setActflg("D");
-		userService.updateUser(me,del_user,true);
-		
-		
+		userService.updateAttachedUser(me,del_user);
 		
 		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
 	    return "Request was successfully, deleted user of id:"+id;

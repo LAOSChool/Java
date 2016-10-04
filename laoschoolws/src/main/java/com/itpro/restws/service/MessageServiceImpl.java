@@ -109,7 +109,7 @@ public class MessageServiceImpl implements MessageService{
 
 
 	@Override
-	public Message updateMessage(User me, Message message) {
+	public Message updateTransMessage(User me, Message message) {
 //   20160823 START		
 //		String error_msg = checkUpdateMessage(message);
 //		if (error_msg!= null ){
@@ -767,5 +767,11 @@ public class MessageServiceImpl implements MessageService{
 		}
 		
 		return message;
+	}
+
+	@Override
+	public Message updateAttachedMessage(User me, Message messageDB) {
+		messageDao.updateMessage(me,messageDB);
+		return messageDB;
 	}
 }

@@ -13,7 +13,7 @@ public interface SchoolService {
 	ArrayList<School> findActive();
 	
 	School insertSchool(User me,School school);
-	School updateSchool(User me,School school);
+	School updateTransSchool(User me,School school);
 	void saveUploadPhoto(User me, MultipartFile[] file);
 	
 //	SchoolTerm createTerm(User me,SchoolTerm schoolTerm);

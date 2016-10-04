@@ -50,7 +50,7 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 	}
 
 	@Override
-	public SchoolYear updateSchoolYear(User me, SchoolYear schoolYear) {
+	public SchoolYear updateTransSchoolYear(User me, SchoolYear schoolYear) {
 		if (schoolYear.getId() == null ||  schoolYear.getId().intValue() == 0){
 			throw new ESchoolException("cannot update schoolYear, id is null", HttpStatus.BAD_REQUEST);
 		}

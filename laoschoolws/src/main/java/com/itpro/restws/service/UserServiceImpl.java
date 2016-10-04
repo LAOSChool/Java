@@ -116,38 +116,44 @@ public class UserServiceImpl implements UserService{
 //	}
 
 	@Override
-	public User updateUser(User me, User user_up,boolean ignore_pass) {
+	public User updateTransientUser(User me, User transient_user,boolean ignore_pass) {
 		
-		if (user_up.getId() == null ){
+		if (transient_user.getId() == null ){
 			throw new ESchoolException("user.id is null", HttpStatus.BAD_REQUEST);
 		}
-		User userDB = userDao.findById(user_up.getId());
+		User userDB = userDao.findById(transient_user.getId());
 		if (userDB == null ){
-			throw new ESchoolException("user.id is not exising: "+user_up.getId().intValue(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("user.id is not exising: "+transient_user.getId().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
 		if (userDB.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("term_db.SchooId is not same with me.school_id", HttpStatus.BAD_REQUEST);
 		}
-		user_up.setSchool_id(userDB.getSchool_id()); // Cannot change school_id
-		user_up.setSso_id(null);// Cannot change SSO_ID
-		user_up.setRoles(null);// Cannot change role
+		
+		
+		if (userDB.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+			throw new ESchoolException("Cannot update SYS_ADMIN info", HttpStatus.BAD_REQUEST);
+		}
+		// For sure, disable update school, sso_id, roles
+		transient_user.setSchool_id(userDB.getSchool_id()); // Cannot change school_id
+		transient_user.setSso_id(userDB.getSso_id());		// Cannot change SSO_ID
+		transient_user.setRoles(userDB.getRoles());		// Cannot change role
 		// Cannot change state of Admin
-		if (user_up.getState() != null && 
-				userDB.getState() != null && 
-						user_up.getState().intValue() != userDB.getState().intValue() ){
-			if (userDB.hasRole(E_ROLE.ADMIN.getRole_short())){
+		
+		if (userDB.hasRole(E_ROLE.ADMIN.getRole_short())){
+			if (transient_user.getState() != null ){
 				throw new ESchoolException("Only SYS_ADMIN can change state of Admin", HttpStatus.BAD_REQUEST);
 			}
 		}
+	
 		
 		if (ignore_pass ){
-			user_up.setPassword(null);
+			transient_user.setPassword(null);
 		}
 
 		  try {
 			  userDao.setFlushMode(FlushMode.MANUAL);
-			  userDB = User.updateChanges(userDB, user_up);
+			  userDB = User.updateChanges(userDB, transient_user);
 			  valid_user(userDB, false);
 	        } catch (Exception e){
 	        	userDao.clearChange();
@@ -250,7 +256,7 @@ public class UserServiceImpl implements UserService{
 						)
 				){
 		}else{
-			throw new RuntimeException("Username is not in correct format ( Correct format: 4<= name.length<=20 and not start by a Number)");
+			throw new ESchoolException("Username is not in correct format ( Correct format: 4<= name.length<=20 and not start by a Number)",HttpStatus.BAD_REQUEST);
 		}
 		String USERNAME_PATTERN = "^[a-z0-9_-]{4,20}$";
 		 Pattern  pattern = Pattern.compile(USERNAME_PATTERN);
@@ -281,19 +287,27 @@ public class UserServiceImpl implements UserService{
 		if (!isValidPassword(new_pass) ){
 			throw new ESchoolException("Input Password length is not correct - expected length should be >= 4 AND <= 20",HttpStatus.BAD_REQUEST);
 		}
-		User user = userDao.findBySSO(sso_id);
-		if (user != null ){
+		User user_db = userDao.findBySSO(sso_id);
+		if (user_db != null ){
+			if (user_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
+				// do nothing	
+				}else{
+					throw new ESchoolException("me.school_id != user_db.school_id",HttpStatus.BAD_REQUEST);
+				}
+			}
+			
 			try {
-				if (!Password.check(old_pass, user.getPassword())){
-					throw new RuntimeException("Input current password is not correct");
+				if (!Password.check(old_pass, user_db.getPassword())){
+					throw new ESchoolException("Input current password is not correct",HttpStatus.BAD_REQUEST);
 				}
 			} catch (Exception e) {
 				throw new ESchoolException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			user.setPassword(encryptPass(new_pass));
-			updateUser(me,user,false);
+			user_db.setPassword(encryptPass(new_pass));
+			userDao.updateUser(me, user_db);
 		}else{
-			throw new RuntimeException("User is NULL, sso="+sso_id);
+			throw new ESchoolException("User is NULL, sso="+sso_id,HttpStatus.BAD_REQUEST);
 		}
 		return new_pass;
 	}
@@ -304,27 +318,27 @@ public class UserServiceImpl implements UserService{
 		
 		int randomNum = 1111 + (int)(Math.random() * 9999);
 		String newPass = randomNum+ "";
-		User reset_user = userDao.findBySSO(sso_id);
-		if (reset_user == null ){
-			throw new RuntimeException("sso_id is not found");
+		User user_db = userDao.findBySSO(sso_id);
+		if (user_db == null ){
+			throw new ESchoolException("sso_id is not found",HttpStatus.BAD_REQUEST);
 		}
 		// Check school
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			// not check
 		}else{
-			if (reset_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
-				throw new RuntimeException("sso_id:"+sso_id+ " is not in same school with current admin");
+			if (user_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("sso_id:"+sso_id+ " is not in same school with me.school_id",HttpStatus.BAD_REQUEST);
 			}
 		}
 		
-		reset_user.setPassword(encryptPass(newPass));
-		updateUser(me,reset_user,false);
+		user_db.setPassword(encryptPass(newPass));
+		userDao.updateUser(me, user_db);
 		// Send message
 		 Message msg = new Message();
 
 		 msg.setFrom_user_id(Integer.valueOf(1));
 		 msg.setFrom_user_name("SYS_ADMIN");
-		 msg.setTo_user_id(reset_user.getId());
+		 msg.setTo_user_id(user_db.getId());
 		 String content = "Your password has been reset by Admin, new pass: "+newPass;
 		 if (is_forgot_request){
 			 content = "Your password has been reset due to forgot-pass request, new pass: "+newPass;	 
@@ -707,6 +721,12 @@ public class UserServiceImpl implements UserService{
 				 throw new ESchoolException("Invalid State="+user.getState(),HttpStatus.BAD_REQUEST);
 			 }
 			
+		}
+
+		@Override
+		public User updateAttachedUser(User me, User attached_user) {
+			userDao.updateUser(me, attached_user);
+			return attached_user;
 		}
 		
 }

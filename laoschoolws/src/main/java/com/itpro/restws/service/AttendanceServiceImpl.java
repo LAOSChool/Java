@@ -141,7 +141,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 //	}
 
 	@Override
-	public Attendance updateAttendance(User me, Attendance attendance) {
+	public Attendance updateTransAttendance(User me, Attendance attendance) {
 		if (attendance == null || attendance.getId() == null){
 			throw new ESchoolException("attendance == null || attendance.id = NULL", HttpStatus.BAD_REQUEST);
 		}
@@ -652,6 +652,12 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 
 		
+	}
+
+	@Override
+	public Attendance updateAttachedAttendance(User teacher, Attendance attendance) {
+		attendanceDao.updateAttendance(teacher, attendance);
+		return attendance;
 	}	
 	
 	

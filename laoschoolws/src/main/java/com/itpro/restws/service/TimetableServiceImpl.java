@@ -81,7 +81,7 @@ public class TimetableServiceImpl implements TimetableService{
 	}
 
 	@Override
-	public Timetable updateTimetable(User me, Timetable timetable) {
+	public Timetable updateTransTimetable(User me, Timetable timetable) {
 		
 		if (timetable.getId() == null ){
 			throw new ESchoolException("timetable.id is null", HttpStatus.BAD_REQUEST);

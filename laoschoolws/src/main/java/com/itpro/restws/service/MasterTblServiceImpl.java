@@ -184,7 +184,7 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	
 	@Override
-	public MTemplate updateMTemplate(User me, String tbl_name, MTemplate temp) {
+	public MTemplate updateTranMTemplate(User me, String tbl_name, MTemplate temp) {
 		
 		validMTemplate(me, tbl_name, temp);
 		

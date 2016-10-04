@@ -22,7 +22,7 @@ public interface TimetableService {
 	
 	
 	Timetable insertTimetable(User user,Timetable timetable);
-	Timetable updateTimetable(User user, Timetable timetable);
+	Timetable updateTransTimetable(User user, Timetable timetable);
 	void delTimetableById(User user , Integer id);
 	
 	Timetable reloadTimetable(Timetable timetable);

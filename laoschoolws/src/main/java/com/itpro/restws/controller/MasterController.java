@@ -118,7 +118,7 @@ public class MasterController  extends BaseController {
 		if (mtemplate.getId() == null || mtemplate.getId().intValue() <= 0){
 			throw new ESchoolException("id is required", HttpStatus.BAD_REQUEST);
 		}
-		return masterTblService.updateMTemplate(user,tbl_name, mtemplate);
+		return masterTblService.updateTranMTemplate(user,tbl_name, mtemplate);
 	 }
 
 	@Secured({ "ROLE_ADMIN","ROLE_SYS_ADMIN" })

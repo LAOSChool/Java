@@ -43,7 +43,7 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 	}
 
 	@Override
-	public SchoolExam updateSchoolExam(User me, SchoolExam schoolExam) {
+	public SchoolExam updateTransSchoolExam(User me, SchoolExam schoolExam) {
 		if (schoolExam.getId() == null || schoolExam.getId().intValue() == 0  ){
 			throw new ESchoolException("schoolExam.id not exist", HttpStatus.BAD_REQUEST);
 		}
