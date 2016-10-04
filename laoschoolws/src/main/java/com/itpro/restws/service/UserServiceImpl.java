@@ -116,30 +116,38 @@ public class UserServiceImpl implements UserService{
 //	}
 
 	@Override
-	public User updateUser(User me, User user,boolean ignore_pass) {
+	public User updateUser(User me, User user_up,boolean ignore_pass) {
 		
-		if (user.getId() == null ){
+		if (user_up.getId() == null ){
 			throw new ESchoolException("user.id is null", HttpStatus.BAD_REQUEST);
 		}
-		User userDB = userDao.findById(user.getId());
+		User userDB = userDao.findById(user_up.getId());
 		if (userDB == null ){
-			throw new ESchoolException("user.id is not exising: "+user.getId().intValue(), HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("user.id is not exising: "+user_up.getId().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
 		if (userDB.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("term_db.SchooId is not same with me.school_id", HttpStatus.BAD_REQUEST);
 		}
-		if (userDB.getSchool_id().intValue() != user.getSchool_id().intValue()){
-			throw new ESchoolException("term_db.SchooId is not same with user.school_id", HttpStatus.BAD_REQUEST);
+		user_up.setSchool_id(userDB.getSchool_id()); // Cannot change school_id
+		user_up.setSso_id(null);// Cannot change SSO_ID
+		user_up.setRoles(null);// Cannot change role
+		// Cannot change state of Admin
+		if (user_up.getState() != null && 
+				userDB.getState() != null && 
+						user_up.getState().intValue() != userDB.getState().intValue() ){
+			if (userDB.hasRole(E_ROLE.ADMIN.getRole_short())){
+				throw new ESchoolException("Only SYS_ADMIN can change state of Admin", HttpStatus.BAD_REQUEST);
+			}
 		}
 		
 		if (ignore_pass ){
-			user.setPassword(null);
+			user_up.setPassword(null);
 		}
 
 		  try {
 			  userDao.setFlushMode(FlushMode.MANUAL);
-			  userDB = User.updateChanges(userDB, user);
+			  userDB = User.updateChanges(userDB, user_up);
 			  valid_user(userDB, false);
 	        } catch (Exception e){
 	        	userDao.clearChange();
@@ -664,10 +672,11 @@ public class UserServiceImpl implements UserService{
 
 		private void valid_user( User user, boolean is_new ) {
 			if (!is_new){
-				if (user.getId() == null ){
+				if (user.getId() == null || user.getId().intValue() <= 0 ){
 					throw new ESchoolException("user.id is NULL",HttpStatus.BAD_REQUEST);
 				}
 			}
+			
 			if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0){
 				throw new ESchoolException("User.school_id is required",HttpStatus.BAD_REQUEST);
 			}
@@ -692,8 +701,11 @@ public class UserServiceImpl implements UserService{
 			if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
 				if (user.getCls_level() == null || user.getCls_level() == 0){
 					throw new ESchoolException("cls_level (NUMBER TYPE) is required",HttpStatus.BAD_REQUEST);
-				}	
+				}
 			}
+			if (!isValidState(user.getState())){
+				 throw new ESchoolException("Invalid State="+user.getState(),HttpStatus.BAD_REQUEST);
+			 }
 			
 		}
 		

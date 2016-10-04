@@ -226,32 +226,35 @@ public class MessageServiceImpl implements MessageService{
 			return;
 		}
 			
-			
 		Permit permit = permitService.loadEntityPermit(me,E_ENTITY.MESSAGE);
 		
 		msg.setFrom_user_id(me.getId());
 		msg.setFrom_user_name(me.getFullname());
 		
-		
-		
-		
-		
 		// Validation mandatory parameters
-		
-				
-		if (msg.getFrom_user_id() == null || msg.getFrom_user_id() == 0 || msg.getFrom_user_id() != me.getId()){
-			String err = "Message's from_user_id="+msg.getFrom_user_id()==null?"null":msg.getFrom_user_id().intValue()+" is not valid (user_id="+me.getId()+")";
-			throw new ESchoolException(err, HttpStatus.BAD_REQUEST);
-		}
-
-		
 		
 		if (msg.getTo_user_id() == null || msg.getTo_user_id() == 0  ){
 			throw new ESchoolException("Message's to_user_id is not valid="+msg.getTo_user_id()==null?"null":msg.getTo_user_id().toString(), HttpStatus.BAD_REQUEST);
 		}
+		User toUser = userService.findById(msg.getTo_user_id());
+		if (toUser == null ){
+			throw new ESchoolException("ToUser_ID not existing:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		if (toUser.getSchool_id().intValue() != me.getSchool_id().intValue()){
+			throw new ESchoolException("to_user_id not belong to same school with current user:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		msg.setTo_sso_id(toUser.getSso_id());
+		msg.setSchool_id(toUser.getSchool_id());
+
+		if (!userService.isSameSChool(me.getId(), msg.getCCList())){
+			throw new ESchoolException("User's role="+me.getRoles()+" cannot CC to other SCHOOL. From User's school=="+me.getSchool_id()+"/// CC user ="+msg.getCc_list(), HttpStatus.UNAUTHORIZED);			
+		}		
+
 		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
 			
-		}else{
+		}else if (	(me.hasRole(E_ROLE.TEACHER.getRole_short())) ||   
+					(me.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short())) 
+					){
 			// Check if class_id existing
 			if (msg.getClass_id() == null ||  msg.getClass_id().intValue() ==0   ){
 				throw new ESchoolException("Message's class_id is NULL or zero", HttpStatus.BAD_REQUEST);
@@ -259,6 +262,14 @@ public class MessageServiceImpl implements MessageService{
 			else if (!userService.isBelongToClass(msg.getTo_user_id(),msg.getClass_id() )){
 				throw new ESchoolException("Message's to_user_id="+msg.getTo_user_id()+" is not belong to class_id="+msg.getClass_id(), HttpStatus.BAD_REQUEST);
 			}
+			if ( !userService.isSameClass(me.getId(), msg.getCCList())){
+				throw new ESchoolException("User's role="+me.getRoles()+" cannot CC to other CLASS. From User's class=="+me.eClassesToString()+"/// CC user ="+msg.getCc_list(), HttpStatus.UNAUTHORIZED);			
+			}
+		}else {// STUDENT send message to teacher
+			if (!userService.isHeadTeacherOf(me, msg.getTo_user_id())){
+				throw new ESchoolException("To User:"+msg.getTo_user_id()+" is not Head teacher of class", HttpStatus.UNAUTHORIZED);
+			}
+			msg.setCc_list(null);
 		}
 
 		if (msg.getContent() == null || msg.getContent().equals("")  ){
@@ -272,15 +283,6 @@ public class MessageServiceImpl implements MessageService{
 		}
 		
 		// Validate access scope
-		User toUser = userService.findById(msg.getTo_user_id());
-		if (toUser == null ){
-			throw new ESchoolException("ToUser_ID not existing:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
-		}
-		if (toUser.getSchool_id().intValue() != me.getSchool_id().intValue()){
-			throw new ESchoolException("to_user_id not belong to same school with current user:"+msg.getTo_user_id().intValue(), HttpStatus.BAD_REQUEST);
-		}
-		msg.setTo_sso_id(toUser.getSso_id());
-		msg.setSchool_id(toUser.getSchool_id());
 		
 		if (E_SCOPE.SCHOOL.getValue() == (permit.getScope() & E_SCOPE.SCHOOL.getValue() ) ){
 		// check school
@@ -289,9 +291,7 @@ public class MessageServiceImpl implements MessageService{
 				throw new ESchoolException("User's role="+me.getRoles()+" cannot send to other SCHOOL. From User's school=="+me.getSchool_id()+"/// toUser's school="+toUser.getSchool_id(), HttpStatus.UNAUTHORIZED);
 			}
 			
-			if (!userService.isSameSChool(me.getId(), msg.getCCList())){
-				throw new ESchoolException("User's role="+me.getRoles()+" cannot CC to other SCHOOL. From User's school=="+me.getSchool_id()+"/// CC user ="+msg.getCc_list(), HttpStatus.UNAUTHORIZED);			
-			}
+			
 		}
 		
 		else if ( E_SCOPE.CLASS.getValue() == (permit.getScope() &  E_SCOPE.CLASS.getValue() ) ){
@@ -305,8 +305,6 @@ public class MessageServiceImpl implements MessageService{
 			}
 			
 		}
-		
-		
 		else if ( E_SCOPE.PERSON.getValue() == (permit.getScope() & E_SCOPE.PERSON.getValue() )){
 			if (!userService.isHeadTeacherOf(me, msg.getTo_user_id())){
 		    	throw new ESchoolException("To User:"+msg.getTo_user_id()+" is not Head teacher of class", HttpStatus.UNAUTHORIZED);

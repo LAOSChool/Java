@@ -149,7 +149,7 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 			query = query +" and user.roles = '"+role+"'"; 
 		}		
 				
-		if (state != null && state > 0){
+		if (state != null && state >= 0){
 			query = query +" and user.state = '"+state.intValue()+"'"; 
 		}	
 		if (from_row_id != null && from_row_id> 0){

@@ -6,6 +6,9 @@ import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
 
+import io.restassured.path.json.JsonPath;
+import io.restassured.path.json.config.JsonPathConfig;
+
 /***
  */
 public class FunctionalTest {
@@ -26,6 +29,8 @@ public class FunctionalTest {
 		 	RestAssured.basePath = "/laoschoolws/";
 		 	RestAssured.port = 8443;
 	        RestAssured.useRelaxedHTTPSValidation();// Avoid SSLPeerUnverifiedException
+	        
+	        JsonPath.config = new JsonPathConfig("UTF-8");
 	        
 //	        logger.info("baseURI:"+RestAssured.baseURI);
 //	        logger.info("port:"+RestAssured.port);

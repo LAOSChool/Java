@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.util.HashMap;
 import java.util.Map;
 
+@Ignore
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ClassTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(ClassTest.class);
@@ -324,4 +325,22 @@ public class ClassTest extends FunctionalTest {
         	log().ifValidationFails().
         	assertThat().statusCode(200);
     } 
+	@Test 
+    public void getUsers_admin_normal() {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/classes/users";
+		//logger.info("       path:"+path);
+		
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		param("class_id",1).
+		param("filter_role","STUDENT").
+		when().get(path).then().
+        	log().ifValidationFails().
+        	assertThat().statusCode(200);
+    }
   }

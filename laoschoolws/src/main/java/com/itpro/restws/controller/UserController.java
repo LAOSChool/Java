@@ -61,7 +61,7 @@ public class UserController extends BaseController {
 	protected CommandService commandService;
 	
 	
-	//@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/users",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public ListEnt getUsers(
@@ -82,8 +82,8 @@ public class UserController extends BaseController {
 		int total_row = 0;
 		
 		
-		User user = getCurrentUser();
-		Integer school_id = user.getSchool_id();
+		User me = getCurrentUser();
+		Integer school_id = me.getSchool_id();
 		Integer class_id =  Utils.parseInteger(filter_class_id);
 		
 		logger.info(" *** MainRestController.getUsers-filter_class_id: "+filter_class_id);
@@ -92,73 +92,62 @@ public class UserController extends BaseController {
 
 		ListEnt rspEnt = new ListEnt();
 		
-	    try {
-	    	if (user.hasRole(E_ROLE.ADMIN.getRole_short())){
-	    	}else{
-	    		if (class_id == null || class_id.intValue() == 0 ){
-	    			throw new ESchoolException("User is not Admin, require filter_class_id to get Users ",HttpStatus.BAD_REQUEST);
-	    		}
-	    		if (!userService.isBelongToClass(user.getId(), class_id)){
-	    			throw new ESchoolException("User ID="+user.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
-	    		}
-	    	}
-	    	
-	    	// Count user
-			int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
-			int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
-			if (max_result <= 0){
-				max_result = Constant.MAX_RESP_ROW;
+	    
+    	if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
+    	}else{
+    		if (class_id == null || class_id.intValue() == 0 ){
+    			throw new ESchoolException("User is not Admin, require filter_class_id to get Users ",HttpStatus.BAD_REQUEST);
+    		}
+    		if (!userService.isBelongToClass(me.getId(), class_id)){
+    			throw new ESchoolException("User ID="+me.getId()+" is not belong to the class id = "+class_id,HttpStatus.BAD_REQUEST);
+    		}
+    	}
+    	
+    	// Count user
+		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
+		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
+		if (max_result <= 0){
+			max_result = Constant.MAX_RESP_ROW;
+		}
+		
+    	// Count user
+    	total_row = userService.countUserExt(school_id, class_id, filter_user_role, Utils.parseInteger(filter_sts), filter_from_id);
+    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
+    		rspEnt.setList(null);
+    		rspEnt.setFrom_row(0);
+    		rspEnt.setTo_row(0);
+    		rspEnt.setTotal_count(0);
+    		return rspEnt;
+    	}
+    	if ((from_row + max_result > total_row)){
+    		max_result = total_row-from_row;
+    	}
+    	logger.info("UserControl : total_row : "+total_row);
+    	logger.info("UserControl : from_row : "+from_row);
+    	logger.info("UserControl : max_result : "+max_result);
+    	
+    	
+		// Query user
+		users = userService.findUserExt(school_id, 
+				from_row, 
+				max_result, 
+				class_id, 
+				filter_user_role,  
+				Utils.parseInteger(filter_sts), 
+				filter_from_id);
+		if (users != null && users.size() > 0){
+			for (User usr: users){
+				userService.updateClassTerm(usr);
 			}
-			
-	    	// Count user
-	    	total_row = userService.countUserExt(school_id, class_id, filter_user_role, Utils.parseInteger(filter_sts), filter_from_id);
-	    	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
-	    		rspEnt.setList(null);
-	    		rspEnt.setFrom_row(0);
-	    		rspEnt.setTo_row(0);
-	    		rspEnt.setTotal_count(0);
-	    		return rspEnt;
-	    	}
-	    	if ((from_row + max_result > total_row)){
-	    		max_result = total_row-from_row;
-	    	}
-	    	logger.info("UserControl : total_row : "+total_row);
-	    	logger.info("UserControl : from_row : "+from_row);
-	    	logger.info("UserControl : max_result : "+max_result);
-	    	
-	    	
-			// Query user
-			users = userService.findUserExt(school_id, 
-					from_row, 
-					max_result, 
-					class_id, 
-					filter_user_role,  
-					Utils.parseInteger(filter_sts), 
-					filter_from_id);
-			if (users != null && users.size() > 0){
-				for (User usr: users){
-					userService.updateClassTerm(usr);
-				}
-			}
-			
-			rspEnt.setList(users);
-		    rspEnt.setFrom_row(from_row);
-		    rspEnt.setTo_row(from_row + max_result);
-		    rspEnt.setTotal_count(total_row);
+		}
+		
+		rspEnt.setList(users);
+	    rspEnt.setFrom_row(from_row);
+	    rspEnt.setTo_row(from_row + max_result);
+	    rspEnt.setTotal_count(total_row);
 
 		    
-	    }catch(Exception e){
-	    	for ( StackTraceElement ste: e.getStackTrace()){
-	    		logger.error(ste);
-	    	}
-	    	logger.info(" *** MainRestController.getUsers() Message:"+e.getMessage());
-	    	response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    }finally{
-	    	try{
-	    		response.flushBuffer();
-	    	}catch(Exception ex){}
-	    }
-	    
+	   
 	    return rspEnt;
 	}
 	
@@ -237,6 +226,7 @@ public class UserController extends BaseController {
 		logger.info(" *** MainRestController.users.create");
 		
 		User me = getCurrentUser();
+		
 		if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0 ){
 			throw new ESchoolException("user.school_id is required", HttpStatus.BAD_REQUEST);
 		}
@@ -264,6 +254,9 @@ public class UserController extends BaseController {
 		}else{
 			throw new RuntimeException("Invalid user type="+type);
 		}
+		if (user.getId() != null ){
+			throw new ESchoolException("Canot create user - user.id != null",HttpStatus.BAD_REQUEST);
+		}
 		return userService.createUser(me,user, role);
 		 
 	}
@@ -280,20 +273,11 @@ public class UserController extends BaseController {
 		if (user.getId() == null || user.getId().intValue() == 0 ){
 			throw new ESchoolException("user.Id is required", HttpStatus.BAD_REQUEST);
 		}
-		if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0 ){
-			throw new ESchoolException("user.school_id is required", HttpStatus.BAD_REQUEST);
-		}
+		
 		User me = getCurrentUser();
 		
-		if (!userService.isSameSChool(user, me)){
-			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
-		}
-		
-		 if (userService.isValidState(user.getState())){
-			 return userService.updateUser(me,user,true);
-		 }else{
-			 throw new RuntimeException("Invalid State="+user.getState());
-		 }
+		return userService.updateUser(me,user,true);
+		 
 	}
 	
 
