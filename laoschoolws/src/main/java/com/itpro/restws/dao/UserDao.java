@@ -12,6 +12,8 @@ public interface UserDao {
 	User findBySSO(String sso);
 	int countUserBySchool(Integer school_id);
 	int countUserByClass(Integer class_id);
+	int countUserBySSoID(String sso_id);
+	
 	List<User> findBySchool(Integer school_id,int from_row,int to_row) ;
 	List<User> findByClass(Integer class_id,int from_row,int to_row) ;
 	void saveUser(User me,User user);

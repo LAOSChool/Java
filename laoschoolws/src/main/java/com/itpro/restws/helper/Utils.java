@@ -1,7 +1,10 @@
 package com.itpro.restws.helper;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -523,5 +526,59 @@ public class Utils {
 
         return str.substring(0, pos);
 	}
+	public static ArrayList<String> readFileIntoArray(String fileName){
+		BufferedReader bufferReader = null;
+		ArrayList<String> list = new ArrayList<String>();
+		
+		try {
+			String strLine;
+			bufferReader = new BufferedReader(new FileReader(fileName));
+			
+			// How to read file in java line by line?
+			while ((strLine = bufferReader.readLine()) != null) {
+				list.add(strLine);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			logger.error(e.getMessage());
+			//throw new RuntimeException("readFileIntoArray() error:"+e.getMessage());
+			list = null;
+		} finally {
+			try {
+				if (bufferReader != null) bufferReader.close();
+			} catch (IOException crunchifyException) {
+				crunchifyException.printStackTrace();
+			}
+		}
+		return list;
+	}
+	
+		public static String validMobilePhoneNo(String phoneNo){
+			logger.info("validPhone START():"+phoneNo);
+			phoneNo = phoneNo.trim();
+			while (phoneNo.trim().length() > 0 && phoneNo.startsWith("0") ){
+				phoneNo = phoneNo.substring(1);
+			}
+			if (phoneNo.startsWith("856")){
+				phoneNo = phoneNo.substring(3);
+			}
+			if (phoneNo.startsWith("+856")){
+				phoneNo = phoneNo.substring(4);
+			}
+			while (phoneNo.trim().length() > 0 && phoneNo.startsWith("0") ){
+				phoneNo = phoneNo.substring(1);
+			}
+			phoneNo ="0"+phoneNo;// 0302000010 or 02029999250
+			logger.info("fixed phoneNo:"+phoneNo);
+			if (phoneNo.matches("020\\d{8,10}")) {
+				return phoneNo;
+			}else  if (phoneNo.matches("030\\d{7,10}")) {
+				return phoneNo;
+			}
+			return null;
+		}
+		
+	
 }
 

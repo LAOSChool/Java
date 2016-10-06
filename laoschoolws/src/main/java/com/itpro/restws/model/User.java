@@ -157,6 +157,10 @@ public class User extends AbstractModel {
 	@Transient
 	private String default_pass;
 	
+
+	@Column(name="readonly")
+	private Integer readonly;
+	
 // 	Khong cho hien thi password trong JSON
 	@JsonIgnore
 	public String getPassword() {

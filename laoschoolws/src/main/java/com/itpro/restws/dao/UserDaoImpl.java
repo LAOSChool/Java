@@ -251,4 +251,11 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		getSession().setFlushMode(mode);
 		
 	}
+
+	@Override
+	public int countUserBySSoID(String sso_id) {
+		// Get row count
+		int count = ((Long)getSession().createQuery("select count(*) from User WHERE sso_id= '" + sso_id+ "'").uniqueResult()).intValue();
+		return count;
+	}
 }

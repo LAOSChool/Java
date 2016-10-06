@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
+import com.itpro.restws.model.User2Class;
 
 public interface UserService {
 	User findById(Integer id);
@@ -55,7 +56,12 @@ public interface UserService {
 	int countAvailableUser(Integer school_id, String filter_user_role);
 	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result,String filter_user_role);
 	void updateClassTerm(User user);
+	void saveUploadUsers(User me,MultipartFile[] file,Integer class_id);
 	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
+	void removeUser2Class(User me,Integer user_id, Integer class_id,  String notice);
+	User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice);
+	void deleteUser(User me,Integer user_id);
+	
 	public User createUser(User me, User user,E_ROLE role);
 	public User createAdmin(String sso_id,String pass,Integer school_id);
 	void logout(User me, User user);

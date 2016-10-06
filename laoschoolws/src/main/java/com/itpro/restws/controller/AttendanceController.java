@@ -106,12 +106,30 @@ public class AttendanceController extends BaseController {
 				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
 			}
 			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+		}else if (filter_from_dt != null ){
+			Date dt = Utils.parsetDateAll(filter_from_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide filter_from_dt: "+filter_from_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				filter_from_dt = Utils.dateToString(dt);
+			}
+
 		}
+		
+		
 		if (filter_to_time != null && filter_to_time.longValue() > 0){
 			if (filter_to_dt != null ){
 				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
 			}
 			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+		}else if (filter_to_dt != null ){
+			Date dt = Utils.parsetDateAll(filter_to_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide filter_to_dt: "+filter_to_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				filter_to_dt = Utils.dateToString(dt);
+			}
+
 		}
 		
 		
@@ -120,10 +138,7 @@ public class AttendanceController extends BaseController {
 		int total_row = 0;
 		
 		
-		
-		
-		
-		
+	
 		
 		if (year_id == null){
 			SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(me.getSchool_id());
@@ -337,6 +352,26 @@ public class AttendanceController extends BaseController {
 		User student = getCurrentUser();
 		attendance.setStudent_id(student.getId());
 		attendance.setStudent_name(student.getFullname());
+		
+		if (from_dt != null ){
+			Date dt = Utils.parsetDateAll(from_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide filter_from_dt: "+from_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				from_dt = Utils.dateToString(dt);
+			}
+
+		}
+		if (to_dt != null ){
+			Date dt = Utils.parsetDateAll(to_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide to_dt: "+to_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				to_dt = Utils.dateToString(dt);
+			}
+
+		}
+		
 		
 		if (from_dt != null || to_dt != null){
 			attendanceService.requestAttendanceEx(student,attendance,from_dt,to_dt);

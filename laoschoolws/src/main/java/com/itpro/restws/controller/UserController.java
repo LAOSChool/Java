@@ -1,5 +1,6 @@
 package com.itpro.restws.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.io.ICsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
 import com.itpro.restws.dao.CommandDao;
 import com.itpro.restws.helper.ChangePassInfo;
@@ -34,7 +39,7 @@ import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
 import com.itpro.restws.service.CommandService;
 import com.itpro.restws.service.EduProfileService;
-import com.itpro.restws.service.User2ClassService;
+ 
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -47,12 +52,12 @@ import com.itpro.restws.service.User2ClassService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class UserController extends BaseController {
-	
+//	@Autowired
+//    private Environment environment;
 	@Autowired
 	protected CommandDao commandDao;
 	
-	@Autowired
-	protected User2ClassService user2ClassService;
+	
 	@Autowired
 	protected EduProfileService eduProfileService;
 	
@@ -405,33 +410,19 @@ public class UserController extends BaseController {
 	@RequestMapping(value = "/api/users/delete/{id}", method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	 public String delUser(
-			 @PathVariable int  id,
+			 @PathVariable Integer  id,
 			@Context final HttpServletResponse response
 			 
 			 ) {
 		User me = getCurrentUser();
-		if (me.getId().intValue() == id){
+		if (me.getId().intValue() == id.intValue()){
 			throw new ESchoolException("Cannot del him selft", HttpStatus.BAD_REQUEST);
 		}
-		User del_user = userService.findById(id);
-		if (del_user == null ){
-			throw new ESchoolException("Cannot find user", HttpStatus.NOT_FOUND);
-		}
-		if (del_user.hasRole(E_ROLE.ADMIN.getRole_short())){
-			throw new ESchoolException("Cannot del Admin account", HttpStatus.NOT_FOUND);
-		}
 		
-		if (!userService.isSameSChool(me, del_user)){
-			throw new ESchoolException("User are not in the same School", HttpStatus.BAD_REQUEST);
-		}
-		// Delete relationship user <===> class
-		user2ClassService.delUser(me, id);
-		// Delete user info
-		del_user.setActflg("D");
-		userService.updateAttachedUser(me,del_user);
+		userService.deleteUser(me, id);
 		
-		logger.info(" *** MainRestController.delUser/{user_id}:"+id);
-	    return "Request was successfully, deleted user of id:"+id;
+		logger.info(" *** MainRestController.delUser/{user_id}:"+id.intValue());
+	    return "Request was successfully, deleted user of id:"+id.intValue();
 	 }
 	
 	@Secured({ "ROLE_ADMIN" })
@@ -446,17 +437,11 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		if (user_id == null || user_id.intValue() == 0){
-			throw new ESchoolException("user_id is required", HttpStatus.BAD_REQUEST);
-		}
 		
-		if (class_id == null || class_id.intValue() == 0){
-			throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
-		}
-		User user = getCurrentUser();
+		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		
-		User2Class user2Class = user2ClassService.assignUserToClass(user, user_id, class_id, notice);
+		User2Class user2Class = userService.assignUser2Class(me, user_id, class_id, notice);
 		rsp.setMessageObject(user2Class);
 	    return rsp;
 	 }
@@ -475,10 +460,10 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		User admin = getCurrentUser();
+		User me  = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		
-		user2ClassService.removeUserToClass(admin, user_id, class_id, notice);
+		userService.removeUser2Class(me, user_id, class_id, notice);
 		rsp.setMessageObject("Done");
 	    return rsp;
 	 }
@@ -570,13 +555,64 @@ public class UserController extends BaseController {
 			 @Context final HttpServletRequest request)
 			 {
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
-		
 		User me = getCurrentUser();
-		
 		userService.saveUploadPhoto(me, user_id, files);
-		
 		return rsp;
-		 
 	}
-	
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value="/api/users/upload_user",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo uploadUsers(
+			@RequestParam(value = "file",required =false) MultipartFile[] files,
+			@RequestParam(value = "class_id",required =false) Integer class_id,
+			 @Context final HttpServletRequest request)
+			 {
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		User me = getCurrentUser();
+		userService.saveUploadUsers(me, files,class_id);
+		return rsp;
+	}
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value = "/api/users/download_csv")
+	@ResponseStatus(value=HttpStatus.OK)		
+    public void downloadCSV(HttpServletResponse response) throws IOException {
+ 
+        String csvFileName = "users.csv";
+        response.setContentType("text/csv");
+        response.setCharacterEncoding("UTF-8");
+ 
+        // creates mock data
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"",csvFileName);
+        response.setHeader(headerKey, headerValue);
+ 
+        // uses the Super CSV API to generate CSV data from the model data
+        ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(),
+                CsvPreference.STANDARD_PREFERENCE);
+ 
+        User user = new User();
+        user.setSso_id("SSO_ID");
+        user.setFullname("Full Name");
+        user.setNickname("Short Name");
+        user.setRoles("STUDENT");
+        user.setAddr1("Main address");
+        user.setAddr2("Optional address");
+        user.setPhone("02097015757");
+        user.setBirthday("1978-05-01");
+        user.setGender("male");
+        user.setStd_parent_name("Name of STUDENT parent");
+        user.setCls_level(1);
+        
+        
+        String[] header = {"sso_id","fullname","nickname","roles","addr1","addr2","phone","birthday","gender","email","std_parent_name","cls_level"};
+ 
+        csvWriter.writeHeader(header);
+ 
+        
+        csvWriter.write(user, header);
+        
+ 
+        csvWriter.close();
+    }
+
 }

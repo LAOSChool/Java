@@ -2,6 +2,7 @@ package com.itpro.restws.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
@@ -91,13 +92,31 @@ public class NotifyController extends BaseController {
 				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
 			}
 			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+		}else if (filter_from_dt != null ){
+			Date dt = Utils.parsetDateAll(filter_from_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide filter_from_dt: "+filter_from_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				filter_from_dt = Utils.dateToString(dt);
+			}
+
 		}
 		if (filter_to_time != null && filter_to_time.longValue() > 0){
 			if (filter_to_dt != null ){
 				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
 			}
 			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+		}else if (filter_to_dt != null ){
+			Date dt = Utils.parsetDateAll(filter_to_dt);// YYYY-MM-DD
+			if (dt == null){
+				throw new ESchoolException("Invalide filter_to_dt: "+filter_to_dt,HttpStatus.BAD_REQUEST);
+			}else{
+				filter_to_dt = Utils.dateToString(dt);
+			}
+
 		}
+		
+		
 		
 		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
 		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);

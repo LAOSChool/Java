@@ -1,9 +1,14 @@
 package com.itpro.restws.service;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -20,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.itpro.restws.dao.AuthenKeyDao;
 import com.itpro.restws.dao.UserDao;
+import com.itpro.restws.helper.CSVUtils;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_MSG_CHANNEL;
@@ -32,6 +38,7 @@ import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
+import com.itpro.restws.model.User2Class;
 
 @Service("userService")
 @Transactional
@@ -55,6 +62,8 @@ public class UserServiceImpl implements UserService{
 	private AuthenKeyDao authenKeyDao;
 	@Autowired
 	protected ApiKeyService apiKeyService;
+	@Autowired
+	protected User2ClassService user2ClassService;
 	
 	public User findById(Integer id) {
 		User user = userDao.findById(id);
@@ -728,5 +737,309 @@ public class UserServiceImpl implements UserService{
 			userDao.updateUser(me, attached_user);
 			return attached_user;
 		}
+
+		@Override
+		public void saveUploadUsers(User me, MultipartFile[] files, Integer class_id) {
+			
+			// Validation Data
+			if (files == null || files.length ==0){
+				throw new ESchoolException("file is null",HttpStatus.BAD_REQUEST);
+			}
+			if (files.length > 1){
+				throw new ESchoolException("Cannot upload multiple files",HttpStatus.BAD_REQUEST);
+			}
+			
+			EClass eclass = null;
+			if (class_id != null ){
+				eclass = classService.findById(class_id);
+				if (eclass == null ){
+					throw new ESchoolException("class_id not exist",HttpStatus.BAD_REQUEST);
+				}
+				if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
+					throw new ESchoolException("eclass.school_id != me.school_id",HttpStatus.BAD_REQUEST);
+				}
+			}
+			
+			if (! me.hasRole(E_ROLE.ADMIN.getRole_short())){
+				throw new ESchoolException("me is not ADMIN",HttpStatus.BAD_REQUEST);
+			}
+			
+			
+			String upload_dir = environment.getRequiredProperty("upload_base");
+			String fileName="";
+			String orgName="";
+			String filePath ="";
+			
+			for (int i = 0; i < files.length; i++) {
+				MultipartFile file = files[i];
+				// convert to UTF-8
+				if (file.isEmpty() ){
+					throw new ESchoolException("File is emtpy", HttpStatus.BAD_REQUEST);
+				}
+				try {
+					byte[] bytes = file.getBytes();
+					String str_dir = Utils.makeFolderByTime(upload_dir);
+					orgName = file.getOriginalFilename();
+					fileName = Utils.getFileName(me.getSso_id(),file.getOriginalFilename());            	
+		            filePath = str_dir+ "/" + fileName;
+		            
+					// Create the file on server
+					File serverFile = new File(filePath);
+					BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
+					stream.write(bytes);
+					stream.close();
+					logger.info("Server File Location="+ serverFile.getAbsolutePath());
+					// Read file into Users
+					ArrayList<User> list = readFileToUsers(me,eclass,filePath,orgName);
+					logger.info("Finish import list.size = "+ (list==null?"0":list.size()));
+					
+					
+				}catch (ESchoolException es){
+					throw es;
+				}catch (RuntimeException er){
+					throw er;
+				}catch (Exception e) {
+					throw new ESchoolException("You failed to upload " + fileName + " => " + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+			
+		}
+
+		private ArrayList<User>  readFileToUsers(User me,EClass eclass,String filePath,String fileName) {
+			ArrayList<User> users = new ArrayList<User>();
+			BufferedReader bufferedReader = null;
+			String sso_id = null;
+			String fullname = null;
+			String nickname = null;
+			String roles = null;
+			String addr1 = null;
+			String addr2 = null;
+			String phone = null;
+			String birthday = null;
+			String gender = null;
+			String email = null;
+			String std_parent_name = null;
+			String cls_level = null;
+			
+			Integer school_id = me.getSchool_id(); 
+			
+			if (eclass != null){
+				if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
+					throw new ESchoolException("eclass.school_id != me.school_id", HttpStatus.BAD_REQUEST);
+				}
+			}
+			if (!me.hasRole(E_ROLE.ADMIN.getRole_short())){
+				throw new ESchoolException("me.id="+me.getId().intValue()+" is not ADMIN role", HttpStatus.BAD_REQUEST);
+			}
+			
+		
+			
+			try {
+				String strLine;
+				bufferedReader =  new BufferedReader(new InputStreamReader(new FileInputStream(filePath),"UTF8"));
+				
+				// CVS line
+				// sso_id	fullname	nickname	roles	addr1	addr2	phone	birthday	gender	email	std_parent_name	cls_level
+				int i=0;
+				while ((strLine = bufferedReader.readLine()) != null) {
+					i++;
+					if (i == 1){
+						continue;
+					}
+					logger.info("line["+i+"]:" + strLine);
+					ArrayList<String> contents = (ArrayList<String>) CSVUtils.parseLine(strLine);
+					if (contents != null && contents.size() >= 12){
+						sso_id = contents.get(0).trim();
+						fullname = contents.get(1).trim();
+						nickname = contents.get(2).trim();
+						roles = contents.get(3).trim();
+						addr1 = contents.get(4).trim();
+						addr2 = contents.get(5).trim();
+						phone = contents.get(6).trim();
+						birthday = contents.get(7).trim();
+						gender = contents.get(8).toLowerCase().trim();
+						email = contents.get(9).trim();
+						std_parent_name = contents.get(10).trim();
+						
+						cls_level = contents.get(11).trim();
+						// validate
+						if (fullname.trim().length() == 0){
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], fullname is required",HttpStatus.BAD_REQUEST);
+						}
+						if (nickname.trim().length() == 0){
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], nickname is required",HttpStatus.BAD_REQUEST);
+						}
+						if ( roles.equals(E_ROLE.STUDENT.getRole_short())
+								){
+							// do nothing
+						}else if  ( roles.equals(E_ROLE.TEACHER.getRole_short()) ||
+									roles.equals(E_ROLE.CLS_PRESIDENT.getRole_short()) 
+							){
+								// Validate already exist
+								if (userDao.countUserBySSoID(sso_id) > 0){
+									throw new ESchoolException("fileName:"+fileName+"["+i+"], sso_id already existing:"+sso_id,HttpStatus.BAD_REQUEST);
+								}
+
+						}
+						else{
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], roles must be STUDENT, TEACHER or CLS_PRESIDENT",HttpStatus.BAD_REQUEST);
+						}
+						if (addr1.trim().length() == 0){
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], addr1 is required",HttpStatus.BAD_REQUEST);
+						}
+						if (phone.trim().length() == 0){
+							//throw new ESchoolException("fileName:"+fileName+"["+i+"], phone is required",HttpStatus.BAD_REQUEST);
+						}else{
+							phone = Utils.validMobilePhoneNo(phone);
+							if (phone == null ){
+								// 0302000010 or 02029999250	
+								throw new ESchoolException("fileName:"+fileName+"["+i+"], incorrect phone, only accept: 030xxx (x: 7 digits from 0-9) Or 020yyy (y: 8 digits from 0-9)",HttpStatus.BAD_REQUEST);
+							}
+						}
+						
+						if (birthday.trim().length() == 0){
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], birthday is required",HttpStatus.BAD_REQUEST);
+						}else{
+							Date dt = Utils.parsetDateAll(birthday);// YYYY-MM-DD
+							if (dt == null){
+								throw new ESchoolException("fileName:"+fileName+"["+i+"], birthday is invalid format",HttpStatus.BAD_REQUEST);
+							}else{
+								birthday = Utils.dateToString(dt);
+							}
+						}
+
+						
+						if ( gender.equals("male") ||
+								gender.equals("female") 
+								){
+							// do nothing
+						}else{
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], gender must be male, female",HttpStatus.BAD_REQUEST);
+						}
+						if ( roles.equals(E_ROLE.STUDENT.getRole_short())  ){
+							if (std_parent_name.trim().length() == 0){
+								throw new ESchoolException("fileName:"+fileName+"["+i+"], std_parent_name is required",HttpStatus.BAD_REQUEST);
+							}
+						}
+						// Parsing CLS_LEVLE
+						Integer ilevel = null;
+						if ( roles.equals(E_ROLE.STUDENT.getRole_short())  ){
+							if (cls_level.trim().length() == 0){
+								ilevel = (eclass==null?null:eclass.getLevel());
+							}else{
+								ilevel = Utils.parseInteger(cls_level);
+								if (ilevel == null  ){
+									throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level is not valid number format",HttpStatus.BAD_REQUEST);
+								}
+								if (eclass != null && eclass.getLevel().intValue() != ilevel.intValue()){
+									throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level ="+ilevel.intValue()+ " is differ with class.level="+ilevel.intValue(),HttpStatus.BAD_REQUEST);
+								}
+							}
+							if (ilevel == null ){
+								throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level of STUDENT is required",HttpStatus.BAD_REQUEST);
+							}
+						}
+						
+						
+						User user = new User();
+						// Default value
+						user.setSchool_id(school_id);
+						user.setCls_level(ilevel);
+						user.setState(E_STATE.ACTIVE.value());
+						////////////
+						user.setSso_id(sso_id);
+						user.setFullname(fullname);
+						user.setNickname(nickname);
+						user.setRoles(roles);
+						user.setAddr1(addr1);
+						user.setAddr2(addr2);
+						user.setPhone(phone);
+						user.setBirthday(birthday);
+						user.setGender(gender);
+						user.setEmail(email);
+						user.setStd_parent_name(std_parent_name);
+						
+						
+						// Save to list
+						users.add(user);
+					}
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("readFileToUsers() exception:"+e.getMessage());
+			} finally {
+				try {
+					if (bufferedReader != null) bufferedReader.close();
+				} catch (IOException crunchifyException) {
+					crunchifyException.printStackTrace();
+				}
+			}
+			// Save users list to DB
+			for (User user: users){
+				// Save to DB
+				E_ROLE role ;
+				if (user.hasRole(E_ROLE.TEACHER.getRole_short())){
+					role = E_ROLE.TEACHER;
+				}else if (user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short())){
+					role = E_ROLE.CLS_PRESIDENT;
+				}else{
+					role = E_ROLE.STUDENT;
+				}
+				createUser(me, user, role);
+				if (user.getId() != null && eclass != null ){
+					user2ClassService.assignUserToClass(me, user.getId(),eclass.getId(),"IMPORT file: "+fileName);
+				}
+			}
+			return users;
+			
+		}
+
+		@Override
+		public User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice) {
+			if (user_id == null || user_id.intValue() == 0){
+				throw new ESchoolException("user_id is required", HttpStatus.BAD_REQUEST);
+			}
+			
+			if (class_id == null || class_id.intValue() == 0){
+				throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
+			}
+			
+			User2Class user2Class = user2ClassService.assignUserToClass(me, user_id, class_id, notice);
+			return user2Class;
+		}
+
+		@Override
+		public void deleteUser(User me, Integer user_id) {
+			if (user_id == null ){
+				throw new ESchoolException("user_id is null", HttpStatus.NOT_FOUND);
+			}
+			
+			User del_user = userDao.findById(user_id);
+			if (del_user == null ){
+				throw new ESchoolException("Cannot find user id:"+user_id.intValue(), HttpStatus.NOT_FOUND);
+			}
+			if (del_user.hasRole(E_ROLE.ADMIN.getRole_short())){
+				throw new ESchoolException("Cannot del Admin account", HttpStatus.NOT_FOUND);
+			}
+			
+			if (!isSameSChool(me, del_user)){
+				throw new ESchoolException("me and del_user are not in the same School", HttpStatus.BAD_REQUEST);
+			}
+			// Delete relationship user <===> class
+			user2ClassService.delUser(me, user_id);
+			// Delete user info
+			del_user.setActflg("D");
+			userDao.updateUser(me, del_user);
+			
+		}
+
+		@Override
+		public void removeUser2Class(User me, Integer user_id, Integer class_id, String notice) {
+			user2ClassService.removeUserToClass(me, user_id, class_id, notice);
+			
+		}
+
+	
 		
 }
