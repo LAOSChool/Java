@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -560,7 +559,7 @@ public class UserController extends BaseController {
 		return rsp;
 	}
 	@Secured({ "ROLE_ADMIN"})
-	@RequestMapping(value="/api/users/upload_user",method = RequestMethod.POST)
+	@RequestMapping(value="/api/users/upload_file",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo uploadUsers(
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
@@ -569,7 +568,15 @@ public class UserController extends BaseController {
 			 {
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		User me = getCurrentUser();
-		userService.saveUploadUsers(me, files,class_id);
+		if (files == null ){
+			throw new ESchoolException("files is required", HttpStatus.BAD_REQUEST);
+		}
+		if (class_id == null ){
+			throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
+		}
+		
+		String fileName = userService.saveUploadUsers(me, files,class_id);
+		rsp.setDeveloperMessage("saved file name: "+fileName);
 		return rsp;
 	}
 	@Secured({ "ROLE_ADMIN"})
@@ -591,27 +598,20 @@ public class UserController extends BaseController {
                 CsvPreference.STANDARD_PREFERENCE);
  
         User user = new User();
-        user.setSso_id("SSO_ID");
         user.setFullname("Full Name");
         user.setNickname("Short Name");
-        user.setRoles("STUDENT");
         user.setAddr1("Main address");
         user.setAddr2("Optional address");
         user.setPhone("02097015757");
         user.setBirthday("1978-05-01");
         user.setGender("male");
+        user.setEmail("huynq@itpro.vn");
         user.setStd_parent_name("Name of STUDENT parent");
-        user.setCls_level(1);
         
         
-        String[] header = {"sso_id","fullname","nickname","roles","addr1","addr2","phone","birthday","gender","email","std_parent_name","cls_level"};
- 
+        String[] header = Constant.UserCVSheader;
         csvWriter.writeHeader(header);
- 
-        
         csvWriter.write(user, header);
-        
- 
         csvWriter.close();
     }
 

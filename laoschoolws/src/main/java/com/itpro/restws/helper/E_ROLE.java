@@ -36,6 +36,9 @@ public enum E_ROLE {
 
 	   return ("ADMIN".equals(txt) || "TEACHER".equals(txt) || "CLS_PRESIDENT".equals(txt) || "STUDENT".equals(txt));
 	}
+	public static boolean upload_Accept(String txt) {
 
+		   return ("TEACHER".equals(txt) || "CLS_PRESIDENT".equals(txt) || "STUDENT".equals(txt));
+		}
 
 }

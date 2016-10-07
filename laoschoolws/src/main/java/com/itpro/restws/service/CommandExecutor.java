@@ -23,15 +23,21 @@ public class CommandExecutor {
 	 * */
 	 //* @Scheduled(cron="*/5 * * * * MON-FRI")
 	 
-	// @Scheduled(fixedDelay=30000)
-	@Scheduled(fixedRate=30000) // => Multiple thread enable
+	// @Scheduled(fixedDelay=20000)
+	@Scheduled(fixedRate=20000) // => Multiple thread enable
      public void work() {
 		// Check any change in sys_settings
 		SysTemplate symTemplate = sysTblService.findBySval("sys_settings", "LOG_METHODS");
 		if (symTemplate != null  && symTemplate.getLval() != null && symTemplate.getLval().trim().length() > 0){
 			synchronized (TokenAuthenticationFilter.LOG_METHODS) {
-				TokenAuthenticationFilter.LOG_METHODS = symTemplate.getLval();
-				logger.info("\nLOG_METHODS:"+TokenAuthenticationFilter.LOG_METHODS +"\n");
+				String logmethod = symTemplate.getLval();
+				if (logmethod != null && 
+						logmethod.trim().length() > 0 && 
+						(!logmethod.equalsIgnoreCase(TokenAuthenticationFilter.LOG_METHODS))){
+					TokenAuthenticationFilter.LOG_METHODS = logmethod;
+					logger.info("changed sys_settings: LOG:"+TokenAuthenticationFilter.LOG_METHODS +"\n");
+				}
+				
 			}
 			
 		}

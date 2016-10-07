@@ -145,7 +145,7 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	
 	@Override
 	public boolean checkActivedApiKey(String api_key, String auth_key) {
-		logger.info(" *** AuthenticationServiceImpl.checkApiKey");
+		logger.info(" *** AuthenticationServiceImpl.checkActivedApiKey");
 		if (auth_key == null || auth_key.trim().length() == 0){
 			return false;
 		}

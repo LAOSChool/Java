@@ -45,10 +45,10 @@ public class AsyncRunner {
 		 // task execution logic
 			try {
 				cron_id++;
-				logger.info("++++++ AsyncRunner START,ID="+cron_id);
+				//logger.info("++++++ AsyncRunner START,ID="+cron_id);
 				ArrayList<Command> list = (ArrayList<Command>) commandDao.findUnProcessed();
 				if (list.size() > 0){
-					logger.info("Found :"+list.size()+" tasks");
+					logger.info("AsyncRunner[ID="+cron_id+ "] found :"+list.size()+" tasks");
 				}
 				for (Command command:list){
 					try{
@@ -80,13 +80,13 @@ public class AsyncRunner {
 						command.setMessage(e.getMessage()+"///cause:"+(e.getCause()==null?"---":e.getCause().toString()));
 					}finally{
 						commandDao.updateCommand(command);
+						logger.info("++++++ AsyncRunner END,ID="+cron_id);
 					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				logger.error(e.getMessage());
 			}finally{
-				logger.info("++++++ AsyncRunner END,ID="+cron_id);
 				cron_id--;
 			}
 			

@@ -349,7 +349,7 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		String auth_key = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
 		
 		if ( authenticationService.checkActivedApiKey(api_key,auth_key)) {
-			logger.info(" *** api_key: " + Constant.HEADER_API_KEY + " : is OK ");
+			logger.info(" *** api_key: " + api_key + " : is OK ");
 		} else {
 			logger.error(" *** ERROR api_key:" + Constant.HEADER_API_KEY );
 			httpResponse.sendError(HttpServletResponse. SC_NON_AUTHORITATIVE_INFORMATION);

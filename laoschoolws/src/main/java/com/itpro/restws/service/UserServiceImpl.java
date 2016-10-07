@@ -739,7 +739,7 @@ public class UserServiceImpl implements UserService{
 		}
 
 		@Override
-		public void saveUploadUsers(User me, MultipartFile[] files, Integer class_id) {
+		public String saveUploadUsers(User me, MultipartFile[] files, Integer class_id) {
 			
 			// Validation Data
 			if (files == null || files.length ==0){
@@ -749,16 +749,18 @@ public class UserServiceImpl implements UserService{
 				throw new ESchoolException("Cannot upload multiple files",HttpStatus.BAD_REQUEST);
 			}
 			
-			EClass eclass = null;
-			if (class_id != null ){
-				eclass = classService.findById(class_id);
-				if (eclass == null ){
-					throw new ESchoolException("class_id not exist",HttpStatus.BAD_REQUEST);
-				}
-				if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
-					throw new ESchoolException("eclass.school_id != me.school_id",HttpStatus.BAD_REQUEST);
-				}
+			if (class_id == null ){
+				throw new ESchoolException("class_id is NULL",HttpStatus.BAD_REQUEST);
 			}
+			
+			EClass eclass = classService.findById(class_id);
+			if (eclass == null ){
+				throw new ESchoolException("class_id not exist",HttpStatus.BAD_REQUEST);
+			}
+			if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("eclass.school_id != me.school_id",HttpStatus.BAD_REQUEST);
+			}
+			
 			
 			if (! me.hasRole(E_ROLE.ADMIN.getRole_short())){
 				throw new ESchoolException("me is not ADMIN",HttpStatus.BAD_REQUEST);
@@ -790,7 +792,7 @@ public class UserServiceImpl implements UserService{
 					stream.close();
 					logger.info("Server File Location="+ serverFile.getAbsolutePath());
 					// Read file into Users
-					ArrayList<User> list = readFileToUsers(me,eclass,filePath,orgName);
+					ArrayList<User> list = impFileToClass(me,eclass,filePath,orgName);
 					logger.info("Finish import list.size = "+ (list==null?"0":list.size()));
 					
 					
@@ -802,16 +804,16 @@ public class UserServiceImpl implements UserService{
 					throw new ESchoolException("You failed to upload " + fileName + " => " + e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
+			return fileName;
 			
 		}
 
-		private ArrayList<User>  readFileToUsers(User me,EClass eclass,String filePath,String fileName) {
+		private ArrayList<User>  impFileToClass(User me,EClass eclass,String filePath,String fileName) {
 			ArrayList<User> users = new ArrayList<User>();
 			BufferedReader bufferedReader = null;
-			String sso_id = null;
+			
 			String fullname = null;
 			String nickname = null;
-			String roles = null;
 			String addr1 = null;
 			String addr2 = null;
 			String phone = null;
@@ -819,9 +821,7 @@ public class UserServiceImpl implements UserService{
 			String gender = null;
 			String email = null;
 			String std_parent_name = null;
-			String cls_level = null;
 			
-			Integer school_id = me.getSchool_id(); 
 			
 			if (eclass != null){
 				if (eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
@@ -832,14 +832,14 @@ public class UserServiceImpl implements UserService{
 				throw new ESchoolException("me.id="+me.getId().intValue()+" is not ADMIN role", HttpStatus.BAD_REQUEST);
 			}
 			
-		
+			
 			
 			try {
 				String strLine;
 				bufferedReader =  new BufferedReader(new InputStreamReader(new FileInputStream(filePath),"UTF8"));
 				
 				// CVS line
-				// sso_id	fullname	nickname	roles	addr1	addr2	phone	birthday	gender	email	std_parent_name	cls_level
+				// fullname,nickname,addr1,addr2,phone,birthday,gender,email,std_parent_name	
 				int i=0;
 				while ((strLine = bufferedReader.readLine()) != null) {
 					i++;
@@ -848,48 +848,23 @@ public class UserServiceImpl implements UserService{
 					}
 					logger.info("line["+i+"]:" + strLine);
 					ArrayList<String> contents = (ArrayList<String>) CSVUtils.parseLine(strLine);
-					if (contents != null && contents.size() >= 12){
-						sso_id = contents.get(0).trim();
-						fullname = contents.get(1).trim();
-						nickname = contents.get(2).trim();
-						roles = contents.get(3).trim();
-						addr1 = contents.get(4).trim();
-						addr2 = contents.get(5).trim();
-						phone = contents.get(6).trim();
-						birthday = contents.get(7).trim();
-						gender = contents.get(8).toLowerCase().trim();
-						email = contents.get(9).trim();
-						std_parent_name = contents.get(10).trim();
+					if (contents != null && contents.size() >= Constant.UserCVSheader.length){
+						fullname = (contents.get(0).trim().length()==0?null:contents.get(0).trim());
+						nickname = (contents.get(1).trim().length()==0?null:contents.get(1).trim());
+						addr1 = (contents.get(2).trim().length()==0?null:contents.get(2).trim());
+						addr2 = (contents.get(3).trim().length()==0?null:contents.get(3).trim());
+						phone = (contents.get(4).trim().length()==0?null:contents.get(4).trim());
+						birthday = (contents.get(5).trim().length()==0?null:contents.get(5).trim());
+						gender = (contents.get(6).trim().length()==0?null:contents.get(6).trim());
+						email = (contents.get(7).trim().length()==0?null:contents.get(7).trim());
+						std_parent_name = (contents.get(8).trim().length()==0?null:contents.get(8).trim());
 						
-						cls_level = contents.get(11).trim();
 						// validate
-						if (fullname.trim().length() == 0){
+						if (fullname == null){
 							throw new ESchoolException("fileName:"+fileName+"["+i+"], fullname is required",HttpStatus.BAD_REQUEST);
 						}
-						if (nickname.trim().length() == 0){
-							throw new ESchoolException("fileName:"+fileName+"["+i+"], nickname is required",HttpStatus.BAD_REQUEST);
-						}
-						if ( roles.equals(E_ROLE.STUDENT.getRole_short())
-								){
-							// do nothing
-						}else if  ( roles.equals(E_ROLE.TEACHER.getRole_short()) ||
-									roles.equals(E_ROLE.CLS_PRESIDENT.getRole_short()) 
-							){
-								// Validate already exist
-								if (userDao.countUserBySSoID(sso_id) > 0){
-									throw new ESchoolException("fileName:"+fileName+"["+i+"], sso_id already existing:"+sso_id,HttpStatus.BAD_REQUEST);
-								}
-
-						}
-						else{
-							throw new ESchoolException("fileName:"+fileName+"["+i+"], roles must be STUDENT, TEACHER or CLS_PRESIDENT",HttpStatus.BAD_REQUEST);
-						}
-						if (addr1.trim().length() == 0){
-							throw new ESchoolException("fileName:"+fileName+"["+i+"], addr1 is required",HttpStatus.BAD_REQUEST);
-						}
-						if (phone.trim().length() == 0){
-							//throw new ESchoolException("fileName:"+fileName+"["+i+"], phone is required",HttpStatus.BAD_REQUEST);
-						}else{
+						
+						if (phone != null ){
 							phone = Utils.validMobilePhoneNo(phone);
 							if (phone == null ){
 								// 0302000010 or 02029999250	
@@ -897,9 +872,7 @@ public class UserServiceImpl implements UserService{
 							}
 						}
 						
-						if (birthday.trim().length() == 0){
-							throw new ESchoolException("fileName:"+fileName+"["+i+"], birthday is required",HttpStatus.BAD_REQUEST);
-						}else{
+						if (birthday != null){
 							Date dt = Utils.parsetDateAll(birthday);// YYYY-MM-DD
 							if (dt == null){
 								throw new ESchoolException("fileName:"+fileName+"["+i+"], birthday is invalid format",HttpStatus.BAD_REQUEST);
@@ -908,49 +881,27 @@ public class UserServiceImpl implements UserService{
 							}
 						}
 
-						
-						if ( gender.equals("male") ||
-								gender.equals("female") 
-								){
-							// do nothing
-						}else{
-							throw new ESchoolException("fileName:"+fileName+"["+i+"], gender must be male, female",HttpStatus.BAD_REQUEST);
-						}
-						if ( roles.equals(E_ROLE.STUDENT.getRole_short())  ){
-							if (std_parent_name.trim().length() == 0){
-								throw new ESchoolException("fileName:"+fileName+"["+i+"], std_parent_name is required",HttpStatus.BAD_REQUEST);
-							}
-						}
-						// Parsing CLS_LEVLE
-						Integer ilevel = null;
-						if ( roles.equals(E_ROLE.STUDENT.getRole_short())  ){
-							if (cls_level.trim().length() == 0){
-								ilevel = (eclass==null?null:eclass.getLevel());
+						if (gender != null ){
+							if ( gender.equals("male") ||gender.equals("female") ){
+								// do nothing
 							}else{
-								ilevel = Utils.parseInteger(cls_level);
-								if (ilevel == null  ){
-									throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level is not valid number format",HttpStatus.BAD_REQUEST);
-								}
-								if (eclass != null && eclass.getLevel().intValue() != ilevel.intValue()){
-									throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level ="+ilevel.intValue()+ " is differ with class.level="+ilevel.intValue(),HttpStatus.BAD_REQUEST);
-								}
-							}
-							if (ilevel == null ){
-								throw new ESchoolException("fileName:"+fileName+"["+i+"], cls_level of STUDENT is required",HttpStatus.BAD_REQUEST);
+								throw new ESchoolException("fileName:"+fileName+"["+i+"], gender must be male, female",HttpStatus.BAD_REQUEST);
 							}
 						}
 						
+						
+						// Parsing CLS_LEVLE
 						
 						User user = new User();
 						// Default value
-						user.setSchool_id(school_id);
-						user.setCls_level(ilevel);
+						user.setSchool_id(eclass.getSchool_id());
+						user.setCls_level(eclass.getLevel());
 						user.setState(E_STATE.ACTIVE.value());
+						user.setSso_id("STUDENT");
+						user.setRoles(E_ROLE.STUDENT.getRole_short());
 						////////////
-						user.setSso_id(sso_id);
 						user.setFullname(fullname);
 						user.setNickname(nickname);
-						user.setRoles(roles);
 						user.setAddr1(addr1);
 						user.setAddr2(addr2);
 						user.setPhone(phone);
@@ -959,10 +910,14 @@ public class UserServiceImpl implements UserService{
 						user.setEmail(email);
 						user.setStd_parent_name(std_parent_name);
 						
-						
 						// Save to list
 						users.add(user);
+					}else{
+						throw new ESchoolException("fileName:"+fileName+"["+i+"], invalid CVS content, not enough header lenght! ",HttpStatus.BAD_REQUEST);
 					}
+				}
+				if (i <= 1){
+					throw new ESchoolException("fileName:"+fileName+"["+i+"], invalid CVS content, blank file",HttpStatus.BAD_REQUEST);
 				}
 				
 			} catch (IOException e) {

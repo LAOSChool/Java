@@ -100,4 +100,5 @@ public class Constant {
 			  "YYYY-'W'ww-u"//2001-W27-3
 			  
 			};
+	public static String[] UserCVSheader = {"fullname","nickname","addr1","addr2","phone","birthday","gender","email","std_parent_name"};
 }

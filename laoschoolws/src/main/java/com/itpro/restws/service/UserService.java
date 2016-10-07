@@ -56,7 +56,7 @@ public interface UserService {
 	int countAvailableUser(Integer school_id, String filter_user_role);
 	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result,String filter_user_role);
 	void updateClassTerm(User user);
-	void saveUploadUsers(User me,MultipartFile[] file,Integer class_id);
+	String saveUploadUsers(User me,MultipartFile[] file,Integer class_id);
 	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
 	void removeUser2Class(User me,Integer user_id, Integer class_id,  String notice);
 	User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice);

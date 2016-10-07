@@ -132,6 +132,7 @@ public class ClsMain {
 			Vector<FireBase_ent> vtCurList = new Vector<FireBase_ent>();
 			int items = 0;
 			Utils.log(String.format("ThreadSend[%d] Started",index),0);
+			int total_wait = 0;
 			while (islive) {
 				// Loop to ensure finish all current charging list before exit
 				try{
@@ -263,7 +264,14 @@ public class ClsMain {
 					try{
 						// Thread.yield();
 						if (wait_time > 0 ){
+							total_wait +=wait_time;
 							Thread.sleep(wait_time); // Wait for main thread get charging list from DB
+							
+						}
+						if (total_wait > 60*1000){
+							total_wait = 0;
+							Utils.log(String.format("ThreadCharge[%d] Ping MySQL",index),0);
+							sub_da.ping_db();
 						}
 					}catch (Exception e){}
 
@@ -305,10 +313,10 @@ public class ClsMain {
 		    
 		try{
 			NotificationEnt notifyEnt = new NotificationEnt();
-			notifyEnt.setTitle(title);
+			notifyEnt.setTitle("[No subject]".equalsIgnoreCase(title)?null:title);
 			notifyEnt.setBody(body);
 			notifyEnt.setBadge(1);
-			notifyEnt.setBody("default");
+			
 			
 			PostDataEnt postDatEnt = new PostDataEnt();
 			postDatEnt.setPriority("high");

@@ -43,7 +43,7 @@ public class ExamResultController extends BaseController {
 	@Autowired
 	protected CommandService commandService;
 
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/exam_results/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult getExamResult(@PathVariable int  id) 
@@ -92,7 +92,7 @@ public class ExamResultController extends BaseController {
 	 * @param response
 	 * @return
 	 */
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_CLS_PRESIDENT"})
 	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getExamResults(
@@ -111,13 +111,15 @@ public class ExamResultController extends BaseController {
 		// check teacher
 		if (me.hasRole(E_ROLE.ADMIN.getRole_short())){
 			
-    	}else if (me.hasRole(E_ROLE.TEACHER.getRole_short())  ){
+    	}else if (   me.hasRole(E_ROLE.TEACHER.getRole_short()) || 
+    			     me.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short()) 
+    					  ){
     		if (!userService.isBelongToClass(me.getId(), filter_class_id)){
     			throw new ESchoolException("User ID="+me.getId()+" is not belong to the class id = "+filter_class_id.intValue(),HttpStatus.BAD_REQUEST);
     		}    		
     		
     	}else{
-    		throw new ESchoolException("Invalid user role:"+me.getRoles(),HttpStatus.BAD_REQUEST);
+    		throw new ESchoolException("Cannot access data not belong to user, user-role: "+me.getRoles(),HttpStatus.BAD_REQUEST);
     	}
     	
 		
