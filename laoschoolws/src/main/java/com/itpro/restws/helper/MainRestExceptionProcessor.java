@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -30,7 +31,15 @@ public class MainRestExceptionProcessor {
 
 		return response;
 	}
+	@ExceptionHandler(value = AccessDeniedException.class)
+	public ResponseEntity<RespInfo> handleAccessDeniedException(HttpServletRequest req, ESchoolException ex) {
 
+		String url = req.getRequestURL().toString();
+		RespInfo errorInfo = new RespInfo(HttpStatus.UNAUTHORIZED.value(), "Access denied", url,ex.getError_msg());
+		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, HttpStatus.UNAUTHORIZED);
+
+		return response;
+	}
 	// // Hand all UnknownMatchException
 	 @ExceptionHandler(RuntimeException.class)
 		public ResponseEntity<RespInfo> unknownErrorHandle(HttpServletRequest req, RuntimeException ex) {

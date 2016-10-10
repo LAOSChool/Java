@@ -9,6 +9,7 @@ import javax.ws.rs.core.Context;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.ActionLogService;
@@ -142,13 +144,19 @@ public class MainRestController {
 
 	
 	@RequestMapping("/Access_Denied")
-	public String Access_Denied() {
+	public RespInfo Access_Denied(
+			@Context final HttpServletRequest request,
+			@Context final HttpServletResponse response
+			) {
 		//System.out.println(" *** MainRestController.Access_Denied");
 		logger.info(" *** MainRestController.Access_Denied");
 		// Spring Security dependency is unwanted in controller, typically some
 		// @Component (UserContext) hides it.
 		// Not that we don't use Spring Security annotations anyway...
-		return "Access_Denied://SecurityContext: " + SecurityContextHolder.getContext();
+		//return "Access_Denied://SecurityContext: " + SecurityContextHolder.getContext();
+		RespInfo rsp = new RespInfo(HttpStatus.FORBIDDEN.value(),"Error", request.getRequestURL().toString(), "Access_Denied");
+		// return "Access_Denied";
+		return rsp;
 	}
 
 	

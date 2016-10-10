@@ -43,7 +43,7 @@ public class ExamResultController extends BaseController {
 	@Autowired
 	protected CommandService commandService;
 
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER" })
 	@RequestMapping(value="/api/exam_results/{id}",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public ExamResult getExamResult(@PathVariable int  id) 
@@ -92,7 +92,7 @@ public class ExamResultController extends BaseController {
 	 * @param response
 	 * @return
 	 */
-	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_CLS_PRESIDENT"})
+	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER"})
 	@RequestMapping(value="/api/exam_results",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	public RespInfo getExamResults(
