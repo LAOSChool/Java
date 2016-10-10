@@ -154,7 +154,7 @@ public class MainRestController {
 		// @Component (UserContext) hides it.
 		// Not that we don't use Spring Security annotations anyway...
 		//return "Access_Denied://SecurityContext: " + SecurityContextHolder.getContext();
-		RespInfo rsp = new RespInfo(HttpStatus.FORBIDDEN.value(),"Error", request.getRequestURL().toString(), "Access_Denied");
+		RespInfo rsp = new RespInfo(HttpStatus.FORBIDDEN.value(),"Error", request.getRequestURL().toString(), "Access is denied");
 		// return "Access_Denied";
 		return rsp;
 	}

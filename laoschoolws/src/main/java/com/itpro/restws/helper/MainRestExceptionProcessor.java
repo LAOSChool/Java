@@ -32,11 +32,11 @@ public class MainRestExceptionProcessor {
 		return response;
 	}
 	@ExceptionHandler(value = AccessDeniedException.class)
-	public ResponseEntity<RespInfo> handleAccessDeniedException(HttpServletRequest req, ESchoolException ex) {
+	public ResponseEntity<RespInfo> handleAccessDeniedException(HttpServletRequest req, RuntimeException ex) {
 
 		String url = req.getRequestURL().toString();
-		RespInfo errorInfo = new RespInfo(HttpStatus.UNAUTHORIZED.value(), "Access denied", url,ex.getError_msg());
-		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, HttpStatus.UNAUTHORIZED);
+		RespInfo errorInfo = new RespInfo(HttpStatus.FORBIDDEN.value(), "Access denied", url,ex.getMessage());
+		ResponseEntity<RespInfo> response = new ResponseEntity<RespInfo>(errorInfo, HttpStatus.FORBIDDEN);
 
 		return response;
 	}

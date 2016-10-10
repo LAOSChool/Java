@@ -11,6 +11,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.springframework.http.HttpStatus;
 
 import com.itpro.restws.helper.Utils;
 
@@ -191,7 +192,7 @@ public class SchoolTest extends FunctionalTest {
 			
 			when().post(path).then().
 	        	log().ifValidationFails().
-	        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+	        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 	    } 
 		/***
 		 * https://localhost:8443/laoschoolws/api/schools/exams
@@ -491,7 +492,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 				
 		} 
 		@Test 
@@ -555,7 +556,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 				
 		} 
 		@Test 
@@ -768,7 +769,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body(containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body(containsString("Access is denied"));
 				
 		}
 		
@@ -885,7 +886,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 				
 		} 
 		@Ignore
@@ -924,7 +925,7 @@ public class SchoolTest extends FunctionalTest {
 			  
 			  when().post(path).then().
 			  	log().ifValidationFails().
-			  	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+			  	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 		} 
 
 		@Ignore
@@ -987,7 +988,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 				
 		} 
 		@Test 
@@ -1193,7 +1194,7 @@ public class SchoolTest extends FunctionalTest {
 				
 				when().post(path).then().
 		        	log().ifValidationFails().
-		        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+		        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
 				
 		} 
 		@Test 

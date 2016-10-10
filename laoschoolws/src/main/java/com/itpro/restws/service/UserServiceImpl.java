@@ -310,8 +310,11 @@ public class UserServiceImpl implements UserService{
 				if (!Password.check(old_pass, user_db.getPassword())){
 					throw new ESchoolException("Input current password is not correct",HttpStatus.BAD_REQUEST);
 				}
-			} catch (Exception e) {
-				throw new ESchoolException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+			}catch (ESchoolException es){
+				throw es;
+			}
+			catch (Exception e) {
+				throw new RuntimeException("Unknow error Password Check");
 			}
 			user_db.setPassword(encryptPass(new_pass));
 			userDao.updateUser(me, user_db);

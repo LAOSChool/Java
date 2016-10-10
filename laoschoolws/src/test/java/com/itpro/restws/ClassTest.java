@@ -6,6 +6,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.springframework.http.HttpStatus;
 
 import com.itpro.restws.helper.Utils;
 
@@ -235,7 +236,7 @@ public class ClassTest extends FunctionalTest {
 		
 		when().post(path).then().
         	log().ifValidationFails().
-        	assertThat().statusCode(500).body("developerMessage", containsString("Access is denied"));
+        	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
     } 
 	
 	@Test 

@@ -558,6 +558,8 @@ public class UserController extends BaseController {
 		userService.saveUploadPhoto(me, user_id, files);
 		return rsp;
 	}
+	
+	
 	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/upload_file",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	

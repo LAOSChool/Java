@@ -69,8 +69,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.and()
 			.requiresChannel()
 				.antMatchers("/api/**").requiresSecure()   // REQURE HTTPS access
-				.and()
-			.exceptionHandling().accessDeniedPage("/Access_Denied");
+				.and()  
+			.exceptionHandling().accessDeniedPage("/Access_Denied"); // Just for sure because in MainRestExceptionProcessor.java already handle this Exception
 		
         http.addFilterBefore(myTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
