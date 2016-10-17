@@ -3,6 +3,7 @@ package com.itpro.restws.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import com.itpro.restws.model.User;
 @Service("schoolYearService")
 @Transactional
 public class SchoolYearServiceImpl implements SchoolYearService{
-
+	private static final Logger logger = Logger.getLogger(SchoolYearServiceImpl.class);
 	@Autowired
 	private SchoolYearDao schoolYearDao;
 	
@@ -41,6 +42,10 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear insertSchoolYear(User me, SchoolYear schoolYear) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+	
+		
 		if (schoolYear.getId() != null ){
 			throw new ESchoolException("cannot create new Year, id is not NULL", HttpStatus.BAD_REQUEST);
 		}
@@ -51,6 +56,10 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear updateTransSchoolYear(User me, SchoolYear schoolYear) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (schoolYear.getId() == null ||  schoolYear.getId().intValue() == 0){
 			throw new ESchoolException("cannot update schoolYear, id is null", HttpStatus.BAD_REQUEST);
 		}
@@ -87,6 +96,9 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public ArrayList<SchoolYear> findBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+school_id.intValue());
 		
 		return (ArrayList<SchoolYear>) schoolYearDao.findBySchoolId(school_id);
 	}
@@ -95,6 +107,11 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public ArrayList<SchoolYear> findByStudent(Integer user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("user_id:"+user_id.intValue());
+		
 		return eduProfileService.findSchoolYearByStudentID(user_id);
 		
 	}
@@ -103,6 +120,10 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear findByClass(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		EClass eclass = classDao.findById(class_id);
 		return findById(eclass.getYear_id());
 	}
@@ -111,6 +132,12 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear findLatestYearBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
+		
+		
 		ArrayList<SchoolYear> list = findBySchool(school_id);
 		SchoolYear max = null;
 		SchoolYear curr = null;
@@ -140,6 +167,13 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public SchoolYear findLatestYearByStudent(Integer user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		logger.info("user_id:"+(user_id==null?"null":user_id.intValue()));
+		
+		
 		ArrayList<SchoolYear> list = findByStudent(user_id);
 		SchoolYear max = null;
 		SchoolYear curr = null;
@@ -169,6 +203,14 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public boolean valid_year_id(Integer school_id, Integer year_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
+		
 		ArrayList<SchoolYear> years = (ArrayList<SchoolYear>) schoolYearDao.findBySchoolAndYear(school_id, year_id);
 		if (years != null && years.size() > 0){
 			return true;
@@ -193,6 +235,11 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 //	}
 
 	private void validateSchoolYear(User user, SchoolYear schoolYear){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		
 		schoolYear.setSchool_id(user.getSchool_id());
 		boolean is_new = true;
 		if (schoolYear.getId() != null && schoolYear.getId().intValue() >0 ){
@@ -227,6 +274,11 @@ public class SchoolYearServiceImpl implements SchoolYearService{
 
 	@Override
 	public void delSchoolYear(User me, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("id:"+id.intValue());
+		
 		SchoolYear schYear = findById(id);
 		if (schYear == null ){
 			throw new ESchoolException("id is not existing:"+id.intValue(), HttpStatus.BAD_REQUEST);

@@ -51,6 +51,8 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public TokenInfo createNewToken(UserDetails userDetails) {
+		logger.info("TokenManagerSingle.createNewToken() Start");
+		
 		//Delete all previous auth_key
 		if (hasRole(new String[]{"ROLE_ADMIN","ROLE_TEACHER"},userDetails)){
 			removeUserDetails(userDetails);
@@ -91,6 +93,8 @@ public class TokenManagerSingle implements TokenManager {
 	}
 
 	private String generateToken() {
+		logger.info("TokenManagerSingle.generateToken() Start");
+		
 		byte[] tokenBytes = new byte[32];
 		new SecureRandom().nextBytes(tokenBytes);
 		return new String(Base64.encode(tokenBytes), StandardCharsets.UTF_8);
@@ -98,6 +102,7 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public void removeUserDetails(UserDetails userDetails) {
+		logger.info("TokenManagerSingle.removeUserDetails() Start");
 //		TokenInfo token = tokens.remove(userDetails);
 //		if (token != null) {
 //			validUsers.remove(token.getToken());
@@ -112,6 +117,7 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public UserDetails removeToken(String token) {
+		logger.info("TokenManagerSingle.removeToken() Start");
 		
 //		UserDetails userDetails = validUsers.remove(token);
 //		if (userDetails != null) {
@@ -130,6 +136,7 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public UserDetails getUserDetails(String token) {
+		logger.info("TokenManagerSingle.getUserDetails() Start");
 		//return validUsers.get(token);
 		AuthenKey authkey = authenKeyDao.findByToken(token);
 		if (authkey == null )
@@ -143,6 +150,8 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public Collection<TokenInfo> getUserTokens(UserDetails userDetails) {
+		logger.info("TokenManagerSingle.getUserTokens() Start");
+		
 		//return Arrays.asList(tokens.get(userDetails));
 		ArrayList<TokenInfo> arr = new ArrayList<TokenInfo>();
 		List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());
@@ -156,6 +165,8 @@ public class TokenManagerSingle implements TokenManager {
 
 	@Override
 	public Map<String, UserDetails> getValidUsers() {
+		logger.info("TokenManagerSingle.getValidUsers() Start");
+		
 		Map<String, UserDetails> map = new HashMap<String, UserDetails>();
 		List<AuthenKey> list  =  authenKeyDao.getNonExpired();
 		for (int i=0;i<list.size();i++){
@@ -169,6 +180,8 @@ public class TokenManagerSingle implements TokenManager {
 	}
 	
 	private boolean hasRole(String[] roles,UserDetails userDetails){
+		logger.info("TokenManagerSingle.hasRole() Start");
+		
 		boolean result = false;
 		  for (GrantedAuthority authority : userDetails.getAuthorities()) {
 		        String userRole = authority.getAuthority();

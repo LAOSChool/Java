@@ -95,6 +95,8 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 
 	@Override
 	public void logout(String token) {
+		logger.info(" *** AuthenticationServiceImpl.logout");
+		
 		UserDetails logoutUser = tokenManager.removeToken(token);
 		logger.info(" *** AuthenticationServiceImpl.logout: " + logoutUser);
 		SecurityContextHolder.clearContext();
@@ -115,6 +117,8 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 
 	@Override
 	public UserDetails currentUser() {
+		logger.info(" *** AuthenticationServiceImpl.currentUser");
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
 			return null;
@@ -130,6 +134,8 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 
 	@Override
 	public void loginApiKeySuccess(String sso_id, String api_key,String auth_key) {
+		logger.info(" *** AuthenticationServiceImpl.loginApiKeySuccess");
+		
 		apiKeyService.loginApiKeySuccess(sso_id, api_key,auth_key);
 		
 	}
@@ -137,7 +143,7 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 
 	@Override
 	public void logoutAuthKeySuccess( String api_key, String auth_key){
-
+		logger.info(" *** AuthenticationServiceImpl.logoutAuthKeySuccess");
 		apiKeyService.logoutApiKey(api_key);
 		
 	}

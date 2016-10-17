@@ -53,6 +53,10 @@ public class EduProfileServiceImpl implements EduProfileService{
 	
 	@Override
 	public ArrayList<SchoolYear> findSchoolYearByStudentID(Integer student_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("student_id"+(student_id==null?"null":student_id.intValue()));
+		
 		logger.info("findSchoolYearByStudentID START");
 		ArrayList<SchoolYear> ret = new ArrayList<>();
 		ArrayList<EduProfile> profiles = eduProfileDao.findByStudentID(student_id);
@@ -74,6 +78,10 @@ public class EduProfileServiceImpl implements EduProfileService{
 
 	@Override
 	public ArrayList<EduProfile> getUserProfile(User me, Integer filter_year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("filter_year_id"+(filter_year_id==null?"null":filter_year_id.intValue()));
+		
 		
 		ArrayList<EduProfile> eduProfiles = new ArrayList<EduProfile>();
 		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(me.getSchool_id());
@@ -117,6 +125,10 @@ public class EduProfileServiceImpl implements EduProfileService{
 	}
 
 	private EduProfile new_blank_edu_profile(User student, Integer year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("year_id"+(year_id==null?"null":year_id.intValue()));
+		
 		School sch = schoolDao.findById(student.getSchool_id());
 		SchoolYear schoolYear = schoolYearService.findById(year_id);
 		
@@ -142,6 +154,12 @@ public class EduProfileServiceImpl implements EduProfileService{
 
 	@Override
 	public ArrayList<EduProfile> getClassProfile(User me, Integer class_id, Integer student_id, Integer year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
+		logger.info("student_id"+(student_id==null?"null":student_id.intValue()));
+		logger.info("year_id"+(year_id==null?"null":year_id.intValue()));
+		
 		if ((class_id == null || class_id.intValue() == 0) &&
 		   (student_id == null || student_id.intValue() == 0) ){
 			throw new ESchoolException("Must input filter_class_id OR filter_student_id:", HttpStatus.BAD_REQUEST);

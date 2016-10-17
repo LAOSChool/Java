@@ -7,6 +7,7 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,7 @@ import com.itpro.restws.service.CommandService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class NotifyController extends BaseController {
+	protected static final Logger logger = Logger.getLogger(NotifyController.class);
 	@Autowired
 	protected CommandService commandService;
 	
@@ -74,7 +76,8 @@ public class NotifyController extends BaseController {
 			@RequestParam(value="filter_from_time",required =false) Long filter_from_time,			
 			@RequestParam(value="filter_to_time",required =false) Long filter_to_time
 			) {
-		logger.info(" *** MainRestController.getNotifies");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 	
 		
@@ -185,7 +188,7 @@ public class NotifyController extends BaseController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Notify getNotify(@PathVariable int  id) 
 	{
-		logger.info(" *** MainRestController.getNotify/{id}:"+id);
+		logger.info(" *** getNotify/{id}:"+id);
 		Notify notify= notifyService.findById(Integer.valueOf(id));
 		if (notify != null  && notify.getTask_id() != null && notify.getTask_id() > 0){
 			notify.setNotifyImages(notifyService.findImgByTaskID(notify.getTask_id()));
@@ -206,7 +209,9 @@ public class NotifyController extends BaseController {
 			
 			 @Context final HttpServletRequest request)
 			 {
-		logger.info(" *** MainRestController.createNotify");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		logger.info(" *** json_in_string:"+json_in_string);
 		
 		try {
@@ -271,7 +276,8 @@ public class NotifyController extends BaseController {
 			@RequestParam(value="imp_flg",required =false) String imp_flg,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.updateMessage");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		User me =getCurrentUser();
@@ -345,7 +351,9 @@ public class NotifyController extends BaseController {
 			@RequestParam(value = "json_in_string",required =false) String json_in_string,
 			 @Context final HttpServletRequest request)
 			 {
-		logger.info(" *** MainRestController.createNotifyPHP");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		logger.info(" *** json_in_string:"+json_in_string);
 		
 		try {

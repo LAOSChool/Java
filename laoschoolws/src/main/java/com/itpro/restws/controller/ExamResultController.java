@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -40,6 +41,9 @@ import com.itpro.restws.service.CommandService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class ExamResultController extends BaseController {
+	
+	private static final Logger logger = Logger.getLogger(EduProfileController.class);
+	
 	@Autowired
 	protected CommandService commandService;
 
@@ -49,7 +53,7 @@ public class ExamResultController extends BaseController {
 	public ExamResult getExamResult(@PathVariable int  id) 
 	{
 		
-		logger.info(" *** MainRestController.getExamResult/{id}:"+id);
+		logger.info(" *** getExamResult/{id}:"+id);
 		User me = getCurrentUser();
 		ExamResult ret = examResultService.findById(me,Integer.valueOf(id));
 		
@@ -70,7 +74,8 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** inputExamResult Start");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		ExamResult ret = examResultService.inputExam(me,examResult);
@@ -105,7 +110,9 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getExamResults() START");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User me = getCurrentUser();
 
 		// check teacher
@@ -142,7 +149,10 @@ public class ExamResultController extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
-		logger.info(" *** MainRestController.getExamResultProfile Start");
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// Valid class ID
 		
 		User me = getCurrentUser();
@@ -174,21 +184,22 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** createExamResult Start");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		User teacher = getCurrentUser();
 		ArrayList<ErrInfo> errors = new ArrayList<ErrInfo>();
 		int cnt =0;
 		if (examResults != null && examResults.size() > 0){
-			//Validate
+			//Validate first
 			for (ExamResult examResult: examResults){
 				examResultService.validInputExam(teacher,examResult);
 			}
-			// Input
+			// Input later
 			
 			try{
 				for (ExamResult examResult: examResults){
-					examResultService.validInputExam(teacher,examResult);
 					examResultService.inputExam(teacher,examResult);
 				}
 				cnt +=1;
@@ -218,7 +229,10 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.execRank");
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User me = getCurrentUser();
 	
 		if (class_ids == null||class_ids.trim().length() == 0){
@@ -262,7 +276,9 @@ public class ExamResultController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getExamRanks");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 
 		User me = getCurrentUser();
 				

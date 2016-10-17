@@ -73,44 +73,75 @@ public class NotifyServiceImpl implements NotifyService{
 	protected FirebaseMsgService firebaseMsgService;
 	@Override
 	public int countFromUser(Integer from_user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_user_id:"+(from_user_id==null?"null":from_user_id.intValue()));
+		
 		return notifyDao.countByFromUser(from_user_id);
 	}
 
 	@Override
 	public int countToUser(Integer to_user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("to_user_id:"+(to_user_id==null?"null":to_user_id.intValue()));
+		
 		return notifyDao.countByToUser(to_user_id);
 	}
 
 	@Override
 	public ArrayList<Notify> findFromUser(Integer from_userid, int from_num, int max_result) {
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("to_user_id:"+(from_userid==null?"null":from_userid.intValue()));
+		
 		return (ArrayList<Notify>) notifyDao.findByFromUser(from_userid, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Notify> findTomUser(Integer to_userid, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("to_userid:"+(to_userid==null?"null":to_userid.intValue()));
 		
 		return (ArrayList<Notify>) notifyDao.findByToUser(to_userid, from_num, max_result);
 	}
 
 	@Override
 	public int countBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
 		
 		return notifyDao.countBySchool(school_id);
 	}
 
 	@Override
 	public int countByClass(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		return notifyDao.countByClass(class_id);
 	}
 
 	@Override
 	public ArrayList<Notify> findBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		
 		return (ArrayList<Notify>) notifyDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Notify> findByClass(Integer class_id, int from_num, int max_result) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		return (ArrayList<Notify>) notifyDao.findBySchool(class_id, from_num, max_result);
 	}
 
@@ -120,6 +151,10 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public String productFile(String filename, byte[] bytes) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("filename:"+(filename==null?"null":filename));
+		
 		
 		if (bytes == null ){
             try {
@@ -141,6 +176,10 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public String productFile(String filename, MultipartFile multipartFile) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("filename:"+(filename==null?"null":filename));
+		
 		  if (!multipartFile.isEmpty()) {
                 byte[] bytes;
 				try {
@@ -165,6 +204,10 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public Notify saveUploadData(User me, MultipartFile[] files, String[] captions,String[]orders, String json_str_notify) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		String err_msg = "";
 		
 		// Validation Data
@@ -290,6 +333,8 @@ public class NotifyServiceImpl implements NotifyService{
 
 	
 	private void valid_user_notify(User me, Notify notify, boolean is_new) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (!is_new){
 			if (notify.getId() == null || notify.getId().intValue() == 0){
@@ -342,6 +387,10 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	private ArrayList<Notify> insertClassNotify(User me,Notify notify,EClass eclass, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		ArrayList<Notify> list = new ArrayList<>();
 		
 		//validate mandatory
@@ -404,6 +453,8 @@ public class NotifyServiceImpl implements NotifyService{
 
 	
 	private ArrayList<Notify> insertClassNotifyExt(User me,Notify notify,String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (notify.getDest_type() != E_DEST_TYPE.CLASS.getValue() ){
 			throw new ESchoolException("Notify destination type is not for whole class, dest_type="+notify.getDest_type(), HttpStatus.BAD_REQUEST);
@@ -422,6 +473,9 @@ public class NotifyServiceImpl implements NotifyService{
 	
 
 	private ArrayList<Notify> insertSchoolNotifyExt(User user,Notify notify,String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		ArrayList<Notify> list = new ArrayList<>();
 		if (notify.getDest_type() != E_DEST_TYPE.SCHOOL.getValue() ){
@@ -451,6 +505,9 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public ArrayList<Notify> broadcastNotify(User me, Notify notify, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		ArrayList<Notify> list = null;
 		if (notify.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
 			list = insertClassNotifyExt(me, notify, filter_roles);
@@ -484,6 +541,10 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 	
 	public HashSet<NotifyImg> findImgByTaskID(Integer task_id){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("task_id:"+(task_id==null?"null":task_id.intValue()));
+		
 		 HashSet<NotifyImg> ret = new HashSet<NotifyImg>(0);
 		 ArrayList<NotifyImg> list = notifyImgDao.findByTaskId(task_id);
 		 if (list != null){
@@ -507,6 +568,19 @@ public class NotifyServiceImpl implements NotifyService{
 					Integer channel, 
 					Integer is_read,
 					Integer from_row_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("dateFrom:"+(dateFrom==null?"null":dateFrom));
+		logger.info("dateTo:"+(dateTo==null?"null":dateTo));
+		logger.info("fromUserID:"+(fromUserID==null?"null":fromUserID.intValue()));
+		logger.info("toUserID:"+(toUserID==null?"null":toUserID.intValue()));
+		logger.info("channel:"+(channel==null?"null":channel.intValue()));
+		logger.info("is_read:"+(is_read==null?"null":is_read.intValue()));
+		logger.info("from_row_id:"+(from_row_id==null?"null":from_row_id.intValue()));
+		
 		
 		Integer ret = notifyDao.countNotifyExt(
 				school_id, 
@@ -545,6 +619,17 @@ public class NotifyServiceImpl implements NotifyService{
 			Integer is_read,
 			Integer from_row_id){
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("dateFrom:"+(dateFrom==null?"null":dateFrom));
+		logger.info("dateTo:"+(dateTo==null?"null":dateTo));
+		logger.info("fromUserID:"+(fromUserID==null?"null":fromUserID.intValue()));
+		logger.info("toUserID:"+(toUserID==null?"null":toUserID.intValue()));
+		logger.info("channel:"+(channel==null?"null":channel.intValue()));
+		logger.info("is_read:"+(is_read==null?"null":is_read.intValue()));
+		logger.info("from_row_id:"+(from_row_id==null?"null":from_row_id.intValue()));
 		
 		ArrayList<Notify> notifies  = new ArrayList<Notify>();
 		 List<Object> list = notifyDao.findNotifyExt(
@@ -584,6 +669,9 @@ public class NotifyServiceImpl implements NotifyService{
 	@Override
 	public MessageFilter secureGetMessages(User user) {
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// Get data access right for entity
 		MessageFilter secure_filter = new MessageFilter();
 		Permit permit = permitService.loadEntityPermit(user,E_ENTITY.NOTIFY);
@@ -613,12 +701,18 @@ public class NotifyServiceImpl implements NotifyService{
 
 	@Override
 	public Notify updateAttachedNotify(User me,Notify notify) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		notifyDao.updateNotify(me,notify);
 		
 		return notify;
 	}
 
 	public Notify insertUserNotify(User me, Notify new_notify) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// Valid message before send
 		valid_user_notify(me, new_notify,true);
 		
@@ -630,6 +724,9 @@ public class NotifyServiceImpl implements NotifyService{
 	}
 
 	private void valid_save_upload_notify(User me, Notify notify) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
         //validate mandatory
         if (me == null || notify == null  ){
             throw new ESchoolException("User-me or Input Notify is NULL", HttpStatus.BAD_REQUEST);

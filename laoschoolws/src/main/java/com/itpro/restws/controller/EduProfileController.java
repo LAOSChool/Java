@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -38,7 +39,7 @@ import com.itpro.restws.service.SchoolYearService;
 @RestController 
 public class EduProfileController extends BaseController {
 	
-	
+	private static final Logger logger = Logger.getLogger(EduProfileController.class);
 	
 	@Autowired
 	protected ExamResultService examResultService;
@@ -63,6 +64,11 @@ public class EduProfileController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		//	 Get User info 
 			User me = getCurrentUser();
 			ArrayList<EduProfile> profiles =  eduProfileService.getUserProfile(me, filter_year_id);
@@ -95,7 +101,9 @@ public class EduProfileController extends BaseController {
 			
 			) {
 		
-			
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 			User teacher = getCurrentUser();
 			
 			ArrayList<EduProfile> list = eduProfileService.getClassProfile(teacher, filter_class_id, filter_student_id, filter_year_id);
@@ -114,6 +122,9 @@ public class EduProfileController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 			
 			User current_user = getCurrentUser();
 			

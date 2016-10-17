@@ -62,41 +62,71 @@ public class AttendanceServiceImpl implements AttendanceService{
 	
 	@Override
 	public Attendance findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+(id==null?"null":id.intValue()));
+		
 		return attendanceDao.findById(id);
 	}
 
 	@Override
 	public int countBySchoolID(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		
 		return attendanceDao.countAttendanceBySchool(school_id);
 	}
 
 	@Override
 	public int countByClassID(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
+		
 		return attendanceDao.countAttendanceByClass(class_id);
 	}
 
 	@Override
 	public int countByStudent(Integer student) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		return attendanceDao.countAttendanceByStudent(student);
 	}
 
 	@Override
 	public ArrayList<Attendance> findBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		
 		return (ArrayList<Attendance>) attendanceDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Attendance> findByClass(Integer class_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
+		
 		return (ArrayList<Attendance>) attendanceDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
-	public ArrayList<Attendance> findByStudent(Integer student, int from_num, int max_result) {
-		return (ArrayList<Attendance>) attendanceDao.findByStudent(student, from_num, max_result);
+	public ArrayList<Attendance> findByStudent(Integer student_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("student_id"+(student_id==null?"null":student_id.intValue()));
+		
+		return (ArrayList<Attendance>) attendanceDao.findByStudent(student_id, from_num, max_result);
 	}
 
 	@Override
 	public Attendance insertAttendance(User me,Attendance attendance) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		
 		if (attendance.getStudent_id() == null ){
@@ -119,29 +149,12 @@ public class AttendanceServiceImpl implements AttendanceService{
 		return attendance;
 	}
 
-//	@Override
-//	public Attendance auditAttendance(User teacher, Attendance attendance) {
-//		
-//		User student = userService.findById(attendance.getStudent_id());
-//		Attendance curr = findById(attendance.getId());
-//		
-//		// Keep first create date time
-//		attendance.setActflg("A");
-//		attendance.setCtddtm(curr.getCtddtm());
-//		attendance.setCtdusr(curr.getCtdusr());
-//		///
-//		attendance.setAuditor(teacher.getId());
-//		attendance.setAuditor_name(teacher.getFullname());
-//		attendance.setStudent_name(student.getFullname());
-//		
-//		//attendanceDB = Attendance.updateChanges(attendanceDB, attendance);
-//		attendanceDao.updateAttendance(attendance);
-//		
-//		return attendance;
-//	}
 
 	@Override
 	public Attendance updateTransAttendance(User me, Attendance attendance) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+
 		if (attendance == null || attendance.getId() == null){
 			throw new ESchoolException("attendance == null || attendance.id = NULL", HttpStatus.BAD_REQUEST);
 		}
@@ -189,6 +202,22 @@ public class AttendanceServiceImpl implements AttendanceService{
 	public int countAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
 			Integer from_row_id,String att_dt,String from_dt, String to_dt,Integer session_id,Integer term_val, Integer year_id) {
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
+		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
+		logger.info("from_row_id"+(from_row_id==null?"null":from_row_id.intValue()));
+		logger.info("att_dt"+(att_dt==null?"null":att_dt));
+		logger.info("from_dt"+(from_dt==null?"null":from_dt));
+		logger.info("to_dt"+(to_dt==null?"null":to_dt));
+		logger.info("session_id"+(session_id==null?"null":session_id.intValue()));
+		logger.info("term_val"+(term_val==null?"null":term_val.intValue()));
+		logger.info("year_id"+(year_id==null?"null":year_id.intValue()));
+		
+		
+		
+		
 		return attendanceDao.countAttendanceExt(school_id, class_id, user_id, from_row_id,att_dt,from_dt, to_dt,session_id,term_val, year_id);
 	}
 
@@ -196,11 +225,27 @@ public class AttendanceServiceImpl implements AttendanceService{
 	public ArrayList<Attendance> findAttendanceExt(Integer school_id, Integer class_id, Integer user_id,
 			Integer from_row_id, int from_num, int max_result,String att_dt, String from_dt, String to_dt,Integer session_id, Integer term_val,Integer year_id) {
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
+		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
+		logger.info("from_row_id"+(from_row_id==null?"null":from_row_id.intValue()));
+		logger.info("att_dt"+(att_dt==null?"null":att_dt));
+		logger.info("from_dt"+(from_dt==null?"null":from_dt));
+		logger.info("to_dt"+(to_dt==null?"null":to_dt));
+		logger.info("session_id"+(session_id==null?"null":session_id.intValue()));
+		logger.info("term_val"+(term_val==null?"null":term_val.intValue()));
+		logger.info("year_id"+(year_id==null?"null":year_id.intValue()));
+		
 		return (ArrayList<Attendance>) attendanceDao.findAttendanceExt(school_id, class_id, user_id, from_row_id, from_num, max_result,att_dt, from_dt, to_dt,session_id,term_val,year_id);
 	}
 
 	@Override
 	public Attendance requestAttendance(User me, Attendance request,boolean in_range, boolean is_sent_msg) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		// more valid
 		valid_insert_attendance(me, request);
@@ -229,6 +274,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 	
 	private boolean validAttendanceRequest(User me, Attendance request,boolean in_range){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (me.getSchool_id() != request.getSchool_id()){
 			throw new ESchoolException("User and request attendance is not in same school", HttpStatus.BAD_REQUEST);
 		}
@@ -269,6 +318,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public ArrayList<Attendance>  requestAttendanceEx(User user, Attendance request,String from_dt, String to_dt) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_dt"+(from_dt==null?"null":from_dt));
+		logger.info("to_dt"+(to_dt==null?"null":to_dt));
+		
 		 ArrayList<Attendance>  list = new ArrayList<Attendance>();
 		 
 		 if (	from_dt == null || 
@@ -327,7 +381,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 			String date_info = "";
 			while( !start.after(end)){
 			    Date targetDay = start.getTime();
-			    String att_dt = Utils.dateToStringDateOnly(targetDay);
+			    String att_dt = Utils.dateToStringDateOnly_with_format(targetDay,"dd-MM-yyyy");
 			    
 			    Attendance new_request = request.clone();
 			    new_request.setAtt_dt(att_dt);
@@ -354,6 +408,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 	
 
 	private void send_msg_request_ext(Attendance request, String date_info) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("date_info"+(date_info==null?"null":date_info));
+		
+		
 		String msg_content = get_message_sample(true);
 		/***
 		 * Request Attendance
@@ -368,7 +427,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 			date_info = request.getAtt_dt();
 			Date dt = Utils.parsetDateAll(date_info);
 			if (dt != null ){
-				date_info = Utils.dateToStringDateOnly(dt);
+				// date_info = Utils.dateToStringDateOnly(dt);
+				// Change date format to dd-MM-yyyy
+				Format formatter = new SimpleDateFormat("dd-MM-yyyy");
+				date_info = formatter.format(dt);
 			}
 		}
 		
@@ -392,6 +454,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 
 	private void valid_insert_attendance(User me, Attendance attendace){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (attendace.getId() != null ){
 			throw new ESchoolException("Cannot create new attendance, id != null", HttpStatus.BAD_REQUEST);
 		}
@@ -425,6 +491,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 		valid_attendance_info(me,attendace);
 	}
 	private void valid_attendance_info(User me, Attendance attendace) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if ((attendace.getSchool_id() == null || attendace.getSchool_id().intValue() == 0) ||
 			( attendace.getStudent_id() == null || attendace.getStudent_id().intValue() == 0) ||
 			( attendace.getClass_id() == null || attendace.getClass_id().intValue() == 0) ||
@@ -507,25 +577,12 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 	}
 	
-//	void sendAttendMessage(Attendance att){
-//		Integer class_id = att.getClass_id();
-//		EClass eclass = classService.findById(class_id);
-//		if (eclass == null){
-//			throw new ESchoolException("request.class_id is not existing", HttpStatus.BAD_REQUEST);
-//		}
-//		Integer head_teacher_id = eclass.getHead_teacher_id();
-//		if (head_teacher_id == null){
-//			throw new ESchoolException("class_id:"+class_id.intValue()+" dont have head_teacher_id to send message", HttpStatus.BAD_REQUEST);
-//		}
-//		String content =  att.getNotice()==null?"- Student is recorded a absence from class -  ":"- Student is recorded a absence from class -  "+att.getNotice();
-//		if (att.getIs_requested() != null && att.getIs_requested().intValue() == 1){
-//			content =  att.getNotice()==null?"- Request Attendance -  ":"- Request Attendance -  "+att.getNotice();	
-//		}
-//		Message msg = messageService.newMessage(att.getStudent_id(), head_teacher_id, content);
-//		
-//		messageService.insertMessageExt(msg);
-//	}
+
 	String get_message_sample(boolean is_request){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		String notice_type = "-ATTENDANCE-";
 		if (is_request){
 			notice_type = "-REQUEST-";
@@ -545,6 +602,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 	}
 	
 	private void send_msg_attendance(Attendance attendace) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		String day_in_week_info= "";
 		String date_info = attendace.getAtt_dt();
@@ -588,6 +649,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 				session_name_info= session.getLval();
 				if (session_name_info == null || session_name_info.trim().length() == 0){
 					session_name_info= session.getSval();
+				}
+				if (session_name_info != null  && session.getFval2() != null ){
+					session_name_info = session_name_info + " " +  session.getFval2().intValue() ;
 				}
 				session_period_info = session.getNotice();
 			}
@@ -656,6 +720,10 @@ public class AttendanceServiceImpl implements AttendanceService{
 
 	@Override
 	public Attendance updateAttachedAttendance(User teacher, Attendance attendance) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		attendanceDao.updateAttendance(teacher, attendance);
 		return attendance;
 	}	

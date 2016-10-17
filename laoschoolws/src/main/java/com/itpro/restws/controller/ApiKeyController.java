@@ -48,7 +48,7 @@ public class ApiKeyController  extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
-		logger.info(" *** ApiKeyController.getApiKeys/{sso_id}:"+sso_id);
+		logger.info(" *** getApiKeys Start, sso_id="+sso_id);
 		User me = getCurrentUser();
 		
 		apiKeyService.validGetApiKey(me, sso_id);
@@ -70,7 +70,7 @@ public class ApiKeyController  extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** createToke START");
+		logger.info(" *** saveToke START");
 		User user = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		apiKeyService.saveFireBaseToken(user.getSso_id(), api_key, auth_key, token);

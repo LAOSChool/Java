@@ -8,6 +8,8 @@ import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.security.TokenAuthenticationFilter;
 
 public class CommandExecutor {
+	
+	
 	@Autowired
 	protected AsyncRunner asyncRunner;
 	

@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -43,7 +44,7 @@ import com.itpro.restws.service.SchoolYearService;
 @RestController 
 public class SchoolController extends BaseController {
 	
-	
+	protected static final Logger logger = Logger.getLogger(SchoolController.class);
 	@Autowired
 	protected SchoolExamDao schoolExamDao;
 	@Autowired
@@ -59,7 +60,8 @@ public class SchoolController extends BaseController {
 	public RespInfo  getSchools(
 			@Context final HttpServletRequest request
 			) {
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		 RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
@@ -75,7 +77,7 @@ public class SchoolController extends BaseController {
 	 public School getSchool(
 				@PathVariable int  id,
 				@Context final HttpServletResponse response) {
-		logger.info(" *** getSchool/{id}:"+id);
+		logger.info(" *** getSchool() START /{id}:"+id);
 		
 		User me = getCurrentUser();
 		if (me.getSchool_id().intValue() == id){
@@ -103,7 +105,7 @@ public class SchoolController extends BaseController {
 				@PathVariable int  id,
 				@Context final HttpServletResponse response) {
 		
-		logger.info(" *** nonsecureGetSchool/{id}:"+id);
+		logger.info(" *** nonsecureGetSchool() START /{id}:"+id);
 		School school= schoolService.findById(Integer.valueOf(id));
 	    return school;
 	 }
@@ -115,7 +117,8 @@ public class SchoolController extends BaseController {
 			@RequestBody School school,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.schools.update");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (school.getId() == null ){
 			throw new ESchoolException("schoo.id = null", HttpStatus.BAD_REQUEST);
@@ -140,6 +143,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		//	 Get User info 
 			User user = getCurrentUser();
 			Integer school_id = null;
@@ -169,7 +174,10 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			
-			) {
+			) 
+	{
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		//	 Get User info 
 			User user = getCurrentUser();
 			SchoolExam ret= schoolExamService.findById(id);
@@ -196,6 +204,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		//	 Get User info 
 			User user = getCurrentUser();
 			SchoolYear ret= schoolYearService.findById(id);
@@ -220,7 +230,9 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
-			
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 			User current_user = getCurrentUser();
 			
 			ArrayList<SchoolYear> years = schoolYearService.findBySchool(current_user.getSchool_id());
@@ -241,7 +253,9 @@ public class SchoolController extends BaseController {
 			) {
 		
 		
-		logger.info(" *** getCurrentTerm Start");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 	    User user = getCurrentUser();
 	    ArrayList<SchoolTerm> terms = new ArrayList<SchoolTerm>();
 	    RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
@@ -269,7 +283,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		SchoolExam ret = schoolExamService.insertSchoolExam(user, schoolExam);
@@ -288,7 +303,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		SchoolExam ret = schoolExamService.updateTransSchoolExam(user, schoolExam);
@@ -308,7 +324,8 @@ public class SchoolController extends BaseController {
 			 ) {
 		
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		schoolExamService.delById(user, id);
@@ -329,7 +346,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		SchoolYear ret = schoolYearService.insertSchoolYear(user, schoolYear);
@@ -348,7 +366,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		if (schoolYear.getId() == null ){
@@ -374,7 +393,8 @@ public class SchoolController extends BaseController {
 			 ) {
 		
 		
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		User user = getCurrentUser();
 		schoolYearService.delSchoolYear(user, id);
@@ -389,6 +409,8 @@ public class SchoolController extends BaseController {
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
 			 @Context final HttpServletRequest request)
 			 {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
 		User me = getCurrentUser();
@@ -409,7 +431,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		User admin = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
@@ -427,7 +450,8 @@ public class SchoolController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		User admin = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
@@ -443,6 +467,8 @@ public class SchoolController extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");

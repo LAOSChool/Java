@@ -47,7 +47,7 @@ import com.itpro.restws.service.UserService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class BaseController {
-	protected static final Logger logger = Logger.getLogger(BaseController.class);
+	private static final Logger logger = Logger.getLogger(BaseController.class);
 	@Autowired
 	protected ApplicationContext applicationContext;
 	
@@ -104,7 +104,7 @@ public class BaseController {
 	
 	
 	protected User getCurrentUser(){
-		logger.info(" *** MainRestController.getCurrentUser");
+		logger.info(" *** getCurrentUser() START ");
 		User user  = null;
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
@@ -122,7 +122,7 @@ public class BaseController {
 	
 
 	protected String getUserName(){
-		logger.info(" *** MainRestController.getUserName");
+		logger.info(" *** getUserName() START ");
 		String userName = null;
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
@@ -137,7 +137,7 @@ public class BaseController {
 	
 	@SuppressWarnings("unchecked")
 	protected String getRoles(){
-		logger.info(" *** MainRestController.getRoles");
+		logger.info(" *** getRoles() START ");
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		List<GrantedAuthority> authorities = null;
 		String ret = "";
@@ -150,7 +150,7 @@ public class BaseController {
 	}
 	@SuppressWarnings("unchecked")
 	boolean isRole(String role){
-		logger.info(" *** MainRestController.isRole///"+role + "/// Start");
+		logger.info(" *** isRole() ///"+role + "/// Start");
 		boolean ret = false;
 		
 		
@@ -179,10 +179,10 @@ public class BaseController {
 	 * @param proto
 	 */
 	void checkPermit(String entity, int  school_id, int class_id, String roles){
-		logger.info(" *** MainRestController.checkPermit() start:");
-		logger.info(" *** MainRestController.checkPermit()    entity:"+entity);
-		logger.info(" *** MainRestController.checkPermit()    school_id:"+school_id);
-		logger.info(" *** MainRestController.checkPermit()    class_id:"+class_id);
+		logger.info(" *** checkPermit() start:");
+		logger.info(" *** checkPermit()    entity:"+entity);
+		logger.info(" *** checkPermit()    school_id:"+school_id);
+		logger.info(" *** checkPermit()    class_id:"+class_id);
 
 		User user = this.getCurrentUser();
 		boolean permit = false;
@@ -218,7 +218,9 @@ public class BaseController {
 	 * @return true if the user has one of the specified roles.
 	 */
 	protected boolean hasRole(String[] roles) {
-		logger.info(" *** MainRestController.hasRole");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 	    boolean result = false;
 	    for (GrantedAuthority authority : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
 	        String userRole = authority.getAuthority();
@@ -237,7 +239,9 @@ public class BaseController {
 	    return result;
 	}
 	protected String getPrincipal(){
-		logger.info(" *** MainRestController.getPrincipal");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		String userName = null;
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
@@ -250,6 +254,11 @@ public class BaseController {
 		return userName;
 	}
 	protected ActionLog traceUserInfo(HttpServletRequest request){
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Integer act_id = (Integer)request.getAttribute(Constant.actlog_id);
 		ActionLog act = actionLogService.findById(act_id);
 		User user = getCurrentUser();

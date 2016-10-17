@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -38,6 +39,7 @@ import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
 import com.itpro.restws.service.CommandService;
 import com.itpro.restws.service.EduProfileService;
+import com.itpro.restws.service.SchoolYearService;
  
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -51,6 +53,7 @@ import com.itpro.restws.service.EduProfileService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class UserController extends BaseController {
+	protected static final Logger logger = Logger.getLogger(UserController.class);
 //	@Autowired
 //    private Environment environment;
 	@Autowired
@@ -63,6 +66,8 @@ public class UserController extends BaseController {
 	
 	@Autowired
 	protected CommandService commandService;
+	@Autowired
+	protected SchoolYearService schoolYearService;
 	
 	
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
@@ -80,7 +85,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.getUsers");
+		logger.info(" *** getUsers START");
 		
 		List<User> users = null;
 		int total_row = 0;
@@ -159,7 +164,7 @@ public class UserController extends BaseController {
 	@RequestMapping(value = "/api/users/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	 public User getUser(@PathVariable int  id,@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getUser/{id}:"+id);
+		logger.info(" *** getUser START, id="+id);
 		User user = getCurrentUser();
 		
 		if (user.getId().intValue() == id){
@@ -191,7 +196,7 @@ public class UserController extends BaseController {
 	@RequestMapping(value="/api/users/myprofile",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	public User myprofile(@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.myprofile ***");
+		logger.info(" *** myprofile() START ***");
 		User user = getCurrentUser();
 		if (user != null && (user.getPermisions() == null) ){
 			permitService.loadPermit(user);
@@ -212,7 +217,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
-		logger.info(" *** MainRestController.users.sysAdminCreateUser");
+		logger.info(" *** sysCreateAdmin START");
 		
 		User user = userService.createAdmin(name, pass, Integer.valueOf(school_id));
 		return user;
@@ -227,7 +232,7 @@ public class UserController extends BaseController {
 			@RequestBody User user,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.users.create");
+		logger.info(" *** .createUser() START");
 		
 		User me = getCurrentUser();
 		
@@ -272,7 +277,7 @@ public class UserController extends BaseController {
 			@RequestBody User user,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.users.update");
+		logger.info(" ***  updateUser() START");
 
 		if (user.getId() == null || user.getId().intValue() == 0 ){
 			throw new ESchoolException("user.Id is required", HttpStatus.BAD_REQUEST);
@@ -294,6 +299,7 @@ public class UserController extends BaseController {
 			@PathVariable String sso,
 			@Context final HttpServletResponse response
 			) {
+		logger.info(" *** resetPass() START");
 		User me = getCurrentUser();
 		if (sso == null || sso.trim().length() == 0){
 			throw new ESchoolException("sso is required", HttpStatus.BAD_REQUEST);
@@ -317,7 +323,7 @@ public class UserController extends BaseController {
 				@Context final HttpServletRequest request
 				) {
 			
-			logger.info(" *** MainRestController.users.change");
+			logger.info(" *** changePass() START");
 			User me = getCurrentUser();
 			
 			String username = data.getUsername();
@@ -381,7 +387,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletRequest request
 			) {
 			
-		logger.info(" *** MainRestController.users.forgotPass START");
+		logger.info(" *** forgotPass START");
 		User user = userService.findBySso(sso_id);
 		if (user == null || (user.getState() != E_STATE.ACTIVE.value())){
 			throw new ESchoolException("sso_id:("+sso_id+") is not exising",HttpStatus.BAD_REQUEST);
@@ -413,14 +419,15 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
+		logger.info(" *** delUser() START , user_id="+id.intValue());
 		User me = getCurrentUser();
 		if (me.getId().intValue() == id.intValue()){
-			throw new ESchoolException("Cannot del him selft", HttpStatus.BAD_REQUEST);
+			throw new ESchoolException("Cannot del himselft", HttpStatus.BAD_REQUEST);
 		}
 		
 		userService.deleteUser(me, id);
 		
-		logger.info(" *** MainRestController.delUser/{user_id}:"+id.intValue());
+		
 	    return "Request was successfully, deleted user of id:"+id.intValue();
 	 }
 	
@@ -436,7 +443,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		
+		logger.info(" *** assignToClass() START");
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		
@@ -459,6 +466,7 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
+		logger.info(" *** removeFrmClass() START");
 		User me  = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		
@@ -476,15 +484,24 @@ public class UserController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
-			
+		logger.info(" *** getSchoolYears() START");
 			User student = getCurrentUser();
 			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
+			if (years == null || years.size() == 0){
+				
+				SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
+				if (curr_year != null ){
+					years = new ArrayList<SchoolYear>();
+					years.add(curr_year);
+				}
+			}
 				
 			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 			
 			rsp.setMessageObject(years);
 		    return rsp;
 		}
+	
 
 	@Secured({ "ROLE_ADMIN"})
 		@RequestMapping(value="/api/users/available",method = RequestMethod.GET)
@@ -497,7 +514,7 @@ public class UserController extends BaseController {
 				@Context final HttpServletResponse response,
 				@Context final HttpServletRequest request
 				) {
-			logger.info(" *** MainRestController.getAvailableUsers");
+			logger.info(" *** getAvailableUsers() START");
 			
 			List<User> users = null;
 			int total_row = 0;
@@ -553,6 +570,7 @@ public class UserController extends BaseController {
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
 			 @Context final HttpServletRequest request)
 			 {
+		logger.info(" *** uploadPhoto() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		User me = getCurrentUser();
 		userService.saveUploadPhoto(me, user_id, files);
@@ -568,6 +586,7 @@ public class UserController extends BaseController {
 			@RequestParam(value = "class_id",required =false) Integer class_id,
 			 @Context final HttpServletRequest request)
 			 {
+		logger.info(" *** uploadUsers() START");
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		User me = getCurrentUser();
 		if (files == null ){
@@ -585,7 +604,7 @@ public class UserController extends BaseController {
 	@RequestMapping(value = "/api/users/download_csv")
 	@ResponseStatus(value=HttpStatus.OK)		
     public void downloadCSV(HttpServletResponse response) throws IOException {
- 
+		logger.info(" *** downloadCSV() START");
         String csvFileName = "users.csv";
         response.setContentType("text/csv");
         response.setCharacterEncoding("UTF-8");

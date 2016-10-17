@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +32,7 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class SchoolTermController extends BaseController {
-
+	protected static final Logger logger = Logger.getLogger(SchoolTermController.class);
 	
 	@RequestMapping(value="/api/terms",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -43,7 +44,8 @@ public class SchoolTermController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
@@ -61,6 +63,8 @@ public class SchoolTermController extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
@@ -80,6 +84,9 @@ public class SchoolTermController extends BaseController {
 			@Context final HttpServletResponse response
 			) {
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		
@@ -97,6 +104,8 @@ public class SchoolTermController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
@@ -112,6 +121,8 @@ public class SchoolTermController extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		User me = getCurrentUser();
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");

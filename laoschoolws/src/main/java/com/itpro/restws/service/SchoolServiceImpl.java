@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ import com.itpro.restws.model.User;
 @Service("schoolService")
 @Transactional
 public class SchoolServiceImpl implements SchoolService{
-
+	private static final Logger logger = Logger.getLogger(SchoolServiceImpl.class);
 	@Autowired
 	private SchoolDao schoolDao;
 	@Autowired
@@ -36,12 +37,18 @@ public class SchoolServiceImpl implements SchoolService{
 
 	@Override
 	public School findById(Integer id) {
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+id.intValue());
 		return schoolDao.findById(id);
 	}
 
 	@Override
 	public ArrayList<School> findActive() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		//throw new ESchoolException(" aaaa abc",HttpStatus.BAD_REQUEST);
 		//throw new ExceptionMethodNotAllowed("testabc");
 		return (ArrayList<School>) schoolDao.findAll();
@@ -49,12 +56,19 @@ public class SchoolServiceImpl implements SchoolService{
 
 	@Override
 	public School insertSchool(User me, School school) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		schoolDao.saveSchool(me,school);
 		return school;
 	}
 
 	@Override
 	public School updateTransSchool(User me,School school) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		valid_update_school(me,school);// [UT]20160907
 		
@@ -72,6 +86,10 @@ public class SchoolServiceImpl implements SchoolService{
 
 	@Override
 	public void saveUploadPhoto(User me, MultipartFile []files) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		String err_msg = "";
 		
 		// Validation Data
@@ -143,6 +161,10 @@ public class SchoolServiceImpl implements SchoolService{
 
 
 	void valid_update_school(User me, School school){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (!me.hasRole(E_ROLE.ADMIN.getRole_short())){
 			throw new ESchoolException("Only Admin can update school info", HttpStatus.BAD_REQUEST);
 		}

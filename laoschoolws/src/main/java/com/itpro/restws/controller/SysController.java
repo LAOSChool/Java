@@ -47,7 +47,8 @@ public class SysController {
 			 @Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getSys");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 
 		ListEnt listResp = new ListEnt();

@@ -7,6 +7,7 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +41,7 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class MessageController extends BaseController {
+	protected static final Logger logger = Logger.getLogger(MessageController.class);
 	@RequestMapping(value="/api/messages",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
 	/***
@@ -86,7 +88,8 @@ public class MessageController extends BaseController {
 			@RequestParam(value="filter_to_time",required =false) Long filter_to_time
 			
 			) {
-		logger.info(" *** MainRestController.getMessages");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		ListEnt listResp = new ListEnt();
 		// Parsing params
@@ -193,7 +196,7 @@ public class MessageController extends BaseController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Message getMessage(@PathVariable int  id) 
 	{
-		logger.info(" *** MainRestController.getMessage/{id}:"+id);
+		logger.info(" *** getMessage/{id}:"+id);
 		
 		
 		
@@ -210,7 +213,8 @@ public class MessageController extends BaseController {
 			@RequestBody Message message,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.createMessage");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		// Load user
 		User me = getCurrentUser();
@@ -239,7 +243,9 @@ public class MessageController extends BaseController {
 			@RequestParam(value="filter_roles",required =false) String filter_roles,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.createMessage_ext");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath().toString(), "Successful");
 		// Load user
 		User me = getCurrentUser();
@@ -277,7 +283,8 @@ public class MessageController extends BaseController {
 			@RequestParam(value="imp_flg",required =false) String imp_flg,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** MainRestController.updateMessage");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
 		User me = getCurrentUser();
@@ -316,7 +323,8 @@ public class MessageController extends BaseController {
 			@Context final HttpServletRequest request
 			) 
 	{
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		String api_key = request.getHeader(Constant.HEADER_API_KEY);
 		User me = getCurrentUser();
 		
@@ -335,6 +343,9 @@ public class MessageController extends BaseController {
 			@Context final HttpServletRequest request
 			) 
 	{
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		String api_key = request.getHeader(Constant.HEADER_API_KEY);
 		User me = getCurrentUser();
 		

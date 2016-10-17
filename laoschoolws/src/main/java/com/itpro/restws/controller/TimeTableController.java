@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +39,7 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class TimeTableController extends BaseController {
-	
+	protected static final Logger logger = Logger.getLogger(TimeTableController.class);
 
 	@RequestMapping(value="/api/timetables",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -50,7 +51,7 @@ public class TimeTableController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getTimetables");
+		logger.info(" *** getTimetables() START");
 		
 		int total_row = 0;
 		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
@@ -118,7 +119,7 @@ public class TimeTableController extends BaseController {
 	@ResponseStatus(value=HttpStatus.OK)	
 	public Timetable getTimetable(@PathVariable int  id) 
 	{
-		logger.info(" *** MainRestController.getTimetable/{id}:"+id);
+		logger.info(" *** getTimetable() START, {id}:"+id);
 		User me = getCurrentUser();
 		
 		Timetable tbl = timetableService.findById(id);
@@ -138,7 +139,7 @@ public class TimeTableController extends BaseController {
 	public Timetable createTimetable(
 			@RequestBody Timetable timetable
 			) {
-		logger.info(" *** MainRestController.ceateTimetable.create");
+		logger.info(" *** createTimetable() START");
 		User me = getCurrentUser();
 				
 		Timetable tbl = timetableService.insertTimetable(me,timetable);
@@ -152,7 +153,7 @@ public class TimeTableController extends BaseController {
 	public Timetable updateTimetable(
 			@RequestBody Timetable timetable
 			) {
-		logger.info(" *** MainRestController.updateTimetable.update");
+		logger.info(" *** updateTimetable() START");
 		 //return timetable;
 		User user = getCurrentUser();
 		Timetable tbl = timetableService.updateTransTimetable(user,timetable);
@@ -165,7 +166,7 @@ public class TimeTableController extends BaseController {
 	 public String delTimetable(
 			 @PathVariable Integer  id
 			 ) {
-		logger.info(" *** MainRestController.delTimetable/{id}:"+id);
+		logger.info(" *** delTimetable() / {id}:"+id);
 		User user = getCurrentUser();
 		
 		timetableService.delTimetableById(user, id);
@@ -180,7 +181,7 @@ public class TimeTableController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getSubjects START");
+		logger.info(" *** getSubjects() START");
 		
 		User user = getCurrentUser();
 		

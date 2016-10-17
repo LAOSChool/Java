@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -44,7 +45,7 @@ import com.itpro.restws.service.SchoolYearService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class AttendanceController extends BaseController {
-	
+	private static final Logger logger = Logger.getLogger(AttendanceController.class);
 	
 	@Autowired
 	private SchoolYearService schoolYearService;
@@ -190,7 +191,7 @@ public class AttendanceController extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			 ) {
-		logger.info(" *** MainRestController.getAttendanceProfile Start");
+		logger.info(" *** getAttendanceProfile Start");
 		ListEnt rspEnt = new ListEnt();
 		
 		int from_row = 0;
@@ -222,7 +223,7 @@ public class AttendanceController extends BaseController {
 	 public Attendance getAttendance(
 			 @PathVariable int  id,
 			 @Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getAttendance/{id}:"+id);
+		logger.info(" *** getAttendance() Start id="+id);
 		
     	User cur_user = getCurrentUser();
     	Attendance attendance  = attendanceService.findById(Integer.valueOf(id));
@@ -259,7 +260,7 @@ public class AttendanceController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.users.create");
+		logger.info(" *** createAttendance() START");
 		
 		User auditor = getCurrentUser();
 		
@@ -288,7 +289,7 @@ public class AttendanceController extends BaseController {
 			@RequestBody Attendance attendance,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.attendances.update");
+		logger.info(" *** updateAttendances() START");
 		User teacher = getCurrentUser();
 		
 		if (teacher.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
@@ -314,7 +315,7 @@ public class AttendanceController extends BaseController {
 			@Context final HttpServletResponse response
 			 
 			 ) {
-		logger.info(" *** MainRestController.delAttendance/{attendance_id}:"+id);
+		logger.info(" *** delAttendance/{attendance_id}:"+id);
 
 		User auditor = getCurrentUser();
 		Attendance attendance = attendanceService.findById(id);
@@ -347,7 +348,7 @@ public class AttendanceController extends BaseController {
 				@Context final HttpServletRequest request,
 				@Context final HttpServletResponse response			 
 			 ) {
-		logger.info(" *** MainRestController.requestAttendance Start");
+		logger.info(" *** requestAttendance() Start");
 
 		User student = getCurrentUser();
 		attendance.setStudent_id(student.getId());
@@ -398,7 +399,7 @@ public class AttendanceController extends BaseController {
 			@Context final HttpServletRequest request,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getRollUp");
+		logger.info(" *** getRollUp START");
 		
 		
 		User user = getCurrentUser();

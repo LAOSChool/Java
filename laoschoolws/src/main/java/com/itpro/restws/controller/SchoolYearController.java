@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -30,6 +31,8 @@ import com.itpro.restws.service.EduProfileService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class SchoolYearController extends BaseController {
+	protected static final Logger logger = Logger.getLogger(SchoolYearController.class);
+	
 	@Autowired
 	protected EduProfileService eduProfileService;
 	@Secured({"ROLE_STUDENT"})
@@ -40,7 +43,9 @@ public class SchoolYearController extends BaseController {
 			@Context final HttpServletResponse response
 			
 			) {
-			
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+		
 			User student = getCurrentUser();
 			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
 				

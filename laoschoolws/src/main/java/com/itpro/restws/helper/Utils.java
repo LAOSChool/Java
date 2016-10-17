@@ -208,6 +208,11 @@ public class Utils {
 		String s = formatter.format(date);
 		return s;
 	}
+	public static String dateToStringDateOnly_with_format(Date date,String str_format){
+		Format formatter = new SimpleDateFormat(str_format);
+		String s = formatter.format(date);
+		return s;
+	}
 	
 	
 	public static String numberToDateTime(Long value){

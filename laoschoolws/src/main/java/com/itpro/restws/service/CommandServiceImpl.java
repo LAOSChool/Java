@@ -1,5 +1,6 @@
 package com.itpro.restws.service;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +16,17 @@ import com.itpro.restws.model.User;
 @Service("commandService")
 @Transactional
 public class CommandServiceImpl implements CommandService{
+	private static final Logger logger = Logger.getLogger(CommandServiceImpl.class);
+	
 	@Autowired
 	protected CommandDao commandDao;
 
 	@Override
 	public Command create_class_message_cmd(User me, Message msg_task, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Command cmd = new Command();
 		cmd = new Command();
 		cmd.setCommand(Constant.CMD_MESSAGE);
@@ -36,6 +43,10 @@ public class CommandServiceImpl implements CommandService{
 
 	@Override
 	public Command create_notify_cmd(User me, Notify notify_task, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Command cmd = new Command();
 		cmd = new Command();
 		
@@ -51,6 +62,12 @@ public class CommandServiceImpl implements CommandService{
 
 	@Override
 	public Command create_user_forgot_pass_cmd(User me, String sso_id, String phone) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id"+(sso_id==null?"null":sso_id));
+		logger.info("phone"+(phone==null?"null":phone));
+		
+		
 		Command cmd = new Command();
 		cmd.setCommand(Constant.CMD_FOROT_PASS);
 		
@@ -65,9 +82,15 @@ public class CommandServiceImpl implements CommandService{
 
 	@Override
 	public Command create_rank_process(User me, String class_ids, String ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_ids"+(class_ids==null?"null":class_ids));
+		logger.info("ex_key"+(ex_key==null?"null":ex_key));
+		
 		if (class_ids == null || class_ids.trim().length() == 0){
 			return null;
 		}
+		
 		
 		Command cmd = new Command();
 		cmd = new Command();

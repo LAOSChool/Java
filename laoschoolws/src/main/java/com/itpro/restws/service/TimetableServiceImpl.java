@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 
+import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ import com.itpro.restws.model.User;
 @Service("timetableService")
 @Transactional
 public class TimetableServiceImpl implements TimetableService{
-
+	private static final Logger logger = Logger.getLogger(TimetableServiceImpl.class);
 	@Autowired
 	private TimetableDao timetableDao;
 	@Autowired
@@ -51,12 +52,20 @@ public class TimetableServiceImpl implements TimetableService{
 	
 	@Override
 	public Timetable findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+id.intValue());
+		
 		
 		return timetableDao.findById(id);
 	}
 
 	@Override
 	public int countBySchoolID(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+school_id.intValue());
+		
 		
 		return timetableDao.countBySchool(school_id);
 	}
@@ -64,17 +73,33 @@ public class TimetableServiceImpl implements TimetableService{
 	
 	@Override
 	public ArrayList<Timetable> findBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("from_num:"+from_num);
+		logger.info("max_result:"+max_result);
+		
 		
 		return (ArrayList<Timetable>) timetableDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Timetable> findByClass(Integer class_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+class_id.intValue());
+		logger.info("from_num:"+from_num);
+		logger.info("max_result:"+max_result);
+		
 		return (ArrayList<Timetable>) timetableDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
 	public Timetable insertTimetable(User user, Timetable timetable) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		validateTimetable(user,timetable,true);
 		timetableDao.saveTimeTable(user,timetable);
 		return timetable;
@@ -82,6 +107,8 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public Timetable updateTransTimetable(User me, Timetable timetable) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (timetable.getId() == null ){
 			throw new ESchoolException("timetable.id is null", HttpStatus.BAD_REQUEST);
@@ -117,6 +144,13 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public ArrayList<Timetable> findByDate(Integer class_id, String dt) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+class_id.intValue());
+		logger.info("dt:"+dt);
+		
+		
+		
 		Integer dayofWeeID = 0;
 		Integer dayofWee = Utils.parseWeekDay(dt);
 		if (dayofWee == null || 
@@ -134,6 +168,12 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public ArrayList<MSubject> findSubjectOfClass(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+class_id.intValue());
+		
+		
+		
 		ArrayList<MSubject> list_sub = new ArrayList<MSubject>();
 		ArrayList<Timetable> list = (ArrayList<Timetable>) timetableDao.findByClass(class_id,0, 99999);
 		HashSet<String> set_sub = new HashSet<String>(); 
@@ -155,6 +195,10 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public void delTimetableById(User user, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+id.intValue());
+		
 		Timetable timetable = findById(id);
 		
 		if (timetable == null ){
@@ -168,6 +212,8 @@ public class TimetableServiceImpl implements TimetableService{
 		
 	}
 	private void validateTimetable(User me, Timetable timetable, boolean is_new) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 				
 		if (is_new){
@@ -306,6 +352,10 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public Timetable reloadTimetable(Timetable timetable) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Timetable tbl = null;
 		if (timetable != null && timetable.getId() != null && timetable.getId().intValue() > 0){
 			tbl = timetableDao.findById(timetable.getId());
@@ -318,11 +368,25 @@ public class TimetableServiceImpl implements TimetableService{
 
 	@Override
 	public int countTimetableExt(Integer school_id, Integer class_id,Integer weekday_id, Integer session_id,Integer year_id, Integer term_val) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		return timetableDao.countTimetableExt(school_id, class_id, weekday_id,session_id,year_id,term_val);
 	}
 
 	@Override
 	public ArrayList<Timetable> findTimetableExt(Integer school_id, Integer class_id,Integer weekday_id, Integer session_id,Integer year_id, Integer term_val){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("class_id:"+(weekday_id==null?"null":weekday_id.intValue()));
+		logger.info("class_id:"+(session_id==null?"null":session_id.intValue()));
+		logger.info("class_id:"+(year_id==null?"null":year_id.intValue()));
+		logger.info("class_id:"+(term_val==null?"null":term_val.intValue()));
+		
 		
 		return (ArrayList<Timetable>) timetableDao.findTimetableExt(school_id, class_id, weekday_id,session_id,year_id,term_val);
 	}

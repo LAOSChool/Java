@@ -76,7 +76,12 @@ public class User2ClassServiceImpl implements User2ClassService{
 	}
 	@Override
 	public User2Class assignUserToClass(User admin, Integer user_id, Integer class_id, String notice) {
-		logger.info("assignUserToClass START");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id:"+user_id.intValue());
+		logger.info("class_id:"+class_id.intValue());
+		
+		
 		User user = userDao.findById(user_id);
 		EClass eclass = classesDao.findById(class_id);
 		
@@ -222,6 +227,10 @@ public class User2ClassServiceImpl implements User2ClassService{
 	}
 	@Override
 	public void delUser(User me, Integer user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id:"+user_id.intValue());
+		
 		User user = userDao.findById(user_id);
 		
 		if (user == null ){
@@ -263,6 +272,12 @@ public class User2ClassServiceImpl implements User2ClassService{
 	}
 	@Override
 	public void delClass(User me, Integer class_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+class_id.intValue());
+		
+		
 		EClass eclass = classesDao.findById(class_id);
 		
 		if (eclass == null ){

@@ -20,7 +20,7 @@ public interface ExamResultService {
 	// Input/delete
 	void deleteExamResult(User me,ExamResult exam);
 	void validInputExam(User teacher, ExamResult exam);
-	ExamResult updateExamResult(User teacher,ExamResult examResult); 
+	//ExamResult updateExamResult_detach(User teacher,ExamResult examResult); 
 	ExamResult inputExam(User teacher,ExamResult examResult);
 	// User Profile
 	int countExamResultExt (Integer school_id, Integer class_id, Integer student_id,Integer subject_id,Integer year_id);

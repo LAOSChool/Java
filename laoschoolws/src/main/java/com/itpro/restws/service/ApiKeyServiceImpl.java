@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import com.itpro.restws.model.User;
 @Service("apiKeyService")
 @Transactional
 public class ApiKeyServiceImpl implements ApiKeyService{
-	//private static final Logger logger = Logger.getLogger(ApiKeyServiceImpl.class);
+	private static final Logger logger = Logger.getLogger(ApiKeyServiceImpl.class);
 	@Autowired
 	private ApiKeyDao apiKeyDao;
 	
@@ -30,18 +31,35 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	
 	@Override
 	public ApiKey findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id"+(id==null?"null":id.intValue()));
+		
 		return apiKeyDao.findById(id);
 	}
 	@Override
 	public ArrayList<ApiKey> findBySsoID(String sso_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id"+(sso_id==null?"null":sso_id));
+		
 		return (ArrayList<ApiKey>) apiKeyDao.findBySsoId(sso_id);
 	}
 	@Override
 	public ArrayList<ApiKey> findByApiKey(String api_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		
 		return (ArrayList<ApiKey>) apiKeyDao.findByApiKey(api_key);
 	}
 	@Override
 	public ArrayList<ApiKey> findByCloundToken(String token) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("token"+(token==null?"null":token));
+		
+		
 		return (ArrayList<ApiKey>) apiKeyDao.findByCloundToken(token);
 	}
 //	@Override
@@ -50,6 +68,12 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 //	}
 	@Override
 	public ApiKey loginApiKeySuccess(String sso_id, String api_key,String auth_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id"+(sso_id==null?"null":sso_id));
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		logger.info("auth_key"+(auth_key==null?"null":auth_key));
+		
 		ApiKey apiKey = null;
 		if (isIgnoredKey(api_key)){
 			return null;
@@ -88,6 +112,13 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	
 	@Override
 	public void saveFireBaseToken(String sso_id, String api_key, String auth_key,String cld_token) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id"+(sso_id==null?"null":sso_id));
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		logger.info("auth_key"+(auth_key==null?"null":auth_key));
+		logger.info("cld_token"+(cld_token==null?"null":cld_token));
+		
 		ApiKey apiKey = null;
 		if (isIgnoredKey(api_key)){
 			return ;
@@ -151,6 +182,10 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 
 	@Override
 	public void updateApiKey(ApiKey apikey) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (apikey.getId() != null  && apikey.getId().intValue() > 0){
 			apiKeyDao.updateApiKey(apikey);
 		}
@@ -158,6 +193,11 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	}
 	@Override
 	public void logoutApiKey(String api_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		
+		
 		ArrayList<ApiKey> list = (ArrayList<ApiKey>) apiKeyDao.findByApiKey(api_key);
 		if (list != null && list.size() > 0){
 			for (ApiKey ob_api_key : list){
@@ -171,6 +211,12 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	}
 	@Override
 	public void logoutBySSoID(String username) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("username"+(username==null?"null":username));
+		
+		
+		
 		ArrayList<ApiKey> list = (ArrayList<ApiKey>) apiKeyDao.findBySsoId(username);
 		if (list != null && list.size() > 0){
 			for (ApiKey ob_api_key : list){
@@ -184,6 +230,10 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	}
 	@Override
 	public void logoutByAuthKey(String auth_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("auth_key"+(auth_key==null?"null":auth_key));
+		
 		ArrayList<ApiKey> list = (ArrayList<ApiKey>) apiKeyDao.findByAuthKey(auth_key);
 		if (list != null && list.size() > 0){
 			for (ApiKey ob_api_key : list){
@@ -197,6 +247,10 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	}
 	@Override
 	public void validGetApiKey(User me, String sso_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id"+(sso_id==null?"null":sso_id));
+		
 		User user = userDao.findBySSO(sso_id);
 		if (user == null  || user.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("sso_id is not existing or not belong to use school", HttpStatus.BAD_REQUEST);
@@ -206,6 +260,10 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	
 	@Override
 	public boolean isIgnoredKey(String api_key){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		
 		String[] ignores_devices = Constant.NON_DEVICE_API_KEY;
 		for (int i = 0;i< ignores_devices.length;i++){
 			if (api_key.equalsIgnoreCase(ignores_devices[i])){
@@ -216,6 +274,11 @@ public class ApiKeyServiceImpl implements ApiKeyService{
 	}
 	@Override
 	public ArrayList<ApiKey> findActivedApiKey(String api_key, String auth_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key"+(api_key==null?"null":api_key));
+		logger.info("auth_key"+(auth_key==null?"null":auth_key));
+		
 		return (ArrayList<ApiKey>) apiKeyDao.findActivedApiKey(api_key, auth_key);
 	}
 

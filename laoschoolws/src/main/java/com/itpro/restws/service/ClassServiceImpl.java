@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ import com.itpro.restws.model.User;
 @Service("classService")
 @Transactional
 public class ClassServiceImpl implements ClassService{
-
+	private static final Logger logger = Logger.getLogger(ClassServiceImpl.class);
 	@Autowired
 	private ClassDao classDao;
 	
@@ -43,6 +44,10 @@ public class ClassServiceImpl implements ClassService{
 	
 	@Override
 	public EClass findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id"+(id==null?"null":id.intValue()));
+		
 		EClass eclass= classDao.findById(id);
 		updateTermVal(eclass);
 		return eclass;
@@ -51,6 +56,11 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public int countBySchoolID(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		
+		
 		return classDao.countClassBySchool(school_id);
 		
 	}
@@ -58,6 +68,10 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public ArrayList<EClass> findByUser(Integer user_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
+		
 		ArrayList<EClass> list= (ArrayList<EClass>) classDao.findByUser(user_id, from_num, max_result);
 		updateTermVals(list);
 		return list;
@@ -66,6 +80,10 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public ArrayList<EClass> findBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		
 		ArrayList<EClass> list= (ArrayList<EClass>) classDao.findBySchool(school_id, from_num, max_result);
 		updateTermVals(list);
 		return list;
@@ -73,6 +91,10 @@ public class ClassServiceImpl implements ClassService{
 	@Override
 	public EClass newClass(User me, EClass eClass) {
 
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		valid_new_class(me,eClass);
 		
 		classDao.saveClass(me,eClass);
@@ -90,6 +112,10 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public EClass updateTransClass(User me,EClass eClass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (eClass.getId() == null || eClass.getId().intValue() <= 0){
 			throw new ESchoolException("class.id is required to update", HttpStatus.BAD_REQUEST);
 		}
@@ -127,6 +153,10 @@ public class ClassServiceImpl implements ClassService{
 	}
 	
 	private void assignHeadTeacher(User admin, EClass eClass){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Integer teacher_id = eClass.getHead_teacher_id();
 		if (teacher_id != null && teacher_id.intValue() > 0){
 			User teacher = userDao.findById(teacher_id);
@@ -146,6 +176,9 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public ArrayList<SchoolExam> findExamOfClass(User user, Integer class_id,SchoolTerm term) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id"+(class_id==null?"null":class_id.intValue()));
 		
 	    EClass eclass = findById(class_id);
 	  
@@ -183,6 +216,10 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public SchoolYear getSchoolYear(EClass eclass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		Integer year_id = eclass.getYear_id();
 		
 		return schoolYearService.findById(year_id); 
@@ -190,6 +227,9 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public SchoolTerm getCurrentTerm(EClass eClass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (eClass == null ){
 			return null;
 		}
@@ -202,6 +242,9 @@ public class ClassServiceImpl implements ClassService{
 	
 	@Override
 	public void updateTermVal(EClass eClass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (eClass == null ){
 			return;
 		}
@@ -216,6 +259,9 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public void updateTermVals(ArrayList<EClass> classes) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (classes == null || classes.size() <= 0 ){
 			return;
 		}
@@ -232,6 +278,9 @@ public class ClassServiceImpl implements ClassService{
 	}
 
 	private void valid_new_class(User me, EClass eclass){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// Check school
 		if (eclass.getSchool_id() == null ){
 			eclass.setSchool_id(me.getSchool_id());
@@ -298,6 +347,9 @@ public class ClassServiceImpl implements ClassService{
 
 	@Override
 	public EClass delClass(User me, Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		EClass eClass = classDao.findById(class_id);
 		
 		if (eClass.getId() == null || eClass.getId().intValue() <= 0){

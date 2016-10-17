@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,7 @@ import com.itpro.restws.model.User;
 @RestController 
 public class ClassController extends BaseController {
 	
+	private static final Logger logger = Logger.getLogger(ClassController.class);
 	
 	@RequestMapping(value="/api/classes",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -46,7 +48,10 @@ public class ClassController extends BaseController {
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
-		logger.info(" *** ClassController.getClasses");
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		List<EClass> classes = null;
 		int total_row = 0;
 		
@@ -105,7 +110,7 @@ public class ClassController extends BaseController {
 	@RequestMapping(value = "/api/classes/{id}", method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
 	 public EClass getClass(@PathVariable int  id,@Context final HttpServletResponse response) {
-		logger.info(" *** MainRestController.getClass/{id}:"+id);
+		logger.info(" *** getClass/{id}:"+id);
 		EClass eclass = null;
 	    
     	User user = getCurrentUser();
@@ -128,7 +133,9 @@ public class ClassController extends BaseController {
 			@RequestBody EClass eclass,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.users.create");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		
 		if (eclass.getId() != null ){
@@ -146,7 +153,9 @@ public class ClassController extends BaseController {
 			@RequestBody EClass eclass,
 			@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.classes.update");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User admin = getCurrentUser();
 		// eclass = classService.findById(1);
 		 return classService.updateTransClass(admin,eclass);
@@ -162,7 +171,7 @@ public class ClassController extends BaseController {
 			 
 			 ) {
 		
-		logger.info(" *** MainRestController.delClass/{class_id}:"+id);
+		logger.info(" *** delClass/{class_id}:"+id);
 		User me = getCurrentUser();
 		return classService.delClass(me,id);
 	 }
@@ -178,7 +187,7 @@ public class ClassController extends BaseController {
 			 
 			 ) {
 		
-		logger.info(" *** MainRestController.getUsers/{class_id}:"+class_id.intValue());
+		logger.info(" *** getUsers/{class_id}:"+class_id.intValue());
 		User me = getCurrentUser();
 		
 		EClass eclass = classService.findById(class_id);

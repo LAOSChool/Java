@@ -66,6 +66,9 @@ public class UserServiceImpl implements UserService{
 	protected User2ClassService user2ClassService;
 	
 	public User findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User user = userDao.findById(id);
 		if (user != null){
 			permitService.loadPermit(user);
@@ -74,6 +77,8 @@ public class UserServiceImpl implements UserService{
 	}
 
 	public User findBySso(String sso) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		User user = userDao.findBySSO(sso);
 		if (user != null){
 			permitService.loadPermit(user);
@@ -84,6 +89,11 @@ public class UserServiceImpl implements UserService{
 	@Override
 	public
 	ArrayList<User> findBySchool(Integer school_id,int from_num, int max_result){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("from_num:"+from_num);
+		logger.info("max_result:"+max_result);
 		
 		ArrayList<User> list = (ArrayList<User>)userDao.findBySchool(school_id, from_num, max_result);
 		for (User user : list){
@@ -96,17 +106,30 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public int countBySchoolID(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		return userDao.countUserBySchool(school_id);
 	}
 
 	@Override
 	public int countByClassID(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		return userDao.countUserByClass(class_id);
 	}
 
 	
 	@Override
 	public ArrayList<User> findByClass(Integer class_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+class_id.intValue());
+		logger.info("from_num:"+from_num);
+		logger.info("max_result:"+max_result);
+		
 		ArrayList<User> list = (ArrayList<User>) userDao.findByClass(class_id, from_num, max_result);
 		for (User user : list){
 			if (user != null){
@@ -126,6 +149,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public User updateTransientUser(User me, User transient_user,boolean ignore_pass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		if (transient_user.getId() == null ){
 			throw new ESchoolException("user.id is null", HttpStatus.BAD_REQUEST);
@@ -191,6 +217,10 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public boolean isValidState(int State) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (State == E_STATE.PENDING.value()){
 			return true;
 		}
@@ -213,6 +243,10 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public boolean isValidPassword(String pass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (pass != null && !pass.equals("") && (!pass.contains(" "))){
 			if (pass.length() >=4 &&  pass.length()<= 20){
 				return true;
@@ -222,7 +256,9 @@ public class UserServiceImpl implements UserService{
 	}
 	@Override
 	public void validSSO_ID(String sso,E_ROLE role) {
-		 
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		 
 		if (sso == null || sso.trim().length() == 0){
 			throw new ESchoolException("SSO is blank or NULL",HttpStatus.BAD_REQUEST);
@@ -281,6 +317,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public String encryptPass(String new_pass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+				
 		String saltedPass =new_pass;
 		try {
 			saltedPass = Password.getSaltedHash(new_pass);
@@ -293,6 +332,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public String changePassword(User me, String sso_id, String old_pass, String new_pass) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (!isValidPassword(new_pass) ){
 			throw new ESchoolException("Input Password length is not correct - expected length should be >= 4 AND <= 20",HttpStatus.BAD_REQUEST);
 		}
@@ -367,7 +409,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public User createUser(User me, User user, E_ROLE role) {
-	
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// Update Student sso_id to unique value
 		if (role == E_ROLE.STUDENT){
 			user.setSso_id(user.getSso_id()+Utils.now());
@@ -397,6 +441,10 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public String forgotPassword(User me, String sso_id, String phone) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id:"+sso_id);
+		logger.info("phone:"+phone);
 		
 		User forgot_user = userDao.findBySSO(sso_id);
 		
@@ -418,6 +466,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public boolean isSameClass(User user1, User user2) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (user1 == null || user2 == null || user1.getClasses() == null || user2.getClasses() == null ){
 			return false;
 		}
@@ -435,6 +486,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public boolean isSameClass(Integer id, List<Integer> list) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+				
 		User user1 = findById(id);
 		for (Integer user_id: list){
 			User user2 = findById(user_id);
@@ -447,6 +501,8 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public boolean isSameSChool(User user1, User user2) {
+		
+		
 		if (user1== null || user2 == null || user1.getSchool_id() == 0 || user2.getSchool_id() == 0){
 			return false;
 		}
@@ -498,6 +554,10 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public User createAdmin(String sso_id, String pass,Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("sso_id:"+sso_id);
+		logger.info("school_id:"+school_id.intValue());
 		
 		validSSO_ID(sso_id, E_ROLE.ADMIN);
 		
@@ -520,6 +580,9 @@ public class UserServiceImpl implements UserService{
 	 * @return
 	 */
 	public  ArrayList<User> filterByClasses(ArrayList<User> list, String filter_classes ){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		ArrayList<User> new_list = new ArrayList<>();
 		// Filter user by class
 		if (filter_classes != null && filter_classes.length() > 0){
@@ -541,6 +604,9 @@ public class UserServiceImpl implements UserService{
 	}
 	
 	public  ArrayList<User> filterByRoles(ArrayList<User> list, String filter_roles ){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		ArrayList<User> new_list = new ArrayList<>();
 		// Filter user by class
 		if (filter_roles != null && filter_roles.length() > 0){
@@ -555,6 +621,9 @@ public class UserServiceImpl implements UserService{
 		return new_list;
 	}
 	public  ArrayList<User> filterByStatus(ArrayList<User> list, String filter_state ){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		ArrayList<User> new_list = new ArrayList<>();
 		Integer state = Utils.parseInteger(filter_state);
 		if (state == null || state == 0){
@@ -571,6 +640,8 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public int countUserExt(Integer school_id, Integer filter_class_id, String filter_user_role, Integer filter_sts,Integer from_row_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		return userDao.countUserExt(school_id,filter_class_id, filter_user_role, filter_sts,from_row_id);
 		
@@ -579,11 +650,18 @@ public class UserServiceImpl implements UserService{
 	@Override
 	public ArrayList<User> findUserExt(Integer school_id, int from_num, int max_result, Integer filter_class_id,
 			String filter_user_role, Integer filter_sts,Integer from_row_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		return (ArrayList<User>) userDao.findUserExt(school_id, from_num, max_result, filter_class_id, filter_user_role, filter_sts, from_row_id);
 	}
 
 	@Override
 	public SchoolYear getLatestSchoolYear(User student) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		SchoolYear max = null;
 		if (student.hasRole(E_ROLE.STUDENT.getRole_short())){
 			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
@@ -604,6 +682,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public ArrayList<SchoolYear> getSchoolYears(User student) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (student.hasRole(E_ROLE.STUDENT.getRole_short())){
 			ArrayList<SchoolYear> years = eduProfileService.findSchoolYearByStudentID(student.getId());
 			return years;
@@ -614,6 +695,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public int countAvailableUser(Integer school_id, String filter_user_role) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		return userDao.countAvailableUser(school_id,filter_user_role);
 	}
 
@@ -624,6 +708,9 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public void updateClassTerm(User user) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		Set<EClass> classes = user.getClasses();
 		if (classes != null && classes.size() > 0){
 			for (EClass eclass : classes){
@@ -636,6 +723,9 @@ public class UserServiceImpl implements UserService{
 	
 		@Override
 		public void saveUploadPhoto(User me, Integer user_id,MultipartFile []files) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			
 			String err_msg = "";
 			
 			// Validation Data
@@ -669,7 +759,7 @@ public class UserServiceImpl implements UserService{
 				byte[] bytes = file.getBytes();
 				String str_dir = Utils.makeFolderByTime(upload_dir);
 				//fileName = file.getOriginalFilename();
-				fileName = Utils.getFileName("USER"+user.getSso_id(),file.getOriginalFilename());            	
+				fileName = Utils.getFileName("USER_"+user.getSso_id(),file.getOriginalFilename());            	
 	            filePath = str_dir+ "/" + fileName;
 	            
 				// Create the file on server
@@ -697,6 +787,9 @@ public class UserServiceImpl implements UserService{
 		}
 
 		private void valid_user( User user, boolean is_new ) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			
 			if (!is_new){
 				if (user.getId() == null || user.getId().intValue() <= 0 ){
 					throw new ESchoolException("user.id is NULL",HttpStatus.BAD_REQUEST);
@@ -737,12 +830,17 @@ public class UserServiceImpl implements UserService{
 
 		@Override
 		public User updateAttachedUser(User me, User attached_user) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			
 			userDao.updateUser(me, attached_user);
 			return attached_user;
 		}
 
 		@Override
 		public String saveUploadUsers(User me, MultipartFile[] files, Integer class_id) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
 			
 			// Validation Data
 			if (files == null || files.length ==0){
@@ -812,6 +910,9 @@ public class UserServiceImpl implements UserService{
 		}
 
 		private ArrayList<User>  impFileToClass(User me,EClass eclass,String filePath,String fileName) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			
 			ArrayList<User> users = new ArrayList<User>();
 			BufferedReader bufferedReader = null;
 			
@@ -955,6 +1056,10 @@ public class UserServiceImpl implements UserService{
 
 		@Override
 		public User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			logger.info("user_id:"+user_id.intValue());
+			logger.info("class_id:"+class_id.intValue());
 			if (user_id == null || user_id.intValue() == 0){
 				throw new ESchoolException("user_id is required", HttpStatus.BAD_REQUEST);
 			}
@@ -969,17 +1074,32 @@ public class UserServiceImpl implements UserService{
 
 		@Override
 		public void deleteUser(User me, Integer user_id) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+
+			if (!me.hasRole(E_ROLE.ADMIN.getRole_short())){
+				throw new ESchoolException("me is not ADMIN role, cannot call this API", HttpStatus.FORBIDDEN);
+			}
+			
 			if (user_id == null ){
-				throw new ESchoolException("user_id is null", HttpStatus.NOT_FOUND);
+				throw new ESchoolException("user_id is null", HttpStatus.BAD_REQUEST);
 			}
 			
 			User del_user = userDao.findById(user_id);
 			if (del_user == null ){
-				throw new ESchoolException("Cannot find user id:"+user_id.intValue(), HttpStatus.NOT_FOUND);
+				throw new ESchoolException("Cannot find user id:"+user_id.intValue(), HttpStatus.BAD_REQUEST);
 			}
-			if (del_user.hasRole(E_ROLE.ADMIN.getRole_short())){
-				throw new ESchoolException("Cannot del Admin account", HttpStatus.NOT_FOUND);
+			if (me.getId().intValue() == user_id.intValue()){
+				throw new ESchoolException("Cannot del himself", HttpStatus.BAD_REQUEST);
 			}
+			if (	del_user.hasRole(E_ROLE.ADMIN.getRole_short()) ){
+				throw new ESchoolException("Cannot del Admin account", HttpStatus.BAD_REQUEST);
+			}
+			
+			if (del_user.hasRole(E_ROLE.SYS_ADMIN.getRole_short()) ){
+				throw new ESchoolException("Cannot del SysAdmin account", HttpStatus.BAD_REQUEST);
+			}
+
 			
 			if (!isSameSChool(me, del_user)){
 				throw new ESchoolException("me and del_user are not in the same School", HttpStatus.BAD_REQUEST);
@@ -994,6 +1114,11 @@ public class UserServiceImpl implements UserService{
 
 		@Override
 		public void removeUser2Class(User me, Integer user_id, Integer class_id, String notice) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			logger.info("user_id:"+user_id.intValue());
+			logger.info("class_id:"+class_id.intValue());
+			
 			user2ClassService.removeUserToClass(me, user_id, class_id, notice);
 			
 		}

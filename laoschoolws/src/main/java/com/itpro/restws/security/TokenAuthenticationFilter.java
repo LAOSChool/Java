@@ -49,12 +49,6 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	private static final Logger logger = Logger.getLogger(TokenAuthenticationFilter.class);
 	public static String LOG_METHODS="GET,POST,PUT, DELETE";
 
-//	private static final String HEADER_TOKEN = "X-Auth-Token";
-//	private static final String HEADER_USERNAME = "X-Username";
-//	private static final String HEADER_PASSWORD = "X-Password";
-
-	
-
 	/**
 	 * Request attribute that indicates that this filter will not continue with the chain.
 	 * Handy after login/logout, etc.
@@ -74,7 +68,6 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 		throws IOException, ServletException
 	{
-//		System.out.println(" *** MyAuthenticationFilter.doFilter");
 		logger.info(" *** MyAuthenticationFilter.doFilter");
 		final HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;

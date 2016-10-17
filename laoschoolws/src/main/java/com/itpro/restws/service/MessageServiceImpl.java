@@ -60,66 +60,97 @@ public class MessageServiceImpl implements MessageService{
 	
 	@Override
 	public Message findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+(id==null?"null":id.intValue()));
+		
 		return messageDao.findById(id);
 		
 	}
 
 	@Override
 	public int countMsgFromUser(Integer from_user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_user_id:"+(from_user_id==null?"null":from_user_id.intValue()));
+		
+		
 		return messageDao.countByFromUser(from_user_id);
 	}
 
 	@Override
 	public int countMsgToUser(Integer to_user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_user_id:"+(to_user_id==null?"null":to_user_id.intValue()));
+		
 		return messageDao.countByToUser(to_user_id);
 	}
 
 	@Override
 	public ArrayList<Message> findMsgFromUser(Integer from_userid, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_userid:"+(from_userid==null?"null":from_userid.intValue()));
 		
 		return (ArrayList<Message>) messageDao.findByFromUser(from_userid, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Message> findMsgTomUser(Integer to_userid, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_userid:"+(to_userid==null?"null":to_userid.intValue()));
 		
 		return (ArrayList<Message>) messageDao.findByToUser(to_userid, from_num, max_result);
 	}
 
 	@Override
 	public int countMsgBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
 		
 		return messageDao.countBySchool(school_id);
 	}
 
 	@Override
 	public int countMsgByClass(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		return messageDao.countByClass(class_id);
 	}
 
 	@Override
 	public ArrayList<Message> findMsgBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		
 		return (ArrayList<Message>) messageDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<Message> findMsgByClass(Integer school_id,Integer class_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		return (ArrayList<Message>) messageDao.findByClass(school_id,class_id, from_num, max_result);
 	}
 
 
 	@Override
 	public Message updateTransMessage(User me, Message message) {
-//   20160823 START		
-//		String error_msg = checkUpdateMessage(message);
-//		if (error_msg!= null ){
-//			throw new ESchoolException(error_msg, HttpStatus.BAD_REQUEST);
-//		}
-//		Message messageDB = messageDao.findById(message.getId());
-//		messageDB = Message.updateChanges(messageDB, message);
-//		messageDao.updateMessage(messageDB);
-//		return messageDB;
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+//   20160823 START		
+
 		Message messageDB = messageDao.findById(message.getId());
 		 try {
 			  	messageDao.setFlushMode(FlushMode.MANUAL);
@@ -159,6 +190,20 @@ public class MessageServiceImpl implements MessageService{
 				Integer from_row_id
 				) 
 	{
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("dateFrom:"+(dateFrom==null?"null":dateFrom));
+		logger.info("dateTo:"+(dateTo==null?"null":dateTo));
+		logger.info("fromUserID:"+(fromUserID==null?"null":fromUserID.intValue()));
+		logger.info("toUserID:"+(toUserID==null?"null":toUserID.intValue()));
+		logger.info("channel:"+(channel==null?"null":channel.intValue()));
+		logger.info("is_read:"+(is_read==null?"null":is_read.intValue()));
+		logger.info("from_row_id:"+(from_row_id==null?"null":from_row_id.intValue()));
+		
+		
 		return (ArrayList<Message>) messageDao.findMessagesExt(
 				school_id, 
 				from_row, 
@@ -195,6 +240,18 @@ public class MessageServiceImpl implements MessageService{
 					Integer channel, 
 					Integer is_read,
 					Integer from_row_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("dateFrom:"+(dateFrom==null?"null":dateFrom));
+		logger.info("dateTo:"+(dateTo==null?"null":dateTo));
+		logger.info("fromUserID:"+(fromUserID==null?"null":fromUserID.intValue()));
+		logger.info("toUserID:"+(toUserID==null?"null":toUserID.intValue()));
+		logger.info("channel:"+(channel==null?"null":channel.intValue()));
+		logger.info("is_read:"+(is_read==null?"null":is_read.intValue()));
+		logger.info("from_row_id:"+(from_row_id==null?"null":from_row_id.intValue()));
+		
 		
 		Integer ret = messageDao.countMessagesExt(
 				school_id, 
@@ -221,6 +278,8 @@ public class MessageServiceImpl implements MessageService{
 	 * 		Validation new message parameters	
 	 */
 	public void secureCheckNewMessage(User me,Message msg) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			return;
@@ -319,6 +378,9 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public MessageFilter secureGetMessages(User me) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			return null;
 		}
@@ -348,6 +410,8 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public void secureCheckClassMessage(User me, Message msg, String class_list,String fileter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			return ;
@@ -414,6 +478,9 @@ public class MessageServiceImpl implements MessageService{
 	 */
 
 	String checkUpdateMessage(Message msg){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (msg == null ){
 			return  "Message is not existing";
 		}
@@ -436,6 +503,15 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public Message newSimpleMessage(Integer from_user_id, Integer to_user_id, String content, Integer channel, Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("from_user_id:"+(from_user_id==null?"null":from_user_id.intValue()));
+		logger.info("to_user_id:"+(to_user_id==null?"null":to_user_id.intValue()));
+		logger.info("content:"+(content==null?"null":content));
+		logger.info("channel:"+(channel==null?"null":channel.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
+		
 		Message msg = new Message();
 		User frm_user = userService.findById(from_user_id);
 		User to_user = userService.findById(to_user_id);
@@ -455,7 +531,7 @@ public class MessageServiceImpl implements MessageService{
 		msg.setFrom_user_id(from_user_id);
 		msg.setTo_user_id(to_user_id);
 		msg.setChannel(channel);
-		if (class_id != null || class_id.intValue() > 0){
+		if (class_id != null && class_id.intValue() > 0){
 			msg.setClass_id(class_id);
 		}
 		
@@ -468,6 +544,11 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public ArrayList<Message> findUnProcSMS(User me, String api_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key:"+(api_key==null?"null":api_key));
+		
+		
 		if (!valid_sms_user_device(me,api_key)){
 			throw new ESchoolException("sso_id:"+me.getSso_id()+"// device:"+api_key+" is not authorized to send SMS", HttpStatus.BAD_REQUEST);
 		}
@@ -476,6 +557,9 @@ public class MessageServiceImpl implements MessageService{
 	}
 
 	boolean valid_sms_user_device(User me, String api_key){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key:"+(api_key==null?"null":api_key));
 		
 		ArrayList<SysTemplate> list = sysTblService.findAll("sys_settings", 0, 99999);
 		String setting_sso  = null;
@@ -500,6 +584,11 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public void smsDone(User me, String api_key,Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("api_key:"+(api_key==null?"null":api_key));
+		logger.info("id:"+(id==null?"null":id.intValue()));
+		
 		if (!valid_sms_user_device(me,api_key)){
 			throw new ESchoolException("sso_id:"+me.getSso_id()+"// device:"+api_key+" is not authorized to send SMS", HttpStatus.BAD_REQUEST);
 		}
@@ -516,6 +605,10 @@ public class MessageServiceImpl implements MessageService{
 	
 	@Override
 	public ArrayList<Message> sendClassMessage(User me, Message message, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		ArrayList<Message> list = new ArrayList<Message>();
 		boolean ignored_school =false;
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
@@ -580,6 +673,9 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public ArrayList<Message> createClassMessageTaskWithCC(User me, Message message, String filter_roles) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		ArrayList<Message> ret = new ArrayList<>();
 		if (message.getClass_id() == null || message.getClass_id().intValue() == 0){
@@ -636,6 +732,8 @@ public class MessageServiceImpl implements MessageService{
 	}
 	void valid_message(User me, Message message, boolean is_new){
 		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		if (!is_new){
 			if (message.getId() == null || message.getId().intValue() == 0){
@@ -711,6 +809,9 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public Message sendUserMessageWithCC(User me, Message message) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		Message new_msg = null;
 		String[] to_user_list =null; 
 		String cc_list = message.getCc_list()==null?"": message.getCc_list();
@@ -754,6 +855,10 @@ public class MessageServiceImpl implements MessageService{
 
 	
 	public Message insertUserMessage(User me, Message message) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		// Valid message before send
 		valid_message(me,message,true);
 		messageDao.saveMessage(me,message);
@@ -771,6 +876,9 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	public Message updateAttachedMessage(User me, Message messageDB) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		messageDao.updateMessage(me,messageDB);
 		return messageDB;
 	}

@@ -27,8 +27,9 @@ public class CustomUserDetailsService implements UserDetailsService{
 	@Transactional(readOnly=true)
 	public UserDetails loadUserByUsername(String ssoId)
 			throws UsernameNotFoundException {
+		
 		User user = userDao.findBySSO(ssoId);
-		logger.info("loadUserByUsername Start, ssoId:"+ssoId);
+		logger.info("CustomUserDetailsService.loadUserByUsername() Start, ssoId:"+ssoId);
 		if(user==null){
 			logger.info("User not found");
 			throw new UsernameNotFoundException("Username not found");

@@ -1,5 +1,6 @@
 package com.itpro.restws.service;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +13,17 @@ import com.itpro.restws.model.Notify;
 @Service("firebaseMsgService")
 @Transactional
 public class FirebaseMsgServiceImpl implements FirebaseMsgService{
+	private static final Logger logger = Logger.getLogger(FirebaseMsgServiceImpl.class);
+	
 	@Autowired
 	protected FirebaseMsgDao firebaseMsgDao;
 	
 	@Override
 	public FirebaseMsg create_from_message(Message e) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		FirebaseMsg frebaseMsg =  new FirebaseMsg();;
 		
 		frebaseMsg.setOrg_id(e.getId());
@@ -42,6 +49,10 @@ public class FirebaseMsgServiceImpl implements FirebaseMsgService{
 
 	@Override
 	public FirebaseMsg create_from_notify(Notify e) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		FirebaseMsg frebaseMsg =  new FirebaseMsg();;
 		
 		frebaseMsg.setOrg_id(e.getId());

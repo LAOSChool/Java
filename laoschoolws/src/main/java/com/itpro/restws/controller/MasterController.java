@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -37,7 +38,7 @@ import com.itpro.restws.service.MasterTblService;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class MasterController  extends BaseController { 
-		
+	private static final Logger logger = Logger.getLogger(MasterController.class);	
 	@Autowired
 	private MasterTblService masterTblService;
 		
@@ -52,7 +53,10 @@ public class MasterController  extends BaseController {
 			 @Context final HttpServletRequest request,
 				@Context final HttpServletResponse response
 			) {
-		logger.info(" *** MainRestController.getMaster");
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		 RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
 		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
@@ -100,7 +104,7 @@ public class MasterController  extends BaseController {
 			 @PathVariable String  tbl_name,
 			 @RequestBody MTemplate mtemplate
 			 ) {
-		logger.info(" *** MainRestController.createMaster/{tbl_name}:"+tbl_name);
+		logger.info(" *** createMaster/{tbl_name}:"+tbl_name);
 		User user = getCurrentUser();
 				
 		return masterTblService.insertMTemplate(user,tbl_name, mtemplate);
@@ -113,7 +117,7 @@ public class MasterController  extends BaseController {
 			 @PathVariable String  tbl_name,
 			 @RequestBody MTemplate mtemplate
 			 ) {
-		logger.info(" *** MainRestController.createMaster/{tbl_name}:"+tbl_name);
+		logger.info(" *** updateMaster/{tbl_name}:"+tbl_name);
 		User user = getCurrentUser();
 		if (mtemplate.getId() == null || mtemplate.getId().intValue() <= 0){
 			throw new ESchoolException("id is required", HttpStatus.BAD_REQUEST);
@@ -142,7 +146,7 @@ public class MasterController  extends BaseController {
 			 @PathVariable String  tbl_name,
 			 @PathVariable int  id
 			 ) {
-		logger.info(" *** MainRestController.getMaster/{table}/{id}:"+tbl_name+"/"+id);
+		logger.info(" *** getMaster/{table}/{id}:"+tbl_name+"/"+id);
 
 		
 		MTemplate template = masterTblService.findById(tbl_name, id);

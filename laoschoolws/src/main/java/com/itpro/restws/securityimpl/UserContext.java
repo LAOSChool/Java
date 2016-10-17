@@ -26,8 +26,9 @@ public class UserContext  implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
+		
 		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-		logger.info("getGrantedAuthorities Start, ssoId:"+user.getSso_id());
+		logger.info("UserContext.getGrantedAuthorities Start, ssoId:"+user.getSso_id());
 		String roles = user.getRoles();
 		
 		for(String role : roles.split(",")){

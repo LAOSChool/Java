@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ import com.itpro.restws.model.SysWeekday;
 @Transactional
 public class SysTblServiceImpl implements SysTblService{
 
-	
+	private static final Logger logger = Logger.getLogger(SysTblServiceImpl.class);
 	@Autowired
 	private SysDegreeDao sysDegreeDao;
 	@Autowired
@@ -66,6 +67,10 @@ public class SysTblServiceImpl implements SysTblService{
 	
 	@Override
 	public ArrayList<SysTemplate> findAll(String tbl_name,int from_num, int max_result) {
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
+//		logger.info("tbl_name:"+tbl_name);
+		
 		ArrayList<SysTemplate> list_ret = null;
 		
 		if (SysTblName.TBLNAME_SYS_DEGREE.equalsName(tbl_name) ){
@@ -173,6 +178,13 @@ public class SysTblServiceImpl implements SysTblService{
 
 	@Override
 	public int  countAll(String tbl_name) {
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
+//		logger.info("tbl_name:"+tbl_name);
+		
+		
+		
+		
 		if (SysTblName.TBLNAME_SYS_DEGREE.equalsName(tbl_name) ){
 			return sysDegreeDao.countAll();
 		}
@@ -212,6 +224,13 @@ public class SysTblServiceImpl implements SysTblService{
 
 	@Override
 	public SysTemplate findByID(String tbl_name, Integer id) {
+		
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
+//		logger.info("tbl_name:"+tbl_name);
+		
+		
+		
 		if (SysTblName.TBLNAME_SYS_DEGREE.equalsName(tbl_name) ){
 			SysDegree e = sysDegreeDao.findById(id);
 			return e.convertToTemplate();
@@ -270,6 +289,14 @@ public class SysTblServiceImpl implements SysTblService{
 
 	@Override
 	public SysTemplate findBySval(String tbl_name, String sval) {
+		
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
+//		logger.info("tbl_name:"+tbl_name);
+//		logger.info("sval:"+(sval==null?"null":sval));
+		
+		
+		
 		if (SysTblName.TBLNAME_SYS_DEGREE.equalsName(tbl_name) ){
 			ArrayList<SysDegree> elist = (ArrayList<SysDegree>) sysDegreeDao.findAll();
 			for (SysDegree e:elist){

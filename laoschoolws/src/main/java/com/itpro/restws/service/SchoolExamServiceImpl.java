@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,23 +17,35 @@ import com.itpro.restws.model.User;
 @Service("schoolExamService")
 @Transactional
 public class SchoolExamServiceImpl implements SchoolExamService{
-
+	private static final Logger logger = Logger.getLogger(SchoolExamServiceImpl.class);
 	@Autowired
 	private SchoolExamDao schoolExamDao;
 
 	@Override
 	public SchoolExam findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		return schoolExamDao.findById(id);
 	
 	}
 
 	@Override
 	public ArrayList<SchoolExam> findBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		return (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
 	}
 
 	@Override
 	public SchoolExam insertSchoolExam(User me, SchoolExam schoolExam) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (schoolExam.getId() != null ){
 			throw new ESchoolException("schoolExam.id must be NULL to create", HttpStatus.BAD_REQUEST);
 		}
@@ -44,6 +57,10 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 
 	@Override
 	public SchoolExam updateTransSchoolExam(User me, SchoolExam schoolExam) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (schoolExam.getId() == null || schoolExam.getId().intValue() == 0  ){
 			throw new ESchoolException("schoolExam.id not exist", HttpStatus.BAD_REQUEST);
 		}
@@ -71,6 +88,11 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 
 	@Override
 	public void delById(User me, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("id:"+id.intValue());
+		
 		SchoolExam ex = schoolExamDao.findById(id);
 		if (ex == null ){
 			throw new ESchoolException("Delete SchoolExam.ID is not existing", HttpStatus.BAD_REQUEST);
@@ -85,7 +107,9 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 
 	
 	private void validateSchoolExam(User user, SchoolExam schoolExam){
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+
 		schoolExam.setSchool_id(user.getSchool_id());
 		if (schoolExam.getId() != null && schoolExam.getId().intValue() >0 ){
 //			//update
@@ -148,6 +172,11 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 
 	@Override
 	public boolean valid_ex_key(User me, String ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("ex_key:"+(ex_key==null?"null":ex_key));
+		
+		
 		Integer school_id = me.getSchool_id();
 		SchoolExam exam = schoolExamDao.findByExKey(school_id, ex_key);
 		if (exam == null ){

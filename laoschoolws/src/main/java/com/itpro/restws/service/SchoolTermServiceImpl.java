@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ import com.itpro.restws.model.User;
 @Service("schoolTermService")
 @Transactional
 public class SchoolTermServiceImpl implements SchoolTermService{
-
+	private static final Logger logger = Logger.getLogger(SchoolTermServiceImpl.class);
 	@Autowired
 	private SchoolYearDao schoolYearDao;
 	
@@ -31,6 +32,10 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	
 	@Override
 	public SchoolTerm findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("id:"+id.intValue());
 		
 		return schoolTermDao.findById(id);
 	}
@@ -39,6 +44,10 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public SchoolTerm insertSchoolTerm(User me, SchoolTerm schoolTerm) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (schoolTerm.getId() != null ){
 			throw new ESchoolException("Cannot create new term when id != null", HttpStatus.BAD_REQUEST);
 		}
@@ -51,6 +60,9 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public SchoolTerm updateTransSchoolTerm(User me, SchoolTerm schoolTerm) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		if (schoolTerm.getId() == null ){
 			throw new ESchoolException("schoolTerm.id is null", HttpStatus.BAD_REQUEST);
@@ -94,6 +106,10 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public ArrayList<SchoolTerm> findBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
 		
 		return (ArrayList<SchoolTerm>) schoolTermDao.findBySchoolId(school_id,null);
 	}
@@ -101,12 +117,22 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	@Override
 	public ArrayList<SchoolTerm> findAllTermByYear(Integer school_id,Integer year_id) {
 		 
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		
 		if (year_id == null ){
 			throw new ESchoolException("findAllTermByYear(): year_id is null", HttpStatus.BAD_REQUEST);
 		}
 		if (school_id == null ){
 			throw new ESchoolException("findAllTermByYear(): school_id is null", HttpStatus.BAD_REQUEST);
 		}
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
+		
 		SchoolYear schoolYear = schoolYearDao.findById(year_id);
 		if (schoolYear == null ){
 			throw new ESchoolException("findAllTermByYear(): year_id not existing", HttpStatus.BAD_REQUEST);
@@ -120,6 +146,11 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 	
 	@Override
 	public ArrayList<SchoolTerm> findAllTermBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
+		
 		ArrayList<SchoolYear> list_year = (ArrayList<SchoolYear>) schoolYearDao.findBySchoolId(school_id);
 		ArrayList<SchoolTerm> list_term = new ArrayList<SchoolTerm>();
 		
@@ -138,7 +169,11 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public SchoolTerm findMaxActiveTermBySchool(Integer school_id) {
-
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
+		
 		ArrayList<SchoolTerm> terms = findAllTermBySchool(school_id);
 		SchoolTerm max = null;
 		if (terms != null && terms.size() > 0){
@@ -171,6 +206,11 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 
 	void validTerm(User me, SchoolTerm new_term, boolean is_new){
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (is_new ){
 			// Check ID
 			if (new_term.getId() != null){
@@ -276,6 +316,11 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public SchoolTerm findTermById(User me, Integer term_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("term_id:"+term_id.intValue());
+		
 		SchoolTerm term = schoolTermDao.findById(term_id);
 		if (term == null ){
 			throw new ESchoolException("term_id"+term_id.intValue()+" is not existing", HttpStatus.BAD_REQUEST);
@@ -290,6 +335,11 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public void delSchoolTerm(User me, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("id:"+id.intValue());
+		
 		SchoolTerm term = schoolTermDao.findById(id);
 		if (term == null ){
 			throw new ESchoolException("term_id"+id.intValue()+" is not existing", HttpStatus.BAD_REQUEST);
@@ -309,6 +359,13 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 		if (term_id == null ){
 			throw new ESchoolException("term_id is null", HttpStatus.BAD_REQUEST);
 		}
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("term_id:"+term_id.intValue());
+		logger.info("acitive:"+(active==null?"null":active.intValue()));
+		
+		
 		SchoolTerm termDB = schoolTermDao.findById(term_id);
 		if (termDB == null ){
 			throw new ESchoolException("term_id"+term_id.intValue()+" is not existing", HttpStatus.BAD_REQUEST);
@@ -344,6 +401,14 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public boolean valid_term_val(Integer school_id, Integer year_id, Integer term_val) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		logger.info("school_id:"+school_id.intValue());
+		logger.info("class_id:"+(year_id==null?"null":year_id.intValue()));
+		logger.info("class_id:"+(term_val==null?"null":term_val.intValue()));
+		
+		
 		ArrayList <SchoolTerm> terms = findAllTermByYear(school_id, year_id);
 		if (terms != null && terms.size() > 0){
 			for (SchoolTerm term : terms){
@@ -359,11 +424,24 @@ public class SchoolTermServiceImpl implements SchoolTermService{
 
 	@Override
 	public ArrayList<SchoolTerm> findTermExt(User me, Integer filter_year_id, Integer filter_actived) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		logger.info("filter_year_id:"+(filter_year_id==null?"null":filter_year_id.intValue()));
+		logger.info("filter_actived:"+(filter_actived==null?"null":filter_actived.intValue()));
+		
+		
 		validGetTerm(me,filter_year_id);
 		return (ArrayList<SchoolTerm>) schoolTermDao.findBySchoolAndYear(me.getSchool_id(), filter_year_id, filter_actived);
 	}
 	
 	void validGetTerm(User me, Integer year_id){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
 		if (year_id != null  && year_id.intValue() > 0){
 			SchoolYear year = schoolYearDao.findById(year_id);
 			if (year == null ){

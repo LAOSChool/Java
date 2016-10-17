@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,41 +27,60 @@ import sun.misc.IOUtils;
 @Service("actionLogService")
 @Transactional
 public class ActionLogServiceImpl implements ActionLogService{
-
+	private static final Logger logger = Logger.getLogger(ActionLogServiceImpl.class);
 	@Autowired
 	private ActionLogDao actionLogDao;
 
 	@Override
 	public ActionLog findById(Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id"+(id==null?"null":id.intValue()));
 		
 		return actionLogDao.findById(id);
 	}
 
 	@Override
 	public int countBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
 		
 		return actionLogDao.countBySchool(school_id);
 	}
 
 	@Override
 	public int countByUser(Integer user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
+		
 		return actionLogDao.countBySchool(user_id);
 	}
 
 	@Override
 	public ArrayList<ActionLog> findBySchool(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
 		
 		return (ArrayList<ActionLog>) actionLogDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<ActionLog> findByUser(Integer user_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
 		
 		return (ArrayList<ActionLog>) actionLogDao.findByUser(user_id, from_num, max_result);
 	}
 
 	@Override
 	public ActionLog insertAction( ActionLog act) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		actionLogDao.saveAction(act);;
 		return act;
@@ -68,62 +88,21 @@ public class ActionLogServiceImpl implements ActionLogService{
 
 	@Override
 	public ActionLog updateAction(ActionLog act) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		actionLogDao.updateAction(act);
 		return act;
 	}
 
 	
-//	@Override
-//	public ActionLog logUserContext(Integer act_id, User user) {
-//		ActionLog act = findById(act_id);
-//		act.setUser_id(user.getId());
-//		act.setUser_name(user.getFullname());
-//		act.setUser_role(user.getRoles());
-//		return act;
-//	}
-
-//	@Override
-//	public ActionLog start_trace(HttpServletRequest request) {
-//		ActionLog act = new ActionLog();
-//		
-//		 Map<String, String> requestMap = this.getTypesafeRequestMap(request);
-//		 Map<String, String> headerMap = this.getTypesafeRequestHeaderMap(request);
-//	        final StringBuilder logMessage = new StringBuilder("REST Request - ")
-//	                   .append("[HTTP METHOD:")
-//                        .append(request.getMethod())                                        
-//	                   .append("]\n[PATH INFO:")
-//                        .append(request.getPathInfo())
-//                        .append("]\n[REQUEST HEADERS:")
-// 	                   .append(headerMap)
-//	                   .append("]\n[REQUEST PARAMETERS:")
-//	                   .append(requestMap)
-//	                   .append("]\n[REMOTE ADDRESS:")
-//	                   .append(request.getRemoteAddr())
-//	                   .append("]\n[LOCAL ADDRESS:")
-//	                   .append(request.getLocalAddr())
-//	                   .append("]");
-//	
-//		act.setRequest_data(logMessage.toString());
-//		act.setRequest_dt(Utils.now());
-//		act.setRequest_method(request.getMethod());
-//		act.setRequest_url(request.getServletPath());
-//		actionLogDao.saveAction(act);
-//		return act;
-//	}
-//
-//	@Override
-//	public void end_trace(Integer id, HttpServletResponse response,long duration) {
-//		ActionLog act = actionLogDao.findById(id);
-//		act.setResp_dt(Utils.now());
-//		act.setExec_duration(duration);
-//		act.setResp_status(response.getStatus());
-//		
-//		actionLogDao.updateAction(act);
-//		
-//	}
-
 	@Override
 	public void end_trace(Integer id, String resp_data, int resp_sts,long duration) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		ActionLog act = actionLogDao.findById(id);
 		
 		act.setResp_dt(Utils.now());
@@ -160,6 +139,9 @@ public class ActionLogServiceImpl implements ActionLogService{
 
 	@Override
 	public ActionLog start_trace(HttpServletRequest request,User me) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		boolean is_loggin = false;
 		String log_content = "";
 		ActionLog act = new ActionLog();
@@ -213,46 +195,12 @@ public class ActionLogServiceImpl implements ActionLogService{
 		actionLogDao.saveAction(act);
 		return act;
 	}
-/*
-	private void printRequest(HttpServletRequest httpRequest) {
-        System.out.println("receive " + httpRequest.getMethod() +" notification for "+ httpRequest.getRequestURI());
 
-
-        System.out.println(" \n\n Headers");
-
-        Enumeration<String> headerNames = httpRequest.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
-            String headerName = (String)headerNames.nextElement();
-            System.out.println(headerName + " = " + httpRequest.getHeader(headerName));
-        }
-
-        System.out.println("\n\nParameters");
-
-        Enumeration<String> params = httpRequest.getParameterNames();
-        while(params.hasMoreElements()){
-            String paramName = (String)params.nextElement();
-            System.out.println(paramName + " = " + httpRequest.getParameter(paramName));
-        }
-
-        System.out.println("\n\n Row data");
-        System.out.println(extractPostRequestBody(httpRequest));
-    }
-
-    static String extractPostRequestBody(HttpServletRequest request) {
-        if ("POST".equalsIgnoreCase(request.getMethod())) {
-            Scanner s = null;
-            try {
-                s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return s.hasNext() ? s.next() : "";
-        }
-        return "";
-    }
-*/
 	@Override
 	public ActionLog start_tracewrapper(MyRequestWrapper myRequestWrapper, User me) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		ActionLog act = new ActionLog();
 		String body = myRequestWrapper.getBody();
 //		byte ptext[] = myRequestWrapper.getBody().getBytes(Constant.ISO_8859_1); 
@@ -297,6 +245,9 @@ public class ActionLogServiceImpl implements ActionLogService{
 
 	@Override
 	public ActionLog start_tracewrapper2(AuthenticationRequestWrapper myRequestWrapper, User me)   {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		try{
 		ActionLog act = new ActionLog();
 		byte[] bytes = myRequestWrapper.getRequestBody();
@@ -343,6 +294,9 @@ public class ActionLogServiceImpl implements ActionLogService{
 
 	@Override
 	public ActionLog start_tracewrapper3(MultipartFromWrapper myRequestWrapper, User me) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		try{
 			ActionLog act = new ActionLog();
 			

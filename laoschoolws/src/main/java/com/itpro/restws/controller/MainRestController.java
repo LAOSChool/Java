@@ -81,7 +81,8 @@ public class MainRestController {
 	@RolesAllowed("ADMIN")
 	@RequestMapping("/admin")
 	public String admin() {
-		logger.info(" *** MainRestController.admin");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		return "Cool, you're admin!";
 	}
 
@@ -103,7 +104,8 @@ public class MainRestController {
 	@Secured({ "ROLE_SPECIAL", "ROLE_ADMIN" })
 	@RequestMapping("/secure/special")
 	public String special() {
-		logger.info(" *** MainRestController.secure.special");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		return "ROLE_SPECIAL users should have access.";
 	}
 
@@ -149,7 +151,8 @@ public class MainRestController {
 			@Context final HttpServletResponse response
 			) {
 		//System.out.println(" *** MainRestController.Access_Denied");
-		logger.info(" *** MainRestController.Access_Denied");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		// Spring Security dependency is unwanted in controller, typically some
 		// @Component (UserContext) hides it.
 		// Not that we don't use Spring Security annotations anyway...
@@ -252,6 +255,9 @@ public class MainRestController {
 	}
 	
 	protected User loadCurrentUser(){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		logger.info(" *** BaseController.getUser");
 		String userName = null;
 		User user = null;
@@ -269,7 +275,9 @@ public class MainRestController {
 		return user;
 	}
 	protected User getCurrentUser(){
-		logger.info(" *** MainRestController.getCurrentUser");
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		User user  = null;
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
@@ -289,6 +297,7 @@ public class MainRestController {
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
+		
 		if (content != null && content.length() > 0){
 		logger.info("\n====== API LOG ==== START");
 		logger.info(content);

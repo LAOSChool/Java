@@ -4,6 +4,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -762,101 +763,519 @@ public class UserTest extends FunctionalTest {
 		log().ifValidationFails().
 		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("not mapped with user's phone"));
 	}
-//	@Test
-//	public void del_user_admin__true() {
-//	}
-//	@Test
-//	public void del_user_teacher_false() {
-//	}
-//
-//	@Test
-//	public void del_user_cls_president_false() {
-//	}
-//	@Test
-//	public void del_user_student_false() {
-//	}
-//	@Test
-//	public void del_user_not_exist_false() {
-//	}
-//	@Test
-//	public void del_user_not_active_false() {
-//	}
-//	@Test
-//	public void del_user_other_school_false() {
-//	}
-//	@Test
-//	public void assign2class_admin_true() {
-//	}
-//	@Test
-//	public void assign2class_student_false() {
-//	}
-//	@Test
-//	public void assign2class_already_assigned_false() {
-//	}
-//	@Test
-//	public void assign2class_student_not_exist_false() {
-//	}
-//	@Test
-//	public void assign2class_student_other_school_false() {
-//	}
-//	@Test
-//	public void assign2class_class_not_exist_false() {
-//	}
-//	@Test
-//	public void remove_frm_class_admin_true() {
-//	}
-//	@Test
-//	public void remove_frm_class_student_false() {
-//	}
-//	@Test
-//	public void remove_frm_class_not_assigned_yet_false() {
-//	}
-//	@Test
-//	public void remove_frm_class_student_not_exist_false() {
-//	}
-//	@Test
-//	public void remove_frm_class_student_other_school_false() {
-//	}
-//	@Test
-//	public void remove_frm_class_class_not_exist_false() {
-//	}
-//	@Test
-//	public void getSchoolYears_student_true() {
-//	}
-//	@Test
-//	public void getSchoolYears_admin_true() {
-//	}
-//	@Test
-//	public void getSchoolYears_cls_president_true() {
-//	}
-//	@Test
-//	public void getSchoolYears_teacher_true() {
-//	}
-//	@Test
-//	public void getSchoolYears_year_null_true() {
-//	}
-//	@Test
-//	public void getAvailableUsers_admin_true() {
-//	}
-//	@Test
-//	public void getAvailableUsers_student_false() {
-//	}
-//	@Test
-//	public void upload_photo_admin_true() {
-//	}
-//	@Test
-//	public void upload_photo_student_false() {
-//	}
-//	@Test
-//	public void upload_photo_user_not_exist_false() {
-//	}
-//	@Test
-//	public void upload_photo_user_other_school_false() {
-//	}
-//	@Test
-//	public void download_cvs_admin_true() {
-//	}
-//	@Test
-//	public void download_cvs_student_false() {
-//	}
+	@Ignore
+	@Test
+	public void del_user_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/delete/{id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("id", 3).// delete teacher 1
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.OK.value());
+	}
+	@Test
+	public void del_user_admin_himself_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/delete/{id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("id", 2).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("Cannot del himself"));
+	}
+	@Test
+	public void del_user_teacher_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/delete/{id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", TEA1_AUTH_KEY).// teacher cannot delete
+		pathParam("id", 3).// teacher
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+@Test
+public void del_user_not_exist_false() {
+	String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+	logger.info(method_name + " START");
+	String path = "/api/users/delete/{id}";
+
+	given().header("api_key", WEB_API_KEY).
+	header("auth_key", ADM1_AUTH_KEY).
+	pathParam("id", 99999999).// not exist ID
+	when().post(path).
+	then().
+	log().ifValidationFails().
+	assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("Cannot find user id"));
 }
+	@Ignore
+	@Test
+	public void del_user_not_active_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/delete/{id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("id", 3).// not exist ID
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("Cannot find user id"));
+	}
+	@Test
+	public void del_user_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/delete/{id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("id", 40).// School 2 - teacher
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("are not in the same School"));
+	}
+	@Ignore
+	@Test
+	public void assign2class_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 1).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.OK.value()).body("developerMessage", containsString("Successful"));
+	}
+	@Test
+	public void assign2class_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", STD10_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 1).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Ignore
+	@Test
+	public void assign2class_already_assigned_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 1).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("already assigned to class_id"));
+	}
+	@Test
+	public void assign2class_student_not_exist_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 999999).
+		pathParam("class_id", 1).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("user_id is not existing"));
+	}
+	@Test
+	public void assign2class_student_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 40).
+		pathParam("class_id", 1).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("are not in same School"));
+	}
+	@Test
+	public void assign2class_class_not_exist_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/assign_to_class?user_id={user_id}&class_id={class_id}&notice={notice}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 9999999).
+		pathParam("notice", "test tet").
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("class_id is not existing"));	
+	}
+	@Ignore
+	@Test
+	public void remove_frm_class_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 1).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.OK.value()).body("developerMessage", containsString("Successful"));	
+	}
+	@Test
+	public void remove_frm_class_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", STD10_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 1).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));	
+	}
+	@Test
+	public void remove_frm_class_not_assigned_yet_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 2).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("user is not assigned to classed yet"));	
+	}
+	@Test
+	public void remove_frm_class_student_not_exist_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 9999999).
+		pathParam("class_id", 1).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("user_id is not existing"));	
+	}
+	@Test
+	public void remove_frm_class_student_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 40).
+		pathParam("class_id", 1).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString(" not in same School"));	
+	}
+	@Test
+	public void remove_frm_class_eclass_not_exist_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/remove_frm_class?user_id={user_id}&class_id={class_id}";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		pathParam("user_id", 3).
+		pathParam("class_id", 9999999).
+		when().post(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("class_id is not existing"));	
+	}
+	@Test
+	public void getSchoolYears_student_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/my_years";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", STD10_AUTH_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.OK.value());	
+	}
+	
+	@Test
+	public void getSchoolYears_admin_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/my_years";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Test
+	public void getSchoolYears_cls_president_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/my_years";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", CLS_PRESIDENT1_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	
+	@Test
+	public void getSchoolYears_teacher_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/my_years";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", TEA1_AUTH_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Test
+	public void getAvailableUsers_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/available";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", ADM1_AUTH_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.OK.value());
+	}
+	@Test
+	public void getAvailableUsers_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/users/available";
+
+		given().header("api_key", WEB_API_KEY).
+		header("auth_key", STD10_AUTH_KEY).
+		when().get(path).
+		then().
+		log().ifValidationFails().
+		assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Test
+	public void upload_photo_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_photo";
+			String file_path ="D:\\HuyNQ\\Images\\FunnyAvatar\\monkey.jpg";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			multiPart("user_id","3").
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.OK.value());
+	}
+	@Test
+	public void upload_photo_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_photo";
+			String file_path ="D:\\HuyNQ\\Images\\FunnyAvatar\\monkey.jpg";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",STD10_AUTH_KEY).
+			multiPart("user_id","3").
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Test
+	public void upload_photo_user_not_exist_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_photo";
+			String file_path ="D:\\HuyNQ\\Images\\FunnyAvatar\\monkey.jpg";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			multiPart("user_id","9999999").
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("user_id not existing"));
+	}
+	@Test
+	public void upload_photo_user_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_photo";
+			String file_path ="D:\\HuyNQ\\Images\\FunnyAvatar\\monkey.jpg";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			multiPart("user_id","40"). // school 2 teacher
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("not belong to current user school"));
+	}
+	@Test
+	public void download_csv_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/download_csv";
+			
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			
+		  
+		  when().get(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.OK.value());
+	}
+	@Test
+	public void download_csv_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/download_csv";
+			
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",STD10_AUTH_KEY).
+			
+		  
+		  when().get(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Ignore
+	@Test
+	public void upload_file_csv_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_file";
+			String file_path ="D:\\Dropbox\\Working\\Git\\LAOSChool\\LaoESchool\\WIP\\Docs\\Test\\users.csv";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			multiPart("class_id","1"). // school 2 teacher
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.OK.value());
+	}
+	@Test
+	public void upload_file_csv_student_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_file";
+			String file_path ="D:\\Dropbox\\Working\\Git\\LAOSChool\\LaoESchool\\WIP\\Docs\\Test\\users.csv";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",STD10_AUTH_KEY).
+			multiPart("class_id","1"). // 
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.FORBIDDEN.value()).body("developerMessage", containsString("Access is denied"));
+	}
+	@Test
+	public void upload_file_csv_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+			String path = "/api/users/upload_file";
+			String file_path ="D:\\Dropbox\\Working\\Git\\LAOSChool\\LaoESchool\\WIP\\Docs\\Test\\users.csv";
+			
+		  given().
+		  	header("api_key",WEB_API_KEY).
+			header("auth_key",ADM1_AUTH_KEY).
+			multiPart("class_id","7"). // school 2 class 
+			multiPart("file", new File(file_path)).
+		  
+		  when().post(path).then().
+		  	log().ifValidationFails().
+		  	assertThat().statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("eclass.school_id != me.school_id"));
+	}
+	}

@@ -15,10 +15,10 @@ public class FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(FunctionalTest.class);
 	protected static String WEB_API_KEY = "WEB";
 	
-	protected static String  ADM1_AUTH_KEY = "vmDYeNgMEfWJDON67eoTdQZ+cubs7NZFGVkr8mdyqGM=";
-	protected static String  TEA1_AUTH_KEY = "CiT7+T81LHsdmcMPkESdjJHhQKQe7ftBA3Wi/cGdRlY=";
-	protected static String  STD10_AUTH_KEY = "ZQEB7Jt2uTFxv8ZX0jSfFoUR7iVwuYtq+tqqwD7GlNs=";
-	protected static String  CLS_PRESIDENT1_KEY = "LaN03FSHarUY8ElfiCdDeTddXEYPiEiIJUU1m18vS68="; // lop truong 1a
+	protected static String  ADM1_AUTH_KEY = "8irWvWLYYegW3VmtKahROfB7R/wkqkVqCwRlnMQTP48=";
+	protected static String  TEA1_AUTH_KEY = "md5tGC3uIe1j2Xy+FRBhCy0QZ0CDBKM5bYQtKN6TMKE=";
+	protected static String  STD10_AUTH_KEY = "i/iKXrGVKU02hhuQ9hyicP9hFZRjA4XbzL3c1W7lOXM=";
+	protected static String  CLS_PRESIDENT1_KEY = "iW6KxOIB8uI6Q9bR/8WSRoVwrHdxBik5jaA6WLN9gbQ="; // lop truong 1a
 	
 	protected static String  INVALID_AUTH_KEY = "abc";
 	

@@ -64,6 +64,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 	@Override
 	public ExamResult findById(User me, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("id:"+(id==null?"null":id.intValue()));
+		
 		ExamResult rs = examResultDao.findById(id);
 		if (rs == null ){
 			throw new ESchoolException("Cannot find ExamID:"+id.intValue(),HttpStatus.BAD_REQUEST);
@@ -76,58 +80,90 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public int countBySchoolID(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
 		
 		return examResultDao.countExamBySchool(school_id);
 	}
 
 	@Override
 	public int countByClassID(Integer class_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
 		
 		return examResultDao.countExamBySclass(class_id);
 	}
 
 	@Override
 	public int countByStudentID(Integer user_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id:"+(user_id==null?"null":user_id.intValue()));
 		
 		return examResultDao.countExamByUser(user_id);
 	}
 
 	@Override
 	public ArrayList<ExamResult> findBySchoolID(Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
 		
 		return (ArrayList<ExamResult>) examResultDao.findBySchool(school_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<ExamResult> findByClassID(Integer class_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		
 		return (ArrayList<ExamResult>) examResultDao.findByClass(class_id, from_num, max_result);
 	}
 
 	@Override
 	public ArrayList<ExamResult> findByStudentID(Integer user_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id:"+(user_id==null?"null":user_id.intValue()));
+		
 		return (ArrayList<ExamResult>) examResultDao.findByStudent(user_id, from_num, max_result);
 	}
 
 
 	
-	@Override
-	public ExamResult updateExamResult(User teacher, ExamResult examResult) {
-		ExamResult existing_db = examResultDao.findById(examResult.getId());
-		existing_db = ExamResult.updateChanges(existing_db, examResult);
-		examResultDao.updateExamResult(teacher,existing_db);
-		return existing_db;
-	}
+//	public ExamResult updateExamResult_detach(User teacher, ExamResult examResult) {
+//		ExamResult existing_db = examResultDao.findById(examResult.getId());
+//		
+//		existing_db = ExamResult.updateChanges(existing_db, examResult);
+//		examResultDao.updateExamResult(teacher,existing_db);
+//		return existing_db;
+//	}
 
 
 	@Override
 	public ExamResult inputExam(User me, ExamResult examResult) {
-		// Validation Input
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+
+		// Validation Input ( both New or Update)
 		validInputExam(me,examResult);
 		
 		// Update exam
 		if (examResult.getId() != null && examResult.getId().intValue() > 0){
-			updateExamResult(me,examResult);
-			return examResult;
+			ExamResult existing_db = examResultDao.findById(examResult.getId());
+			// Already checked update data in validIputExam
+			// Here just double check just for sure
+			if (	existing_db != null && 
+					existing_db.getSchool_id().intValue() == me.getSchool_id().intValue()){
+				existing_db = ExamResult.updateChanges(existing_db, examResult);
+				examResultDao.updateExamResult(me,existing_db);
+				return existing_db;
+			}else{
+				throw new ESchoolException("Invalid examResult.id (null or not belong to same school)", HttpStatus.BAD_REQUEST);
+			}
 		}else{
 		// Add new exam
 			examResult.setId(null);// New exam
@@ -140,6 +176,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 	@Override
 	public void validInputExam(User me, ExamResult examResult) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		// To calculate average
 		//ArrayList<Float> point_years = new ArrayList<Float>();
 		logger.info("validInputExam START");
@@ -223,8 +262,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 			
 		}
 		
-		// Check Exam 
-		
+		// Check Exam Result ( ajust the point to x.xx format)
 		java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
 		//SchoolExam school_exam = null;
 		
@@ -303,7 +341,6 @@ public class ExamResultServiceImpl implements ExamResultService{
             }
             
         }
-        
 		// Check existing Exam for merger
 		ArrayList<ExamResult> curr_list = (ArrayList<ExamResult>) examResultDao.findExamResultExt(
 				examResult.getSchool_id(),
@@ -312,6 +349,14 @@ public class ExamResultServiceImpl implements ExamResultService{
 				examResult.getSubject_id(), 
 				examResult.getSch_year_id());
 		if (curr_list != null && curr_list.size() > 0){
+			ExamResult existing_db = curr_list.get(0);
+			  // Check update if ID existing
+	        if (	examResult.getId() != null && 
+	        		examResult.getId().intValue() > 0){
+	        	if (existing_db.getId().intValue() != examResult.getId().intValue()){
+	        		throw new ESchoolException("validInputExam(): examResult.id("+examResult.getId().intValue()+") != existing_db.id("+existing_db.getId().intValue()+") based on: school_id,student_id,subject_id,year_id", HttpStatus.BAD_REQUEST);
+	        	}
+	        }			
 			examResult.setId(curr_list.get(0).getId());
 		}else{
 			examResult.setId(null);
@@ -322,6 +367,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public void deleteExamResult(User me, ExamResult exam) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		examResultDao.deleteExamResult(me,exam);
 		
 	}
@@ -331,6 +379,14 @@ public class ExamResultServiceImpl implements ExamResultService{
 	@Override
 	public int countExamResultExt(Integer school_id, Integer class_id, Integer student_id, Integer subject_id,
 			Integer year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("student_id:"+(student_id==null?"null":student_id.intValue()));
+		logger.info("subject_id:"+(subject_id==null?"null":subject_id.intValue()));
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
 		return examResultDao.countExamResultExt(school_id, class_id, student_id, subject_id, year_id);
 		
 	}
@@ -338,6 +394,14 @@ public class ExamResultServiceImpl implements ExamResultService{
 	@Override
 	public ArrayList<ExamResult> findExamResultExt(User me, Integer school_id, Integer class_id, Integer student_id,
 			Integer subject_id, Integer year_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("student_id:"+(student_id==null?"null":student_id.intValue()));
+		logger.info("subject_id:"+(subject_id==null?"null":subject_id.intValue()));
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
 		
 		if (me.getSchool_id().intValue() != school_id.intValue() ){
 			throw new ESchoolException("findExamResultExt() ERROR: me.school_id != school_id", HttpStatus.BAD_REQUEST);
@@ -348,6 +412,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public ArrayList<ExamResult>  getUserProfile(User me, User student, Integer filter_subject_id, Integer filter_year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("filter_subject_id:"+(filter_subject_id==null?"null":filter_subject_id.intValue()));
+		logger.info("filter_year_id:"+(filter_year_id==null?"null":filter_year_id.intValue()));
+		
 		// lay danh sach mon hoc cua truong
 		// count key: school, user, subject, year
 		// Neu chua ton tai, tao new exam result
@@ -357,10 +426,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 		if (me.getSchool_id().intValue() != student.getSchool_id().intValue() ){
 			throw new ESchoolException("findExamResultExt() ERROR: student.school_id != school_id", HttpStatus.BAD_REQUEST);
 		}
-
-		
 		
 		SchoolYear curr_year = schoolYearService.findLatestYearBySchool(student.getSchool_id());
+		// If filter_yearid = null
+		// Using current year
+		// Create new ExamResult if not exist
 		if (filter_year_id== null || filter_year_id.intValue()<=0){
 			if (curr_year == null ){
 				throw new ESchoolException("Cannot get Current SchoolYear of shcool_id: "+ student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
@@ -395,7 +465,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 				}
 			}
 		}else{
-			// Past profile
+			// If filter_yearid != null
+			// Just query from DB and return			
 			if (filter_year_id.intValue() > curr_year.getId().intValue()){
 				throw new ESchoolException("filter_year_id:"+filter_year_id.intValue() +" > current year id: "+curr_year.getId().intValue(), HttpStatus.BAD_REQUEST);
 			}
@@ -408,6 +479,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 	}
 	private ExamResult new_blank_exam_result(User student, MSubject subject, Integer year_id){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
 		ExamResult exam_result = new ExamResult();
 		
 		exam_result.setSchool_id(student.getSchool_id());
@@ -428,6 +504,17 @@ public class ExamResultServiceImpl implements ExamResultService{
 			Integer filter_student_id, 
 			Integer subject_id, 
 			Integer year_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		logger.info("filter_class_id:"+(filter_class_id==null?"null":filter_class_id.intValue()));
+		logger.info("filter_student_id:"+(filter_student_id==null?"null":filter_student_id.intValue()));
+		logger.info("subject_id:"+(subject_id==null?"null":subject_id.intValue()));
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
+		
 		EClass filter_eclass = null;
 		User filter_student = null;
 		
@@ -481,6 +568,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	
 	private void proc_average( User student, ArrayList<ExamResult> examResults){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		
 		if (examResults == null ){
 			return;
 		}
@@ -748,77 +840,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 	
-//	private ArrayList<RankInfo> rank_user_ave(User curr_user, ArrayList<ExamResult> exam_results) {
-//		
-//		Hashtable<String, RankInfo> hashtables= new Hashtable<String, RankInfo>(); 
-//		
-//		for (ExamResult examResult: exam_results){
-//			String hash_key = "";
-//			RankInfo rankInfo = null;
-//			Integer student_id =examResult.getStudent_id();
-//			hash_key = ""+student_id.intValue()+"_";
-//			
-//			// Scan to find m1,m2,m3...m20
-//			java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();
-//	        for (Field field : fields) {
-//	            field.setAccessible(true);
-//	            String fname =field.getName();
-//	            
-//	            for (String ex_key: Constant.exam_keys){
-//	            	if (fname.equalsIgnoreCase(ex_key)){
-//	            		// Found m1 .. m 20 , create HashTable entry if need
-//	            		hash_key = ""+student_id.intValue()+"_"+ex_key.toLowerCase();//user_id_m1, user_id_m2
-//	            		if (!hashtables.containsKey(hash_key)){
-//	            			
-//	            			rankInfo = new RankInfo();
-//	            			rankInfo.setEx_key(ex_key);
-//	            			rankInfo.setMarks(new ArrayList<Float>());
-//	            			rankInfo.setUser_id(student_id);
-//	            			
-//	            			hashtables.put(hash_key,rankInfo);
-//	            		}else{
-//	            			// Putting to array
-//		            		rankInfo = hashtables.get(hash_key);	
-//	            		}
-//	            		// Parsing m1 ... m20 value
-//	            		Float fval = null;
-//	            		try {
-//							fval = parseFval((String)field.get(examResult));
-//						}catch (Exception e){
-//	            			throw new ESchoolException(fname + ": cannot get sresult, exception message: "+ e.getMessage(), HttpStatus.BAD_REQUEST);
-//	            		}
-//	            		
-//	            		if (fval != null ){
-//	            			rankInfo.getMarks().add(fval);
-//	            		}
-//	            		// STOP to next field
-//	            		break;
-//	            	
-//	            	}
-//	            }
-//	        }
-//		}
-//		 // 
-//        ArrayList<RankInfo> arr_ranks = new ArrayList<RankInfo>();
-//        
-//        // Sorting by average
-//        Enumeration<String> names = hashtables.keys();
-//        
-//        while(names.hasMoreElements()) {
-//           String str = (String) names.nextElement();
-//           RankInfo rank = hashtables.get(str);
-//           ArrayList<Float> marks = rank.getMarks();
-//           
-//           rank.setAve(averageMarks(marks));
-//           rank.setGrade(averageArade(marks));
-//           // rank.Allocation only available with Class info
-//           arr_ranks.add(rank);
-//        }
-//        
-//		return arr_ranks;
-//		
-//	}
+
 	private String getRade(ArrayList<Float> marks){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		float A_GRADE = 7;
 		float B_BRADE = 6;
 		int a_cnt =0;
@@ -844,6 +870,11 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 		
 	private String getAveMarks(ArrayList<Float> marks) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		
 		float total = 0;
 		String sval=null;
 		int cnt = 0;
@@ -868,6 +899,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 	 */
 	@Override
 	public ArrayList<ExamRank> getUserRank(User me, User student, Integer class_id, Integer year_id) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
 		
 		if (me.hasRole(E_ROLE.STUDENT.getRole_short())){
 			if (me.getId().intValue() != student.getId().intValue()){
@@ -905,6 +942,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 	 */
 	@Override
 	public ArrayList<ExamRank> getClassRank(User me, Integer class_id, Integer year_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("class_id:"+(class_id==null?"null":class_id.intValue()));
+		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
+		
+		
 		if (class_id == null || class_id.intValue() ==0) {
 			throw new ESchoolException("class_id is NULL", HttpStatus.BAD_REQUEST);
 		}
@@ -932,48 +975,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 
 
-//	@Override
-//	public ArrayList<ExamRank> execMonthAllocation(User user, Integer filter_class_id, Integer filter_year_id) {
-//		 
-//
-//		Integer school_id = user.getSchool_id();
-//		
-//		EClass eclass = classService.findById(filter_class_id);
-//		if (filter_year_id == null ){
-//			throw new ESchoolException("filter_year_id is required", HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		if (eclass == null ){
-//			throw new ESchoolException("filter_class_id not existing:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
-//		}
-//		if (eclass.getSchool_id().intValue() != school_id.intValue() ){
-//			throw new ESchoolException("class.school_id not the same with current school_id", HttpStatus.BAD_REQUEST);
-//		}
-//		
-//		Set<User> students = eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
-//		if (students == null ){
-//			throw new ESchoolException("class_id have no students:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
-//		}
-//		// Get ave data from DB
-//		ArrayList<ExamRank> exam_ranks = new ArrayList<ExamRank>();
-//		
-//		for (User student: students){
-//			ArrayList<ExamRank> user_rank = examRankDao.findExamRankExt(school_id, filter_class_id, user.getId(), filter_year_id);
-//			if (user_rank != null && user_rank.size() >0 ){
-//				exam_ranks.addAll(user_rank);
-//			}
-//		}
-//		if (exam_ranks == null || exam_ranks.size() <=0){
-//			throw new ESchoolException("class_id have no exam_ranks info:"+filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
-//		}
-//		
-//        return procAllocation(user, exam_ranks);
-//	}
-//	
-	
-
 	@Override
 	public ArrayList<ExamRank> execClassMonthAve(User me,  Integer filter_class_id, String filter_ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("filter_class_id:"+(filter_class_id==null?"null":filter_class_id.intValue()));
+		logger.info("filter_ex_key"+(filter_ex_key==null?"null":filter_ex_key));
 		
 		ArrayList<ExamRank> ret = new ArrayList<ExamRank>();
 		if (filter_class_id == null){
@@ -1021,7 +1028,14 @@ public class ExamResultServiceImpl implements ExamResultService{
 	}
 @Override
 	public ExamRank execUserMonthAve(User me, Integer user_id, Integer filter_year_id, Integer filter_class_id,String filter_ex_key) {	
-		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("user_id:"+(user_id==null?"null":user_id.intValue()));
+		logger.info("filter_year_id"+(filter_year_id==null?"null":filter_year_id.intValue()));
+		logger.info("filter_class_id"+(filter_class_id==null?"null":filter_class_id.intValue()));
+		logger.info("filter_ex_key"+(filter_ex_key==null?"null":filter_ex_key));
+	
+	
 		Integer school_id = me.getSchool_id();
 		
 		Hashtable<String,RankInfo> hashtable = new Hashtable<String,RankInfo>();
@@ -1166,6 +1180,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	
 	private ArrayList<Float> getMarkByExKeys(User user, String ex_key, ArrayList<ExamResult> examResults){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("ex_key"+(ex_key==null?"null":ex_key));
+		
 		ArrayList<Float> marks = new ArrayList<>();
 		
 		
@@ -1218,6 +1236,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	 */
 	@Override
 	public ArrayList<ExamRank> procAllocation(User me,ArrayList<ExamRank> exam_ranks){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		
 		if (exam_ranks == null || exam_ranks.size() == 0){
 			return null;
@@ -1400,6 +1421,10 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public void orderExamResultByID(ArrayList<ExamResult> list, int order) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
 		if (list == null || list.size() <= 1){
 			return;
 		}
@@ -1429,6 +1454,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public void orderRankByID(ArrayList<ExamRank> list, int order) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (list == null || list.size() <= 1){
 			return;
 		}
@@ -1458,6 +1486,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 	@Override
 	public void orderRankByAllocation(User me, ArrayList<ExamRank> list, String ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
 		if (list == null || list.size() <= 1){
 			return;
 		}
@@ -1519,6 +1550,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Override
 	public String valid_rank_process(User me,  String class_ids, String ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
 		
 		String err_msg = "";
 		if (class_ids == null || class_ids.trim().length()==0){
@@ -1606,6 +1639,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 		
 	}
 	boolean is_inputted(ExamResult examResult, String ex_key){
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("ex_key"+(ex_key==null?"null":ex_key));
 		
 		// Find m1,m2,m3...m20 available
 		java.lang.reflect.Field[] fields = examResult.getClass().getDeclaredFields();

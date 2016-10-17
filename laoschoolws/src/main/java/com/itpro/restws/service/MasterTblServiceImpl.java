@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ import com.itpro.restws.model.User;
 
 @Transactional
 public class MasterTblServiceImpl implements MasterTblService{
-
+	private static final Logger logger = Logger.getLogger(MasterTblServiceImpl.class);
 	
 	@Autowired
 	private MFeeDao mfeeDao;
@@ -44,6 +45,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public MTemplate findById(String tbl_name, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		logger.info("id:"+(id==null?"null":id.intValue()));
+		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			MFee ret = mfeeDao.findById(id);
 			return ret==null?null:ret.convertToTemplate();
@@ -76,6 +82,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public int countBySchool(String tbl_name, Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			return mfeeDao.countBySchool(school_id);
 		} 
@@ -100,6 +111,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 	
 	@Override
 	public ArrayList<MTemplate> findBySchool(String tbl_name, Integer school_id, int from_num, int max_result) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		logger.info("school_id:"+(school_id==null?"null":school_id.intValue()));
+		
 		ArrayList<MTemplate> list_ret = new ArrayList<>(); 
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
 			ArrayList<MFee> list =  (ArrayList<MFee>) mfeeDao.findBySchool(school_id, from_num, max_result);
@@ -147,6 +163,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public MTemplate insertMTemplate(User me, String tbl_name, MTemplate temp) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		
+		
 		validMTemplate(me,tbl_name,temp);
 		
 		if (MasterTblName.TBLNAME_M_FEE.equalsName(tbl_name) ){
@@ -185,6 +206,10 @@ public class MasterTblServiceImpl implements MasterTblService{
 	
 	@Override
 	public MTemplate updateTranMTemplate(User me, String tbl_name, MTemplate temp) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		
 		
 		validMTemplate(me, tbl_name, temp);
 		
@@ -256,6 +281,10 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public void deleteMTemplate(User me, String tbl_name, Integer id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		logger.info("id:"+(id==null?"null":id.intValue()));
 		
 		MTemplate temp = findById(tbl_name, id);
 		if (temp == null ){
@@ -301,6 +330,11 @@ public class MasterTblServiceImpl implements MasterTblService{
 
 	@Override
 	public void validMTemplate(User user, String tbl_name, MTemplate template) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("tbl_name:"+(tbl_name==null?"null":tbl_name));
+		
+		
 		// update school_id
 		template.setSchool_id(user.getSchool_id());
 		

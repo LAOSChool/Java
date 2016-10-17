@@ -30,6 +30,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	private SysStsDao sysStsgDao;
 
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		logger.info(" *** CustomAuthenticationProvider.authenticate");
 		
 	    String username = authentication.getPrincipal() + "";
 	    String password = authentication.getCredentials() + "";
@@ -73,20 +74,20 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	    		{
 	    			
 	    			// Do nothing
-	    			logger.info("authenticate() success: user.sso_id="+user.getSso_id()+"//state="+user.getState());
+	    			logger.info("CustomAuthenticationProvider.authenticate() success: user.sso_id="+user.getSso_id()+"//state="+user.getState());
 	    		}else{
-	    			logger.error("authenticate() FAILED, use is not actived: user.sso_id="+user.getSso_id()+"//state="+user.getState());
+	    			logger.error("CustomAuthenticationProvider.authenticate() FAILED, use is not actived: user.sso_id="+user.getSso_id()+"//state="+user.getState());
 	    			throw new BadCredentialsException("User state is not Active");
 	    		}
 	    	}
 		    try {
 				if (!Password.check(password, user.getPassword())) {
-	    			logger.error("authenticate() FAILED, Wrong password: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
+	    			logger.error("CustomAuthenticationProvider.authenticate() FAILED, Wrong password: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
 
 					throw new BadCredentialsException("Wrong password.");
 				}
 			} catch (Exception e) {
-				logger.error("authenticate() FAILED, Execption from Password.checked: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
+				logger.error("CustomAuthenticationProvider.authenticate() FAILED, Execption from Password.checked: user.sso_id="+user.getSso_id()+"//pass="+user.getPassword());
 				 throw new BadCredentialsException("Password.check exception.");
 			}
 	    //}
