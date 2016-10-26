@@ -1,6 +1,13 @@
 package com.itpro.restws.controller;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -229,22 +237,25 @@ public class UserController extends BaseController {
 	@RequestMapping(value="/api/users/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public User createUser(
-			@RequestBody User user,
+			@RequestBody User new_user,
 			@Context final HttpServletResponse response
 			) {
 		logger.info(" *** .createUser() START");
 		
 		User me = getCurrentUser();
-		
-		if (user.getSchool_id() == null || user.getSchool_id().intValue() == 0 ){
+		// Check school
+		if (new_user.getSchool_id() == null || new_user.getSchool_id().intValue() == 0 ){
 			throw new ESchoolException("user.school_id is required", HttpStatus.BAD_REQUEST);
 		}
-		if (me.getSchool_id().intValue() != user.getSchool_id().intValue()){
+		if (me.getSchool_id().intValue() != new_user.getSchool_id().intValue()){
 			throw new ESchoolException("cannot create user of other school_id", HttpStatus.BAD_REQUEST);
 		}
+		// Check role
+		if (new_user.getRoles() == null){
+			throw new ESchoolException("user.roles is required", HttpStatus.BAD_REQUEST);
+		}		
 		
-		
-		String type = user.getRoles().split(",")[0];
+		String type = new_user.getRoles().split(",")[0];
 		 //return userService.insertUser(user);
 		E_ROLE role = E_ROLE.STUDENT;
 		if (type.equalsIgnoreCase("admin")){
@@ -259,14 +270,14 @@ public class UserController extends BaseController {
 			role = E_ROLE.CLS_PRESIDENT;
 		}else if (type.equalsIgnoreCase("student")){
 			role = E_ROLE.STUDENT;
-			user.setSso_id("STD");//Default name for student
+			new_user.setSso_id("STD");//Default name for student
 		}else{
 			throw new RuntimeException("Invalid user type="+type);
 		}
-		if (user.getId() != null ){
+		if (new_user.getId() != null ){
 			throw new ESchoolException("Canot create user - user.id != null",HttpStatus.BAD_REQUEST);
 		}
-		return userService.createUser(me,user, role);
+		return userService.createUser(me,new_user, role,false);
 		 
 	}
 	
@@ -581,7 +592,7 @@ public class UserController extends BaseController {
 	@Secured({ "ROLE_ADMIN"})
 	@RequestMapping(value="/api/users/upload_file",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo uploadUsers(
+	public RespInfo uploadUserCSV(
 			@RequestParam(value = "file",required =false) MultipartFile[] files,
 			@RequestParam(value = "class_id",required =false) Integer class_id,
 			 @Context final HttpServletRequest request)
@@ -596,12 +607,36 @@ public class UserController extends BaseController {
 			throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
 		}
 		
-		String fileName = userService.saveUploadUsers(me, files,class_id);
+		String fileName = userService.saveUploadUsers(me, files,class_id,Constant.UPLOAD_TYPE_CSV);
 		rsp.setDeveloperMessage("saved file name: "+fileName);
 		return rsp;
 	}
+	
 	@Secured({ "ROLE_ADMIN"})
-	@RequestMapping(value = "/api/users/download_csv")
+	@RequestMapping(value="/api/users/upload_excel",method = RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.OK)	
+	public RespInfo uploadUserExcel(
+			@RequestParam(value = "file",required =false) MultipartFile[] files,
+			@RequestParam(value = "class_id",required =false) Integer class_id,
+			 @Context final HttpServletRequest request)
+			 {
+		logger.info(" *** uploadUserExcel() START");
+		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath(), "Successful");
+		User me = getCurrentUser();
+		if (files == null ){
+			throw new ESchoolException("files is required", HttpStatus.BAD_REQUEST);
+		}
+		if (class_id == null ){
+			throw new ESchoolException("class_id is required", HttpStatus.BAD_REQUEST);
+		}
+		
+		String fileName = userService.saveUploadUsers(me, files,class_id,Constant.UPLOAD_TYPE_EXCEL);
+		rsp.setDeveloperMessage("saved file name: "+fileName);
+		return rsp;
+	}
+	
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value = "/api/users/download_csv",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)		
     public void downloadCSV(HttpServletResponse response) throws IOException {
 		logger.info(" *** downloadCSV() START");
@@ -634,6 +669,49 @@ public class UserController extends BaseController {
         csvWriter.writeHeader(header);
         csvWriter.write(user, header);
         csvWriter.close();
+    }
+	@Secured({ "ROLE_ADMIN"})
+	@RequestMapping(value = "/api/users/download_excel",method = RequestMethod.GET)
+	@ResponseStatus(value=HttpStatus.OK)		
+    public void downloadTemmExcel(HttpServletResponse response) throws IOException {
+		logger.info(" *** downloadTemmExcel START");
+		User me = getCurrentUser();
+		File file = userService.createTmpDownloadExcel(me);
+	         
+	        if(!file.exists()){
+	            String errorMessage = "Sorry. The file you are looking for does not exist";
+	            logger.info(errorMessage);
+	            OutputStream outputStream = response.getOutputStream();
+	            outputStream.write(errorMessage.getBytes(Charset.forName("UTF-8")));
+	            outputStream.close();
+	            return;
+	        }
+	         
+	        String mimeType= URLConnection.guessContentTypeFromName(file.getName());
+	        if(mimeType==null){
+	            logger.info("mimetype is not detectable, will take default");
+	            mimeType = "application/octet-stream";
+	        }
+	         
+	        logger.info("mimetype : "+mimeType);
+	         
+	        response.setContentType(mimeType);
+	         
+	        /* "Content-Disposition : inline" will show viewable types [like images/text/pdf/anything viewable by browser] right on browser 
+	            while others(zip e.g) will be directly downloaded [may provide save as popup, based on your browser setting.]*/
+	        // response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
+	         
+	        /* "Content-Disposition : attachment" will be directly download, may provide save as popup, based on your browser setting*/
+	        response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", file.getName()));
+	         
+	        response.setContentLength((int)file.length());
+	 
+	        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+	 
+	        //Copy bytes from source to destination(outputstream in this example), closes both streams.
+	        FileCopyUtils.copy(inputStream, response.getOutputStream());
+	        logger.info("finish saving file to client");
+	        file.delete();
     }
 
 }

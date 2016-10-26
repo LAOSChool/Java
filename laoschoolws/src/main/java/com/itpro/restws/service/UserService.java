@@ -1,5 +1,6 @@
 package com.itpro.restws.service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,14 +57,17 @@ public interface UserService {
 	int countAvailableUser(Integer school_id, String filter_user_role);
 	ArrayList<User> findAvailableUser(Integer school_id,int from_num, int max_result,String filter_user_role);
 	void updateClassTerm(User user);
-	String saveUploadUsers(User me,MultipartFile[] file,Integer class_id);
+	String saveUploadUsers(User me,MultipartFile[] file,Integer class_id, String file_type);
+	
+	
 	void saveUploadPhoto(User me,Integer user_id, MultipartFile[] file);
 	void removeUser2Class(User me,Integer user_id, Integer class_id,  String notice);
 	User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice);
 	void deleteUser(User me,Integer user_id);
 	
-	public User createUser(User me, User user,E_ROLE role);
+	public User createUser(User me, User user,E_ROLE role,boolean imp_file);
 	public User createAdmin(String sso_id,String pass,Integer school_id);
 	void logout(User me, User user);
+	File createTmpDownloadExcel(User me);
 	
 }

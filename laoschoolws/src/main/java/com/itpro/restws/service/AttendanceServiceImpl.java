@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.itpro.restws.dao.AttendanceDao;
 import com.itpro.restws.dao.MSessionDao;
 import com.itpro.restws.dao.MSubjectDao;
+import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_MSG_CHANNEL;
 import com.itpro.restws.helper.Utils;
@@ -33,6 +34,9 @@ import com.itpro.restws.model.User;
 @Transactional
 public class AttendanceServiceImpl implements AttendanceService{
 	protected static final Logger logger = Logger.getLogger(AttendanceServiceImpl.class);
+	@Autowired
+	private ActionLogVIPService actionLogVIPService;
+	
 	@Autowired
 	private AttendanceDao attendanceDao;
 //	@Autowired
@@ -144,7 +148,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		valid_insert_attendance(me,attendance);
 		attendanceDao.saveAttendance(me,attendance);
 		// Send message 
-		send_msg_attendance(attendance);
+		send_msg_attendance(me,attendance);
 
 		return attendance;
 	}
@@ -601,7 +605,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 		return ret;
 	}
 	
-	private void send_msg_attendance(Attendance attendace) {
+	private void send_msg_attendance(User me, Attendance attendace) {
 		
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
@@ -712,8 +716,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 		
 //		Message msg = messageService.newMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content);
 //		messageService.insertMessageExt(msg);
-		messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content, new Integer(E_MSG_CHANNEL.FIREBASE.getValue()),class_id);
-
+		com.itpro.restws.model.Message simple_msg = messageService.newSimpleMessage(attendace.getAuditor(), attendace.getStudent_id(), msg_content, new Integer(E_MSG_CHANNEL.FIREBASE.getValue()),class_id);
+		// Log Important action
+		actionLogVIPService.logAction_type(me,Constant.ACTION_TYPE_ROLLUP,simple_msg.printActLog());
 
 		
 	}

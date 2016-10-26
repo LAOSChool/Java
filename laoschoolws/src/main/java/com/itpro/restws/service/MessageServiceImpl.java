@@ -289,6 +289,7 @@ public class MessageServiceImpl implements MessageService{
 		
 		msg.setFrom_user_id(me.getId());
 		msg.setFrom_user_name(me.getFullname());
+		msg.setFrom_sso_id(me.getSso_id());
 		
 		// Validation mandatory parameters
 		
@@ -526,17 +527,26 @@ public class MessageServiceImpl implements MessageService{
 				&&  (frm_user.getSchool_id().intValue() != to_user.getSchool_id().intValue())){
 			throw new RuntimeException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+to_user.getId().intValue());
 		}
-		
+		// School
 		msg.setSchool_id(to_user.getSchool_id());
-		msg.setFrom_user_id(from_user_id);
-		msg.setTo_user_id(to_user_id);
+		// From
+		msg.setFrom_user_id(frm_user.getId());
+		msg.setFrom_user_name(frm_user.getFullname());
+		msg.setFrom_sso_id(frm_user.getSso_id());
+		// To
+		msg.setTo_user_id(to_user.getId());
+		msg.setTo_sso_id(to_user.getSso_id());
+		msg.setTo_user_name(to_user.getFullname());
+		msg.setTo_phone(to_user.getPhone());
+		
+		
 		msg.setChannel(channel);
 		if (class_id != null && class_id.intValue() > 0){
 			msg.setClass_id(class_id);
 		}
 		
 		msg.setContent(content);
-		
+		// Other from, to fill be fullfill in validation method
 		insertUserMessage(frm_user,msg);
  		
 		return msg;
@@ -664,6 +674,7 @@ public class MessageServiceImpl implements MessageService{
 				// TEACHER: can only send personal message with CC
 				new_message.setFrom_user_id(me.getId());
 				new_message.setTo_user_id(to_user.getId());
+				// Other info will be full fill in validation method
 				insertUserMessage(me,new_message);
 				list.add(new_message);
 		}
@@ -689,6 +700,13 @@ public class MessageServiceImpl implements MessageService{
 		if (me.hasRole(E_ROLE.SYS_ADMIN.getRole_short())){
 			ignored_school =true;
 		}
+		// Fill info of ActionLogVIP
+		message.setFrom_user_id(me.getId());
+		message.setFrom_sso_id(me.getSso_id());
+		message.setFrom_user_name(me.getFullname());
+		message.setSchool_id(me.getSchool_id());
+		// Check class
+		
 		String[] to_class_list =null; 
 		String cc_list = message.getCc_list()==null?"": message.getCc_list();
 		
@@ -707,7 +725,7 @@ public class MessageServiceImpl implements MessageService{
 						eclass.getSchool_id().intValue() != me.getSchool_id().intValue()){
 					throw new ESchoolException("createTaskMsg(): class_id not in same school with current user, me_id="+me.getId().intValue()+"///class_id="+message.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
 				}
-				// Copy all nessesary info if needed
+				// Copy all necessary info if needed
 				Message msg_task = message.copy();
 				// Mandatory reset all other info of Task (id, school, class,to_user)
 				msg_task.setId(null); // 20160822
@@ -764,6 +782,7 @@ public class MessageServiceImpl implements MessageService{
 		}
 		
 		message.setFrom_user_name(frm_user.getFullname());
+		message.setFrom_sso_id(frm_user.getSso_id());
 		
 		// To user_id
 		if (message.getTo_user_id() == null || message.getTo_user_id().intValue() <= 0){
@@ -778,8 +797,9 @@ public class MessageServiceImpl implements MessageService{
 				to_user.getSchool_id().intValue() != me.getSchool_id().intValue()){
 			throw new ESchoolException("ToUserId"+to_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue(),HttpStatus.BAD_REQUEST);
 		}
-		
+		// School
 		message.setSchool_id(to_user.getSchool_id());
+		// To user
 		message.setTo_user_name(to_user.getFullname());		
 		message.setTo_sso_id(to_user.getSso_id());
 		message.setTo_phone(to_user.getPhone());
@@ -793,8 +813,10 @@ public class MessageServiceImpl implements MessageService{
 		
 		if (message.getChannel() != null && 
 				message.getChannel().intValue()==1 && // SEND SMS
-				message.getTo_phone() == null || 
-				message.getTo_phone().trim().length() == 0){
+				// check phone existing
+				(message.getTo_phone() == null || 
+				message.getTo_phone().trim().length() == 0)
+				){
 			throw new ESchoolException("to_phone is NULL, cannot send SMS",HttpStatus.BAD_REQUEST);
 		}
 		
@@ -837,9 +859,9 @@ public class MessageServiceImpl implements MessageService{
 			if (	frm_sys_admin || 
 					(to_user != null && (to_user.getSchool_id() == frm_user.getSchool_id()))) {
 				new_msg = message.copy();
-				
 				new_msg.setFrom_user_id(frm_user.getId());
 				new_msg.setTo_user_id(Integer.valueOf(to_id));
+				// Other info will be updated in validation method
 				// Insert to DB
 				insertUserMessage(me, new_msg);
 			}else{

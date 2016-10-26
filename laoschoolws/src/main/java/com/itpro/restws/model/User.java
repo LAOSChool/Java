@@ -128,18 +128,18 @@ public class User extends AbstractModel {
 		return classes;
 	}
 	
-	@JsonIgnore
-	@NotFound(action=NotFoundAction.IGNORE)
-	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
-	@JoinTable(name = "user2class", 
-             joinColumns        = { @JoinColumn(name = "user_id") }, 
-             inverseJoinColumns = { @JoinColumn(name = "class_id") })
-	@WhereJoinTable(clause="actflg='A' AND closed = 1")
-	@OrderBy(clause="id")
-	private Set<EClass> classes_old = new HashSet<EClass>();
-	public Set<EClass> getClasses_old() {
-		return classes_old;
-	}
+//	@JsonIgnore
+//	@NotFound(action=NotFoundAction.IGNORE)
+//	@ManyToMany(fetch = FetchType.EAGER) //EAGER=fetch immediately;LAZY = fetch when needed
+//	@JoinTable(name = "user2class", 
+//             joinColumns        = { @JoinColumn(name = "user_id") }, 
+//             inverseJoinColumns = { @JoinColumn(name = "class_id") })
+//	@WhereJoinTable(clause="actflg='A' AND closed = 1")
+//	@OrderBy(clause="id")
+//	private Set<EClass> classes_old = new HashSet<EClass>();
+//	public Set<EClass> getClasses_old() {
+//		return classes_old;
+//	}
 	
 	
 	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")

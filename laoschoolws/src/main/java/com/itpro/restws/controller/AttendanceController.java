@@ -49,6 +49,7 @@ public class AttendanceController extends BaseController {
 	
 	@Autowired
 	private SchoolYearService schoolYearService;
+	
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
 	@RequestMapping(value="/api/attendances",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -166,9 +167,9 @@ public class AttendanceController extends BaseController {
     	if ((from_row + max_result > total_row)){
     		max_result = total_row-from_row;
     	}
-    	logger.info("Attendance count: total_row : "+total_row);
-    	logger.info("Attendance count: from_row : "+from_row);
-    	logger.info("Attendance count: max_result : "+max_result);
+    	logger.info("total_row : "+total_row);
+    	logger.info("from_row : "+from_row);
+    	logger.info("max_result : "+max_result);
     	
     		
 		

@@ -4,11 +4,10 @@ import static com.jayway.restassured.RestAssured.given;
 
 import org.apache.log4j.Logger;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-@Ignore
+//@Ignore
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ExamResultTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(ExamResultTest.class);

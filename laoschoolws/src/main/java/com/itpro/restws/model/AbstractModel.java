@@ -1,12 +1,20 @@
 package com.itpro.restws.model;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itpro.restws.helper.ESchoolException;
 //MappedSuperClass must be used to inherit properties, associations, and methods.
 @MappedSuperclass
 public class AbstractModel {
@@ -184,4 +192,72 @@ public class AbstractModel {
 	
 	
 // DEFAULT FIELDS End	
+	public String printActLog(){
+		//String className = this.getClass().getSimpleName();
+		StringBuffer ret = new StringBuffer();
+		try{
+//			ret.append(" ---- className:");
+//			ret.append(className);
+//			ret.append(" ---- \n");
+			java.lang.reflect.Field[] fields = this.getClass().getDeclaredFields();
+			for (Field  field : fields) {
+	            field.setAccessible(true);
+	            String fname =field.getName();
+	            String sval = null;
+	            
+	            if (field.get(this) != null) {
+	                //field.set(oDb, field.get(oUp));
+	            	if(field.get(this) instanceof Collection) {
+	                    //Do your thing
+//	            		@SuppressWarnings("rawtypes")
+//						Collection list = (Collection) field.get(this);
+//	            		if (list.size() > 0){
+//	            			sval = "list[],size="+list.size();
+//	            		}
+	                }
+	            	else{
+	            		sval = field.get(this).toString();
+	            	}
+	            	ret.append(fname+":"+ (sval==null?"null":sval)+"\n");
+	            }
+	            //ret.append(fname+":"+ (sval==null?"null":sval)+"\n");
+	            
+	        }
+			// ret.append(" ------- ");
+		}catch (Exception e){
+			throw new ESchoolException("Exception when printActLog(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} 
+		
+		return ret.toString();
+	}
+	public String toJsonString(){
+		ObjectMapper mapper = new ObjectMapper();
+		//Object to JSON in String
+		String jsonInString;
+		try {
+			jsonInString = mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when toJsonString(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return jsonInString;
+	}
+	public AbstractModel jsonToObject(String jsonInString){
+		ObjectMapper mapper = new ObjectMapper();
+		//JSON from String to Object
+		AbstractModel obj;
+		try {
+			obj = mapper.readValue(jsonInString, this.getClass());
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return obj;
+	}
 }

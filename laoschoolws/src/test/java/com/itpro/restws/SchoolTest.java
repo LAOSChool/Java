@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import com.itpro.restws.helper.Utils;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@Ignore
+//@Ignore
 public class SchoolTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(SchoolTest.class);
 	

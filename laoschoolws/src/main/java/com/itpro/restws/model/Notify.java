@@ -13,6 +13,9 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SelectBeforeUpdate;
+import org.springframework.http.HttpStatus;
+
+import com.itpro.restws.helper.ESchoolException;
 
 @Entity
 @Table(name="notify")
@@ -85,12 +88,14 @@ public class Notify extends AbstractModel{
 	@Column(name="to_sso_id")
 	private String to_sso_id;
 	
+	@Column(name="from_sso_id")
+	private String from_sso_id;
 //
 //	@JsonIgnore
 //	@Column(name="images")
 //	private String images="";
 	
-
+	
 
 	public Integer getId() {
 		return id;
@@ -258,6 +263,9 @@ public class Notify extends AbstractModel{
 		copy.setClass_id(this.class_id);
 		copy.setFrom_usr_id(this.from_user_id);
 		copy.setFrom_user_name(this.from_user_name);
+		copy.setFrom_sso_id(this.from_sso_id);
+		
+		
 		copy.setTo_user_id(this.to_user_id);
 		copy.setTo_user_name(this.to_user_name);
 		copy.setTo_sso_id(this.to_sso_id);
@@ -312,4 +320,54 @@ public class Notify extends AbstractModel{
 	public void setTo_sso_id(String to_sso_id) {
 		this.to_sso_id = to_sso_id;
 	}
+	public String printActLog(){
+		//String className = this.getClass().getSimpleName();
+		StringBuffer ret = new StringBuffer();
+		try{
+			ret.append("from_user_id:");
+			ret.append(this.from_user_id== null?"null":this.from_user_id.intValue());
+			ret.append("\n");
+			ret.append("from_user_sso:");
+			ret.append(this.from_sso_id== null?"null":this.from_sso_id);
+			ret.append("\n");
+			
+			ret.append("to_class_id:");
+			ret.append(this.class_id== null?"null":this.class_id.intValue());
+			ret.append("\n");
+			
+			if (this.title != null){
+				ret.append("title:");
+				ret.append(this.title== null?"null":this.title);
+				ret.append("\n");
+			}
+			if (this.content != null){
+				ret.append("content:");
+				ret.append(this.content== null?"null":this.content);
+				ret.append("\n");
+			}
+			
+			if (this.notifyImages != null && this.notifyImages.size() > 0){
+				for (NotifyImg img: this.notifyImages){
+					ret.append("image:"+img.getFile_url()==null?"null":img.getFile_url());
+					ret.append("\n");
+					ret.append("caption:"+img.getCaption()==null?"null":img.getCaption());
+					ret.append("\n");
+				}
+			}
+			
+		}catch (Exception e){
+			throw new ESchoolException("Exception when Notify.printActLog(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} 
+		
+		return ret.toString();
+	}
+
+	public String getFrom_sso_id() {
+		return from_sso_id;
+	}
+
+	public void setFrom_sso_id(String from_sso_id) {
+		this.from_sso_id = from_sso_id;
+	}
+	
 }

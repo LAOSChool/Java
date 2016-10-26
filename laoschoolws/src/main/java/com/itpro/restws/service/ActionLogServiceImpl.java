@@ -55,7 +55,7 @@ public class ActionLogServiceImpl implements ActionLogService{
 		logger.info(" *** " + method_name + "() START");
 		logger.info("user_id"+(user_id==null?"null":user_id.intValue()));
 		
-		return actionLogDao.countBySchool(user_id);
+		return actionLogDao.countByUser(user_id);
 	}
 
 	@Override

@@ -9,12 +9,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -39,6 +47,7 @@ import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
 import com.itpro.restws.model.User;
 import com.itpro.restws.model.User2Class;
+
 
 @Service("userService")
 @Transactional
@@ -139,14 +148,6 @@ public class UserServiceImpl implements UserService{
 		return list;
 	}
 
-//	@Override
-//	public User insertUser(User me, User user) {
-//		
-//		valid_user(user, true);
-//		userDao.saveUser(user);
-//		return user;
-//	}
-
 	@Override
 	public User updateTransientUser(User me, User transient_user,boolean ignore_pass) {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -189,7 +190,7 @@ public class UserServiceImpl implements UserService{
 		  try {
 			  userDao.setFlushMode(FlushMode.MANUAL);
 			  userDB = User.updateChanges(userDB, transient_user);
-			  valid_user(userDB, false);
+			  valid_user(userDB, false,false);
 	        } catch (Exception e){
 	        	userDao.clearChange();
 	        	throw e;
@@ -408,7 +409,7 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public User createUser(User me, User user, E_ROLE role) {
+	public User createUser(User me, User user, E_ROLE role,boolean is_imp_file) {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
 		
@@ -419,7 +420,7 @@ public class UserServiceImpl implements UserService{
 		else{
 			validSSO_ID(user.getSso_id(),role);
 		}
-		valid_user(user,true);
+		valid_user(user,true,is_imp_file);
 		// Insert into DB
 		userDao.saveUser(me,user);
 		// Change sso_id to DB ID
@@ -786,7 +787,7 @@ public class UserServiceImpl implements UserService{
 			
 		}
 
-		private void valid_user( User user, boolean is_new ) {
+		private void valid_user( User user, boolean is_new,boolean is_imp_file ) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			
@@ -808,15 +809,20 @@ public class UserServiceImpl implements UserService{
 			if (user.getRoles() == null || user.getRoles().trim().length()==0){
 				throw new ESchoolException("User.roles is required",HttpStatus.BAD_REQUEST);
 			}
-			if (user.getAddr1() == null || user.getAddr1().trim().length()==0){
-				throw new ESchoolException("User.addr1 is required",HttpStatus.BAD_REQUEST);
+//			if (user.getAddr1() == null || user.getAddr1().trim().length()==0){
+//				throw new ESchoolException("User.addr1 is required",HttpStatus.BAD_REQUEST);
+//			}
+			// Only check birthday and gender if not import file
+			if (!is_imp_file){
+				if (user.getBirthday() == null || user.getBirthday().trim().length()==0){
+					throw new ESchoolException("User.birthday is required",HttpStatus.BAD_REQUEST);
+				}
+				if (user.getGender() == null || user.getGender().trim().length()==0){
+					throw new ESchoolException("User.gender is required",HttpStatus.BAD_REQUEST);
+				}
 			}
-			if (user.getBirthday() == null || user.getBirthday().trim().length()==0){
-				throw new ESchoolException("User.birthday is required",HttpStatus.BAD_REQUEST);
-			}
-			if (user.getGender() == null || user.getGender().trim().length()==0){
-				throw new ESchoolException("User.gender is required",HttpStatus.BAD_REQUEST);
-			}
+
+			// Check cls_level
 			if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
 				if (user.getCls_level() == null || user.getCls_level() == 0){
 					throw new ESchoolException("cls_level (NUMBER TYPE) is required",HttpStatus.BAD_REQUEST);
@@ -838,7 +844,7 @@ public class UserServiceImpl implements UserService{
 		}
 
 		@Override
-		public String saveUploadUsers(User me, MultipartFile[] files, Integer class_id) {
+		public String saveUploadUsers(User me, MultipartFile[] files, Integer class_id, String file_type) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			
@@ -887,13 +893,25 @@ public class UserServiceImpl implements UserService{
 		            filePath = str_dir+ "/" + fileName;
 		            
 					// Create the file on server
+//		            BufferedWriter fr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "UTF8"));
+//		            fr.close();  
+		            
 					File serverFile = new File(filePath);
 					BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
-					stream.write(bytes);
-					stream.close();
-					logger.info("Server File Location="+ serverFile.getAbsolutePath());
+					 stream.write(bytes);
+					 stream.close();
+		             logger.info("Server File Location="+ serverFile.getAbsolutePath());
+					
 					// Read file into Users
-					ArrayList<User> list = impFileToClass(me,eclass,filePath,orgName);
+		             ArrayList<User> list = null;
+		             if (file_type.equalsIgnoreCase(Constant.UPLOAD_TYPE_CSV)){
+		            	 list = importCSVToUsers(me,eclass,filePath,orgName);
+		             }else if (file_type.equalsIgnoreCase(Constant.UPLOAD_TYPE_EXCEL)){
+		            	 list = importExcelToUsers(me,eclass,filePath,orgName);
+		             }else{
+		            	 throw new ESchoolException("Invalid file_type:"+file_type, HttpStatus.BAD_REQUEST); 
+		             }
+		             
 					logger.info("Finish import list.size = "+ (list==null?"0":list.size()));
 					
 					
@@ -909,7 +927,7 @@ public class UserServiceImpl implements UserService{
 			
 		}
 
-		private ArrayList<User>  impFileToClass(User me,EClass eclass,String filePath,String fileName) {
+		private ArrayList<User>  importCSVToUsers(User me,EClass eclass,String filePath,String fileName) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			
@@ -1045,7 +1063,7 @@ public class UserServiceImpl implements UserService{
 				}else{
 					role = E_ROLE.STUDENT;
 				}
-				createUser(me, user, role);
+				createUser(me, user, role,true);
 				if (user.getId() != null && eclass != null ){
 					user2ClassService.assignUserToClass(me, user.getId(),eclass.getId(),"IMPORT file: "+fileName);
 				}
@@ -1053,6 +1071,227 @@ public class UserServiceImpl implements UserService{
 			return users;
 			
 		}
+		private ArrayList<User>  importExcelToUsers(User me,EClass eclass,String filePath,String fileName) {
+			String extension = FilenameUtils.getExtension(fileName);
+            if(!extension.trim().equalsIgnoreCase("xlsx")){
+                throw new ESchoolException("fileName is not .xlsx file", HttpStatus.BAD_REQUEST);
+            }
+            ArrayList<User> users = new ArrayList<User>();
+            String fullname = null;
+			String nickname = null;
+			String addr1 = null;
+			String addr2 = null;
+			String phone = null;
+			String birthday = null;
+			String gender = null;
+			String email = null;
+			String std_parent_name = null;
+			
+            int i=0;
+            FileInputStream myInput = null;
+	        try{
+	            // Creating Input Stream 
+	            myInput = new FileInputStream( new File(filePath));
+
+	            // Create a workbook using the File System 
+	            XSSFWorkbook myWorkBook = new XSSFWorkbook(myInput);
+
+	            // Get the first sheet from workbook 
+	            XSSFSheet mySheet = myWorkBook.getSheetAt(0);
+
+	            /** We now need something to iterate through the cells.**/
+	            Iterator<Row> rowIter = mySheet.rowIterator();
+	            while(rowIter.hasNext()){
+	            	i++;
+	                XSSFRow row = (XSSFRow) rowIter.next();
+	                XSSFCell my_cell = null;
+	                // Ignore header
+	                if (i == 1){
+						continue;
+					}
+	                //Full name
+	                fullname = row.getCell(0)== null?null: row.getCell(0).getStringCellValue();
+	                // Nick name
+					nickname = row.getCell(1)== null?null: row.getCell(1).getStringCellValue();
+					// Addr1
+					addr1 = row.getCell(2)== null?null: row.getCell(2).getStringCellValue();
+					// Addr 2
+					addr2 = row.getCell(3)== null?null: row.getCell(3).getStringCellValue();
+					// Phone
+					my_cell = row.getCell(4);
+					if (my_cell == null ){
+						phone = null;
+					}else{
+						switch (my_cell.getCellType()) 
+						{
+							case Cell.CELL_TYPE_NUMERIC:
+								phone = my_cell.getRawValue();
+								break;
+							case Cell.CELL_TYPE_STRING:
+								phone = my_cell.getStringCellValue();
+								break;
+							default:
+								phone = my_cell.getRawValue();
+								break;
+						}
+					}
+					
+					// Birth day
+					my_cell = row.getCell(5);
+					if (my_cell == null ){
+						birthday = null;
+					}else{
+						switch (my_cell.getCellType()) 
+						{
+							case Cell.CELL_TYPE_NUMERIC:
+								Date dt = my_cell.getDateCellValue();
+								if (dt == null ){
+									birthday = null;
+								}else{
+									birthday = Utils.dateToString(dt);
+								}
+								break;
+							case Cell.CELL_TYPE_STRING:
+								birthday = my_cell.getStringCellValue();
+								break;
+							default:
+								birthday = my_cell.getRawValue();
+								break;
+						}
+					}
+					
+					// Male/Female
+					gender = row.getCell(6)== null?null: row.getCell(6).getStringCellValue().toLowerCase();
+					// Email
+					email =row.getCell(7)== null?null: row.getCell(7).getStringCellValue();
+					// Parent
+					std_parent_name = row.getCell(8)== null?null: row.getCell(8).getStringCellValue();
+					
+					// validate
+					if (fullname == null || fullname.trim().length() == 0){
+						throw new ESchoolException("fileName:"+fileName+"["+i+"], fullname is required",HttpStatus.BAD_REQUEST);
+					}
+					
+					if (phone != null && phone.trim().length() > 0 ){
+						phone = Utils.validMobilePhoneNo(phone);
+						if (phone == null ){
+							// 0302000010 or 02029999250	
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], incorrect phone, only accept: 030xxx (x: 7 digits from 0-9) Or 020yyy (y: 8 digits from 0-9)",HttpStatus.BAD_REQUEST);
+						}
+					}else{
+						phone =null;
+					}
+					
+					if (birthday != null && birthday.trim().length() > 0){
+						Date dt = Utils.parsetDateAll(birthday);// YYYY-MM-DD
+						if (dt == null){
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], birthday is invalid format",HttpStatus.BAD_REQUEST);
+						}else{
+							birthday = Utils.dateToString(dt);
+						}
+					}else{
+						birthday = null;
+					}
+
+					if (gender != null   && gender.trim().length() > 0 ){
+						if ( gender.equals("male") ||gender.equals("female") ){
+							// do nothing
+						}else{
+							throw new ESchoolException("fileName:"+fileName+"["+i+"], gender must be male, female",HttpStatus.BAD_REQUEST);
+						}
+					}else{
+						gender = null;
+					}
+					
+					
+					// Parsing CLS_LEVLE
+					
+					User user = new User();
+					// Default value
+					user.setSchool_id(eclass.getSchool_id());
+					user.setCls_level(eclass.getLevel());
+					user.setState(E_STATE.ACTIVE.value());
+					user.setSso_id("STUDENT");
+					user.setRoles(E_ROLE.STUDENT.getRole_short());
+					////////////
+					user.setFullname(fullname);
+					user.setNickname(nickname);
+					user.setAddr1(addr1);
+					user.setAddr2(addr2);
+					user.setPhone(phone);
+					user.setBirthday(birthday);
+					user.setGender(gender);
+					user.setEmail(email);
+					user.setStd_parent_name(std_parent_name);
+					
+					// Save to list
+					users.add(user);
+					
+//	                Iterator<Cell> cellIter = row.cellIterator();
+//	                String line ="";
+//	                while(cellIter.hasNext()){
+//
+//	                    XSSFCell cell = (XSSFCell) cellIter.next();
+////	                    //get cell index
+////	                    logger.info("row["+i+"], cell column index: " + cell.getColumnIndex());
+////	                    //get cell type
+////	                    logger.info("row["+i+"], cell type: " + cell.getCellType());
+//	                    //get cell value
+//	                    switch (cell.getCellType()) {
+//		                    case XSSFCell.CELL_TYPE_NUMERIC :
+//	//	                    	logger.info("row["+i+"], cell value: " + cell.getNumericCellValue());
+//		                    	line += cell.getNumericCellValue()+"\t";
+//		                        break;
+//		                    case XSSFCell.CELL_TYPE_STRING:   
+//	//	                    	logger.info("row["+i+"], cell value:" + cell.getStringCellValue());
+//		                    	line += cell.getStringCellValue()+"\t";
+//		                        break;
+//		                    default:   
+//	//	                    	logger.info("row["+i+"], cell raw value: " + cell.getRawValue());
+//		                    	line += cell.getRawValue()+"\t";
+//		                        break;   
+//	                    }
+//	                }
+//	                logger.info("row["+i+"] " + line);
+	            }
+	            myInput.close();
+	        }catch (ESchoolException es){
+	        	throw es;
+	        }catch (RuntimeException er){
+	        	throw er;
+	        }
+	        catch (Exception e){
+	            e.printStackTrace();
+				throw new RuntimeException("processExcelFile() exception:"+e.getMessage());
+	        }
+	        finally {
+				try {
+					if (myInput != null) myInput.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+	     // Save users list to DB
+			for (User user: users){
+				// Save to DB
+				E_ROLE role ;
+				if (user.hasRole(E_ROLE.TEACHER.getRole_short())){
+					role = E_ROLE.TEACHER;
+				}else if (user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short())){
+					role = E_ROLE.CLS_PRESIDENT;
+				}else{
+					role = E_ROLE.STUDENT;
+				}
+				createUser(me, user, role,true);
+				if (user.getId() != null && eclass != null ){
+					user2ClassService.assignUserToClass(me, user.getId(),eclass.getId(),"IMPORT file: "+fileName);
+				}
+			}
+	        return users;
+
+	    }
+		
+	
 
 		@Override
 		public User2Class assignUser2Class(User me, Integer user_id, Integer class_id, String notice) {
@@ -1123,6 +1362,57 @@ public class UserServiceImpl implements UserService{
 			
 		}
 
-	
+		@Override
+		public File createTmpDownloadExcel(User me) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			
+			
+			String temp_dir = environment.getRequiredProperty("temp_location");
+			//String str_dir = Utils.makeFolderByTime(temp_dir);
+			String str_dir = temp_dir;
+			String fileName = Utils.getFileName(me.getSso_id(), "_users_sample.xlsx");            	
+            String filePath = str_dir+ "/" + fileName;
+            
+//            File f = new File(filePath);
+//            if (f.exists()){
+//            	return f;
+//            }
+            
+			XSSFWorkbook workbook = new XSSFWorkbook();
+	        XSSFSheet sheet = workbook.createSheet("User");
+	         
+	        
+	        Object[][] users = {
+	                {"Full Name", "Short Name","Address1","Address2","Phone","Birth Day","Gender","Email","Parent Name"},
+	        };
+	 
+	        int rowCount = 0;
+	         
+	        for (Object[] user : users) {
+	            Row row = sheet.createRow(rowCount++);
+	             
+	            int columnCount = 0;
+	             
+	            for (Object field : user) {
+	                Cell cell = row.createCell(columnCount++);
+	                if (field instanceof String) {
+	                    cell.setCellValue((String) field);
+	                } else if (field instanceof Integer) {
+	                    cell.setCellValue((Integer) field);
+	                }
+	            }
+	             
+	        }
+	         
+	         
+	        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+	            workbook.write(outputStream);
+	        } catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("createTmpDownloadExcel error:"+e.getMessage());
+			}
+	        return new File(filePath);
+		}
 		
 }

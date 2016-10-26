@@ -31,6 +31,7 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.ActionLogVIPService;
 import com.itpro.restws.service.CommandService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -47,6 +48,8 @@ public class NotifyController extends BaseController {
 	protected static final Logger logger = Logger.getLogger(NotifyController.class);
 	@Autowired
 	protected CommandService commandService;
+	@Autowired
+	private ActionLogVIPService actionLogVIPService;
 	
 	/***
 	 * It will convert String to String[] without using separator (null param), 
@@ -196,6 +199,19 @@ public class NotifyController extends BaseController {
 		return notify;
 	 }
 	
+	/***
+	 * When this API is call, system will insert a command
+	 * After about 20s, a background process will process to send notify ( input into notify table)
+	 * when finish, will make firebase list
+	 * @param filter_roles
+	 * @param orders
+	 * @param captions
+	 * @param files
+	 * @param json_in_string:
+	 * Example send notify to class 1: {"class_id":1, "dest_type":"1"}
+	 * @param request
+	 * @return
+	 */
 	@Secured({"ROLE_ADMIN","ROLE_TEACHER"})
 	@RequestMapping(value="/api/notifies/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)	
@@ -248,13 +264,14 @@ public class NotifyController extends BaseController {
 		
 		User me = getCurrentUser();
 		
-		//Notify notify =  notifyService.saveUploadData(user, files, captions, content, title, json_in_string);
 		Notify notify =  notifyService.saveUploadData(me, files, captions,orders, json_in_string);
 		// If upload success (task_id > 0)
 		if (notify.getTask_id() >0 && notify.getNotifyImages().size() > 0 ){
 			// notifyService.broadcastNotify(me, notify, filter_roles); //20160823
 			commandService.create_notify_cmd(me, notify, filter_roles);
-			
+			// Log action
+			actionLogVIPService.logAction_url(me, request.getServletPath(), notify);
+			// Response
 			rsp.setMessageObject("Done, tasks created for background processing, task_id:"+notify.getTask_id().intValue());
 		}else{
 			rsp.setDeveloperMessage("cannot upload images");
@@ -353,7 +370,6 @@ public class NotifyController extends BaseController {
 			 {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
-		
 		logger.info(" *** json_in_string:"+json_in_string);
 		
 		try {
@@ -496,8 +512,6 @@ public class NotifyController extends BaseController {
 		
 	
 		RespInfo rsp = createNotify(filter_roles, new_orders, new_captions, new_files, json_in_string, request);
-		
-		
 		
 		return rsp;
 		 

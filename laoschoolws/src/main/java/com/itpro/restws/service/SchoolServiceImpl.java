@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,6 +185,13 @@ public class SchoolServiceImpl implements SchoolService{
 			   (sts.intValue() > E_STATE.CLOSED.value())){
 				throw new ESchoolException("invalid state, must be 0,1,2,3", HttpStatus.BAD_REQUEST);
 			}
+		}
+		if (school.getFound_dt() != null  ){
+			Date dt = Utils.parsetDateAll(school.getFound_dt());
+			if (dt == null ){
+				throw new ESchoolException("found_dt: invalid date format", HttpStatus.BAD_REQUEST);
+			}
+			school.setFound_dt(Utils.dateToStringDateOnly(dt)); 
 		}
 //		// check title
 //		if (school.getTitle() == null || 

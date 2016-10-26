@@ -2,6 +2,7 @@ package com.itpro.restws.service;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
@@ -60,6 +61,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 	
 	@Autowired
 	private SchoolExamService schoolExamService;
+	
+	@Autowired
+	private ActionLogVIPService actionLogVIPService;
 	
 		
 	@Override
@@ -160,6 +164,9 @@ public class ExamResultServiceImpl implements ExamResultService{
 					existing_db.getSchool_id().intValue() == me.getSchool_id().intValue()){
 				existing_db = ExamResult.updateChanges(existing_db, examResult);
 				examResultDao.updateExamResult(me,existing_db);
+				
+				//actionLogVIPService.logAction_type(me,Constant.ACTION_TYPE_MARK,existing_db.printActLog());
+				actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,existing_db.printActLog(),existing_db.toJsonString());
 				return existing_db;
 			}else{
 				throw new ESchoolException("Invalid examResult.id (null or not belong to same school)", HttpStatus.BAD_REQUEST);
@@ -168,8 +175,12 @@ public class ExamResultServiceImpl implements ExamResultService{
 		// Add new exam
 			examResult.setId(null);// New exam
 			examResultDao.saveExamResult(me,examResult);
+			
+			//actionLogVIPService.logAction_type(me,Constant.ACTION_TYPE_MARK,examResult.printActLog());
+			actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,examResult.printActLog(),examResult.toJsonString());
 			return examResult;
 		}
+		
 		
 	}
 
@@ -296,12 +307,20 @@ public class ExamResultServiceImpl implements ExamResultService{
                 		}
                 			              		
                 		
-                		String exam_dt="";
-                		String[] arr = sresult.split("@"); // "8.4@2016-06-10";
-                		if (arr != null && arr.length >=2){
-                			sval = arr[0];
-                			exam_dt = arr[1];
-                			if (!Utils.checkDateFormat(exam_dt)){
+//                		String exam_dt="";
+//                		String[] arr = sresult.split("@"); // "8.4@2016-06-10";
+//                		if (arr != null && arr.length >=2){
+//                			sval = arr[0];
+//                			exam_dt = arr[1];
+//                			if (!Utils.checkDateFormat(exam_dt)){
+//                				throw new ESchoolException(fname + ": invalid date time format, should be YYYY-MM-DD value: "+ exam_dt, HttpStatus.BAD_REQUEST);
+//                			}
+//                		}
+                		String exam_dt=examDetail.getExam_dt();
+                		Date dt = null;
+                		if (exam_dt != null && exam_dt.trim().length() > 0){
+                			dt = Utils.parsetDateAll(exam_dt);
+                			if (dt == null ){
                 				throw new ESchoolException(fname + ": invalid date time format, should be YYYY-MM-DD value: "+ exam_dt, HttpStatus.BAD_REQUEST);
                 			}
                 		}
@@ -1680,5 +1699,6 @@ public class ExamResultServiceImpl implements ExamResultService{
         }
         return false;
    	}
+
 	
 }

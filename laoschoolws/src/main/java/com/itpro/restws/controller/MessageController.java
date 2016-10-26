@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.helper.Utils;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.User;
+import com.itpro.restws.service.ActionLogVIPService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
  * /secure/ sub-context is protected by configuration. Some security annotations are
@@ -41,6 +43,10 @@ import com.itpro.restws.model.User;
 // Where every method returns a domain object instead of a view
 @RestController 
 public class MessageController extends BaseController {
+	
+	@Autowired
+	private ActionLogVIPService actionLogVIPService;
+	
 	protected static final Logger logger = Logger.getLogger(MessageController.class);
 	@RequestMapping(value="/api/messages",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)
@@ -205,8 +211,15 @@ public class MessageController extends BaseController {
 	 }
 	
 	
-	
-	//@Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	/***
+	 * This method to send message fore User
+	 * Support many users: in cc_list
+	 * @param message
+	 * @param request
+	 * @return
+	 */
+	// @Secured({"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT" })
+	// Enable all to support STUDENT send message to head teacher
 	@RequestMapping(value="/api/messages/create",method = RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.OK)
 	public RespInfo createMessage(
@@ -218,18 +231,30 @@ public class MessageController extends BaseController {
 		
 		// Load user
 		User me = getCurrentUser();
+		
+		if (message.getDest_type()== null){
+			message.setDest_type(E_DEST_TYPE.PERSON.getValue());
+		}
+		if (message.getDest_type() != E_DEST_TYPE.PERSON.getValue()){
+			throw new ESchoolException("message.dest_type must be 0 ONLY to send to a User, keep other users in cc_list", HttpStatus.BAD_REQUEST);
+		}
+
 		// Check user permission
 		messageService.secureCheckNewMessage(me, message);
 		message.setChannel(E_MSG_CHANNEL.FIREBASE.getValue());// disable send SMS
 		Message msg = messageService.sendUserMessageWithCC(me, message);
 		// 20160823 end		
+		// Log action
+		actionLogVIPService.logAction_url(me, request.getServletPath(), msg);
+		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(msg);
 		return rsp;	
 	}
 	/***
-	 * 	Send to Class, always set from Me user, only ADMIN can send to class or school
-  	 *   TEACHER: can only send personal message with CC
+	 *  This method used to send CLASS message
+	 *  Support many classes in cc_list
+	 * 	Only ADMIN role can execute
 	 * @param message
 	 * @param filter_roles
 	 * @param request
@@ -245,15 +270,21 @@ public class MessageController extends BaseController {
 			) {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
+//		String actlog = message.printActLog();
+//		logger.info(actlog);
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getServletPath().toString(), "Successful");
 		// Load user
 		User me = getCurrentUser();
+		
 		// 2016-08-22 DEL
 		// ArrayList<Message> list = messageService.broadcastMessage(me, message, filter_roles);
 		// rsp.setMessageObject("Done, count= "+list.size());
 		// 2016-08-22 Start
-		
+		if (message.getDest_type()== null){
+			//message.setDest_type(E_DEST_TYPE.CLASS.getValue());
+			throw new ESchoolException("message.dest_type cannot be NULL, must set to 1 ONLY (sending to CLASS), other classes can be put in cc_list", HttpStatus.BAD_REQUEST);
+		}
 		ArrayList<Message> list = null;
 		if (message.getDest_type() == E_DEST_TYPE.CLASS.getValue()){
 			message.setChannel(E_MSG_CHANNEL.FIREBASE.getValue());// disable send SMS
@@ -268,6 +299,9 @@ public class MessageController extends BaseController {
 			}
 			ids = Utils.removeTxtLastComma(ids);
 		}
+		// Log action
+		actionLogVIPService.logAction_url(me, request.getServletPath(), message);
+				
 		rsp.setMessageObject("Done, tasks created for background processing, ids:"+ids);
 		return rsp;
 				

@@ -364,6 +364,7 @@ public class NotifyServiceImpl implements NotifyService{
 			throw new RuntimeException("From user_id:"+frm_user.getId().intValue()+" is not in same school with current user:"+me.getId().intValue());
 		}
 		notify.setFrom_user_name(frm_user.getFullname());
+		notify.setFrom_sso_id(frm_user.getSso_id());
 		
 		// To user_id
 		if (notify.getTo_user_id() == null || notify.getTo_user_id().intValue() <= 0){
@@ -740,6 +741,11 @@ public class NotifyServiceImpl implements NotifyService{
         }else{
         	notify.setSchool_id(me.getSchool_id());
         }
+        
+        notify.setFrom_user_id(me.getId());
+        notify.setFrom_user_name(me.getFullname());
+        notify.setFrom_sso_id(me.getSso_id());
+        
          
         // Check dest type, only class is acccepted 
          

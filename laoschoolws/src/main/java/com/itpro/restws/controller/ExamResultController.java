@@ -44,6 +44,9 @@ public class ExamResultController extends BaseController {
 	
 	private static final Logger logger = Logger.getLogger(EduProfileController.class);
 	
+//	@Autowired
+//	private ActionLogVIPService actionLogVIPService;
+	
 	@Autowired
 	protected CommandService commandService;
 
@@ -76,9 +79,18 @@ public class ExamResultController extends BaseController {
 			) {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
-		
+//		String actlog = examResult.printActLog();
+//		logger.info(actlog);
 		User me = getCurrentUser();
+		
+//		ActionLogVIP actionLogVIP = actionLogVIPService.createTmpActionLogVIP(me, request.getServletPath(), examResult);
+		
 		ExamResult ret = examResultService.inputExam(me,examResult);
+		
+//		Ko can vi da insert trong 		inputExam roi
+//		if (actionLogVIP != null ){
+//			actionLogVIPService.insertAction(actionLogVIP);
+//		}
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		rsp.setMessageObject(ret);
 	    return rsp;
@@ -188,19 +200,26 @@ public class ExamResultController extends BaseController {
 		logger.info(" *** " + method_name + "() START");
 		
 		
-		User teacher = getCurrentUser();
+		User me = getCurrentUser();
 		ArrayList<ErrInfo> errors = new ArrayList<ErrInfo>();
+		// Validation and reset ActionLog
+//		ArrayList<ActionLogVIP> list_log = new ArrayList<ActionLogVIP>();
+		if (examResults != null && examResults.size() > 0){
+			for (ExamResult examResult: examResults){
+//				ActionLogVIP actionLogVIP = actionLogVIPService.createTmpActionLogVIP(me, request.getServletPath(), examResult);
+//				list_log.add(actionLogVIP);
+				// Validate
+				examResultService.validInputExam(me,examResult);
+			}	
+		}
+		
+		
 		int cnt =0;
 		if (examResults != null && examResults.size() > 0){
-			//Validate first
-			for (ExamResult examResult: examResults){
-				examResultService.validInputExam(teacher,examResult);
-			}
-			// Input later
-			
+			// Input Exam
 			try{
 				for (ExamResult examResult: examResults){
-					examResultService.inputExam(teacher,examResult);
+					examResultService.inputExam(me,examResult);
 				}
 				cnt +=1;
 			}catch (Exception ex){
@@ -210,6 +229,12 @@ public class ExamResultController extends BaseController {
 				errors.add(errinfo);
 			}
 		}
+		
+		// Save ActionLog to DB
+//		// Da log trong ExamResultService.input roi		
+//		for (ActionLogVIP actionLog: list_log){
+//			actionLogVIPService.insertAction(actionLog);
+//		}
 		
 		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
 		if (errors.size() > 0){

@@ -10,6 +10,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
+import org.springframework.http.HttpStatus;
+
+import com.itpro.restws.helper.ESchoolException;
 
 
 //
@@ -459,5 +462,149 @@ public class ExamResult extends AbstractModel{
 	public void setStd_fullname(String std_fullname) {
 		this.std_fullname = std_fullname;
 	}
-	
+	public String printActLog(){
+		//String className = this.getClass().getSimpleName();
+		StringBuffer ret = new StringBuffer();
+		try{
+			ret.append("class_id:");
+			ret.append(this.class_id== null?"null":this.class_id.intValue());
+			ret.append("\n");
+			
+			ret.append("student_id:");
+			ret.append(this.student_id== null?"null":this.student_id.intValue());
+			ret.append("\n");
+			
+			ret.append("student_name:");
+			ret.append(this.student_name== null?"null":this.student_name);
+			ret.append("\n");
+			
+			ret.append("subject_id:");
+			ret.append(this.subject_id== null?"null":this.subject_id.intValue());
+			ret.append("\n");
+			
+			ret.append("subject_name:");
+			ret.append(this.subject_name== null?"null":this.subject_name);
+			ret.append("\n");
+			
+			ret.append("sch_year_id:");
+			ret.append(this.sch_year_id== null?"null":this.sch_year_id.intValue());
+			ret.append("\n");
+			
+			if (this.m1 != null ){
+				ret.append("m1:");
+				ret.append(this.m1== null?"null":this.m1);
+				ret.append("\n");
+			}
+
+			if (this.m2 != null ){
+				ret.append("m2:");
+				ret.append(this.m2== null?"null":this.m2);
+				ret.append("\n");
+			}
+			
+			if (this.m3 != null ){
+				ret.append("m3:");
+				ret.append(this.m3== null?"null":this.m3);
+				ret.append("\n");
+			}
+			if (this.m4 != null ){
+				ret.append("m4:");
+				ret.append(this.m4== null?"null":this.m4);
+				ret.append("\n");
+			}
+//			if (this.m5 != null ){
+//				ret.append("m5:");
+//				ret.append(this.m5== null?"null":this.m5);
+//				ret.append("\n");
+//			}
+//			
+			if (this.m6 != null ){
+				ret.append("m6:");
+				ret.append(this.m6== null?"null":this.m6);
+				ret.append("\n");
+			}
+//			
+//			if (this.m7 != null ){
+//				ret.append("m7:");
+//				ret.append(this.m7== null?"null":this.m7);
+//				ret.append("\n");
+//			}
+			
+			if (this.m8 != null ){
+				ret.append("m8:");
+				ret.append(this.m8== null?"null":this.m8);
+				ret.append("\n");
+			}
+			
+			if (this.m9 != null ){
+				ret.append("m9:");
+				ret.append(this.m9== null?"null":this.m9);
+				ret.append("\n");
+			}
+			
+			if (this.m10 != null ){
+				ret.append("m10:");
+				ret.append(this.m10== null?"null":this.m10);
+				ret.append("\n");
+			}
+			
+			if (this.m11 != null ){
+				ret.append("m11:");
+				ret.append(this.m11== null?"null":this.m11);
+				ret.append("\n");
+			}
+			
+//			if (this.m12 != null ){
+//				ret.append("m12:");
+//				ret.append(this.m12== null?"null":this.m12);
+//				ret.append("\n");
+//			}
+			if (this.m13 != null ){
+				ret.append("m13:");
+				ret.append(this.m13== null?"null":this.m13);
+				ret.append("\n");
+			}
+//			if (this.m14 != null ){
+//				ret.append("m14:");
+//				ret.append(this.m14== null?"null":this.m14);
+//				ret.append("\n");
+//			}
+//			if (this.m15 != null ){
+//				ret.append("m15:");
+//				ret.append(this.m15== null?"null":this.m15);
+//				ret.append("\n");
+//			}
+			if (this.m16 != null ){
+				ret.append("m16:");
+				ret.append(this.m16== null?"null":this.m16);
+				ret.append("\n");
+			}
+			if (this.m17 != null ){
+				ret.append("m17:");
+				ret.append(this.m17== null?"null":this.m17);
+				ret.append("\n");
+			}
+			if (this.m18 != null ){
+				ret.append("m18:");
+				ret.append(this.m18== null?"null":this.m18);
+				ret.append("\n");
+			}
+			if (this.m19 != null ){
+				ret.append("m19:");
+				ret.append(this.m19== null?"null":this.m19);
+				ret.append("\n");
+			}
+			if (this.m20 != null ){
+				ret.append("m20:");
+				ret.append(this.m20== null?"null":this.m20);
+				ret.append("\n");
+			}
+			
+			
+		}catch (Exception e){
+			throw new ESchoolException("Exception when Notify.printActLog(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} 
+		
+		return ret.toString();
+	}
 }

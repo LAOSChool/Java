@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
-// @Ignore
+//@Ignore
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UserTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(UserTest.class);

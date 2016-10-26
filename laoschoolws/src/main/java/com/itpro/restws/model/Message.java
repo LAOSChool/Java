@@ -14,7 +14,10 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
+import org.springframework.http.HttpStatus;
 
+import com.itpro.restws.helper.ESchoolException;
+import com.itpro.restws.helper.E_DEST_TYPE;
 import com.itpro.restws.helper.Utils;
 
 //@NamedNativeQuery(
@@ -118,6 +121,10 @@ public class Message extends AbstractModel implements java.io.Serializable{
 	@Column(name="to_phone")
 	private String to_phone;
 	
+	@Column(name="from_sso_id")
+	private String from_sso_id;
+	
+	
 	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") //@Formula("(SELECT ot1.LABEL FROM OtherTable1 ot1 WHERE ot1.CODE = CODE_FK_1)")
 	private String SchoolName;	
 	public String getSchoolName() {
@@ -149,8 +156,11 @@ public class Message extends AbstractModel implements java.io.Serializable{
 		Message copy = new Message();
 		copy.setSchool_id(this.school_id);
 		copy.setClass_id(this.class_id);
+		// From
 		copy.setFrom_user_id(this.from_user_id);
 		copy.setFrom_user_name(this.from_user_name);
+		copy.setFrom_sso_id(this.from_sso_id);
+		// To
 		copy.setTo_user_id(this.to_user_id);
 		copy.setTo_user_name(this.to_user_name);
 		copy.setTo_sso_id(this.to_sso_id);
@@ -491,5 +501,83 @@ public class Message extends AbstractModel implements java.io.Serializable{
 
 	public void setTo_phone(String to_phone) {
 		this.to_phone = to_phone;
+	}
+
+
+
+
+	public String getFrom_sso_id() {
+		return from_sso_id;
+	}
+
+
+
+
+	public void setFrom_sso_id(String from_sso_id) {
+		this.from_sso_id = from_sso_id;
+	}
+	public String printActLog(){
+		//String className = this.getClass().getSimpleName();
+		StringBuffer ret = new StringBuffer();
+		try{
+			ret.append("from_user_id:");
+			ret.append(this.from_user_id== null?"null":this.from_user_id.intValue());
+			ret.append("\n");
+			ret.append("from_user_sso:");
+			ret.append(this.from_sso_id== null?"null":this.from_sso_id);
+			ret.append("\n");
+			
+			if (this.getDest_type() != null && this.getDest_type().intValue() == E_DEST_TYPE.PERSON.getValue()){
+				ret.append("destination type:");
+				ret.append("PERSON");
+				ret.append("\n");
+				
+				ret.append("to_user_id:");
+				ret.append(this.to_user_id== null?"null":this.to_user_id.intValue());
+				ret.append("\n");
+				
+				ret.append("to_sso_id:");
+				ret.append(this.to_sso_id== null?"null":this.to_sso_id);
+				ret.append("\n");
+				
+				if (this.cc_list != null ){
+					ret.append("cc_list:");
+					ret.append(this.cc_list== null?"null":this.cc_list);
+					ret.append("\n");
+				}
+				
+			}
+			if (this.getDest_type() != null && this.getDest_type().intValue() == E_DEST_TYPE.CLASS.getValue()){
+				ret.append("destination type:");
+				ret.append("CLASS");
+				ret.append("\n");
+				
+				ret.append("to_class_id:");
+				ret.append(this.class_id== null?"null":this.class_id.intValue());
+				ret.append("\n");
+				
+				if (this.cc_list != null ){
+					ret.append("cc_list:");
+					ret.append(this.cc_list== null?"null":this.cc_list);
+					ret.append("\n");
+				}
+				
+			}
+			if (this.title != null ){
+				ret.append("title:");
+				ret.append(this.title== null?"null":this.title);
+				ret.append("\n");
+			}
+			
+			ret.append("content:");
+			ret.append(this.content== null?"null":this.content);
+			ret.append("\n");
+			
+			
+		}catch (Exception e){
+			throw new ESchoolException("Exception when Notify.printActLog(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} 
+		
+		return ret.toString();
 	}
 }
