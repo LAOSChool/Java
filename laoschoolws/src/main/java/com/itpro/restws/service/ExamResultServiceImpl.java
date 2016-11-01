@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itpro.restws.dao.ExamRankDao;
 import com.itpro.restws.dao.ExamResultDao;
 import com.itpro.restws.dao.MSubjectDao;
-import com.itpro.restws.dao.SchoolExamDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_ROLE;
@@ -56,8 +55,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 
 	@Autowired
 	protected SchoolYearService schoolYearService;
-	@Autowired
-	private SchoolExamDao schoolExamDao;
+//	@Autowired
+//	private SchoolExamDao schoolExamDao;
 	
 	@Autowired
 	private SchoolExamService schoolExamService;
@@ -151,7 +150,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 	public ExamResult inputExam(User me, ExamResult examResult) {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
-
+		String json_str = examResult.toJsonString();
 		// Validation Input ( both New or Update)
 		validInputExam(me,examResult);
 		
@@ -164,9 +163,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 					existing_db.getSchool_id().intValue() == me.getSchool_id().intValue()){
 				existing_db = ExamResult.updateChanges(existing_db, examResult);
 				examResultDao.updateExamResult(me,existing_db);
-				
-				//actionLogVIPService.logAction_type(me,Constant.ACTION_TYPE_MARK,existing_db.printActLog());
-				actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,existing_db.printActLog(),existing_db.toJsonString());
+				// Input action Log
+				actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,existing_db.printActLog(),json_str);
 				return existing_db;
 			}else{
 				throw new ESchoolException("Invalid examResult.id (null or not belong to same school)", HttpStatus.BAD_REQUEST);
@@ -175,9 +173,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 		// Add new exam
 			examResult.setId(null);// New exam
 			examResultDao.saveExamResult(me,examResult);
-			
-			//actionLogVIPService.logAction_type(me,Constant.ACTION_TYPE_MARK,examResult.printActLog());
-			actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,examResult.printActLog(),examResult.toJsonString());
+			// Input action Log			
+			actionLogVIPService.logAction_type_json(me,Constant.ACTION_TYPE_MARK,examResult.printActLog(),json_str);
 			return examResult;
 		}
 		
@@ -232,7 +229,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 				throw new ESchoolException("TeacherID:"+me.getId().intValue()+" and StudentID:"+examResult.getStudent_id().intValue()+" is not in same Class", HttpStatus.BAD_REQUEST);
 			}
 		}
-		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school_id);
 		if (schoolExams == null || schoolExams.size() == 0){
 			throw new ESchoolException("There isn't any SchoolExam defined for school_id:"+school_id.intValue(), HttpStatus.BAD_REQUEST);
 		}
@@ -595,7 +592,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		if (examResults == null ){
 			return;
 		}
-		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(student.getSchool_id(), 0, 999999);
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(student.getSchool_id());
 		if (schoolExams == null || schoolExams.size() == 0){
 			throw new ESchoolException("There isn't any SchoolExam defined for school_id:"+student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
@@ -1107,7 +1104,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}
 
 		// Initial ranking and average values  by MONTH
-		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
+		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school_id);
 		if (schoolExams == null || schoolExams.size() == 0){
 			return null;
 		}
@@ -1267,7 +1264,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		Hashtable<String, ArrayList<RankInfo>> hashtables= new Hashtable<String, ArrayList<RankInfo>>();
 		
 		 // List exam : m1 .. m20
-		 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamDao.findBySchool(school_id, 0, 999999);
+		 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school_id);
 		 for (SchoolExam schoolExam :schoolExams){
 			 String ex_key = schoolExam.getEx_key();
 			 if (ex_key == null || ex_key.equals("")){
@@ -1657,7 +1654,8 @@ public class ExamResultServiceImpl implements ExamResultService{
 		return err_msg;
 		
 	}
-	boolean is_inputted(ExamResult examResult, String ex_key){
+	@Override
+	public boolean is_inputted(ExamResult examResult, String ex_key){
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(" *** " + method_name + "() START");
 		logger.info("ex_key"+(ex_key==null?"null":ex_key));
@@ -1699,6 +1697,106 @@ public class ExamResultServiceImpl implements ExamResultService{
         }
         return false;
    	}
+	/***
+	 * Kiem tra da input diem cho ca lop cho toan bo mon hoc trong thang chua
+	 * Lay danh sach hoc sinh cua lop
+	 * Loop student
+	 *    Voi moi student
+	 *        Lay examResult theo subject
+	 *        Kiem tra ret = is_inputted(examResult,ex_key)
+	 *              Neu  ret == false, return false
+	 *  Return true;
+	 *        
+	 */
+	@Override
+	public boolean is_completed(Integer school_id, Integer class_id, Integer subject_id, String ex_key) {
+		
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id));
+		logger.info("class_id"+(class_id==null?"null":class_id));
+		logger.info("subject_id"+(subject_id==null?"null":subject_id));
+		logger.info("ex_key"+(ex_key==null?"null":ex_key));
+		
+		if (school_id == null || school_id.intValue() == 0){
+			logger.error("school_id is null");
+			return false;
+		}
+		if (class_id == null || class_id.intValue() == 0){
+			logger.error("class_id is null");
+			return false;
+		}
+		if (subject_id == null || subject_id.intValue() == 0){
+			logger.error("school_id is null");
+			return false;
+		}
+		if (ex_key == null || ex_key.trim().length() == 0){
+			logger.error("ex_key is required");
+			return false;
+		}
+		
+		// Lay class
+		EClass eclass = classService.findById(class_id);
+		if (eclass == null ){
+			logger.error("class_id"+(class_id==null?"null":class_id)+" is not existing");
+			return false;
+		}
+		if (eclass.getSchool_id().intValue() != school_id.intValue()){
+			logger.error("class_id"+(class_id==null?"null":class_id)+" is not belong to school_id="+school_id.intValue());
+			return false;
+		}
+		// Lay subject
+		MSubject subject = msubjectDao.findById(subject_id);
+		if (subject == null ){
+			logger.error("subject_id"+(subject_id==null?"null":subject_id)+" is not existing");
+			return false;
+		}
+		if (subject.getSchool_id().intValue() != school_id.intValue()){
+			logger.error("subject_id"+(subject_id==null?"null":subject_id)+" is not belong to school_id="+school_id.intValue());
+			return false;
+		}
+		
+		// Lay Exam
+		SchoolExam  schoolExam = schoolExamService.findBySchoolAndKey(school_id, ex_key);
+		if (schoolExam == null ){
+			logger.error("ex_key"+(ex_key==null?"null":ex_key)+" is not existing");
+			return false;
+		}
+		if (subject.getSchool_id().intValue() != school_id.intValue()){
+			logger.error("ex_key"+(ex_key==null?"null":ex_key)+" is not belong to school_id="+school_id.intValue());
+			return false;
+		}
+		
+		
+		// Lay danh sach lop
+		Set<User> users = eclass.getUserByRoles(E_ROLE.STUDENT.getRole_short());
+		if (users == null || users.size() <= 0){
+			logger.error("class_id"+(class_id==null?"null":class_id)+" has no USER");
+			return false;
+		}
+		
+		SchoolYear schoolYear  = schoolYearService.findLatestYearBySchool(school_id);
+		if (schoolYear == null){
+			logger.error(" Cannot get current active school_year of school_id:"+school_id.intValue());
+			return false;
+		}
+		
+		for (User user: users){
+			// Lay danh sach diem cua SUBJECT
+			ArrayList<ExamResult> examResults = examResultDao.findExamResultExt(school_id, class_id, user.getId(), subject_id, schoolYear.getId());
+			if (examResults == null || examResults.size() <= 0){
+				logger.info("Tim danh sach diem (examResults) theo school, class,user,subject,year = BLANK");
+				return false;
+			}
+			for (ExamResult examResult: examResults){
+				if ( ! is_inputted(examResult, ex_key)){
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
 
 	
 }

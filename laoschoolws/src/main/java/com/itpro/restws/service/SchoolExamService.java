@@ -9,6 +9,7 @@ public interface SchoolExamService {
 	
 	SchoolExam findById(Integer id);
 	ArrayList<SchoolExam> findBySchool(Integer school_id);
+	SchoolExam findBySchoolAndKey(Integer school_id, String ex_key);
 	
 	SchoolExam insertSchoolExam(User me, SchoolExam schoolExam);
 	

@@ -52,8 +52,14 @@ public class User2Class extends AbstractModel{
 
 	@Column(name="sso_id")
 	private String sso_id;
+	
 	@Column(name="cls_title")
 	private String cls_title;
+	
+	@Column(name="user_name")
+	private String user_name;
+	@Column(name="user_role")
+	private String user_role;
 	
 	
 	public Integer getId() {
@@ -151,6 +157,22 @@ public class User2Class extends AbstractModel{
 
 	public void setCls_title(String cls_title) {
 		this.cls_title = cls_title;
+	}
+
+	public String getUser_name() {
+		return user_name;
+	}
+
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
+	}
+
+	public String getUser_role() {
+		return user_role;
+	}
+
+	public void setUser_role(String user_role) {
+		this.user_role = user_role;
 	}
 
 	

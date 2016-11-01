@@ -110,7 +110,7 @@ public class ActionLogVIPController extends BaseController {
 		}
 
 		// Count
-    	total_row = actionLogVIPService.countActionLogExt(me,filter_sso_id,filter_from_dt,filter_to_dt,filter_type);
+    	total_row = actionLogVIPService.countActionLogExt(me.getSchool_id(),filter_sso_id,filter_from_dt,filter_to_dt,filter_type);
     	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
     		rsp.setMessageObject(null);
     		return rsp;
@@ -126,7 +126,7 @@ public class ActionLogVIPController extends BaseController {
     		
     	ListEnt lstEnt = new ListEnt();
 		// Query class by school id
-		ArrayList<ActionLogVIP> list = actionLogVIPService.findActionLogExt(me,from_row,max_result, filter_sso_id,filter_from_dt,filter_to_dt,filter_type);
+		ArrayList<ActionLogVIP> list = actionLogVIPService.findActionLogExt(me.getSchool_id(),from_row,max_result, filter_sso_id,filter_from_dt,filter_to_dt,filter_type);
 		
 		lstEnt.setList(list);
 		lstEnt.setFrom_row(from_row);

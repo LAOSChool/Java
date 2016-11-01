@@ -41,6 +41,7 @@ public interface ExamResultService {
 	void orderRankByID(ArrayList<ExamRank> list, int order);
 	void orderRankByAllocation(User me, ArrayList<ExamRank> list, String ex_key);
 	String valid_rank_process(User me,  String class_ids, String ex_key);
-	
+	boolean is_inputted(ExamResult examResult, String ex_key);	
+	boolean is_completed(Integer school_id, Integer class_id, Integer subject_id,String ex_key);
 	 
 }

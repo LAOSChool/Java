@@ -19,5 +19,6 @@ public interface ClassDao {
 	void updateClass(User me, EClass eClass);
 	void setFlushMode(FlushMode mode);
 	void clearChange();
+	List<EClass> findActiveBySchool(Integer school_id) ;
 }
 

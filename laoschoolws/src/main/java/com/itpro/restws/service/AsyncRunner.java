@@ -1,6 +1,8 @@
 package com.itpro.restws.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,15 +12,27 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.itpro.restws.dao.CommandDao;
+import com.itpro.restws.dao.EmailMsgDao;
+import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.helper.Constant;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.helper.E_DEST_TYPE;
+import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.E_STATE;
+import com.itpro.restws.helper.FinishExamInfo;
 import com.itpro.restws.helper.Utils;
+import com.itpro.restws.model.ActionLogVIP;
 import com.itpro.restws.model.Command;
+import com.itpro.restws.model.EClass;
+import com.itpro.restws.model.EmailMsg;
 import com.itpro.restws.model.ExamRank;
+import com.itpro.restws.model.ExamResult;
+import com.itpro.restws.model.MSubject;
+import com.itpro.restws.model.MTemplate;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.Notify;
+import com.itpro.restws.model.School;
+import com.itpro.restws.model.SchoolExam;
 import com.itpro.restws.model.User;
 
 @Service("asyncRunner")
@@ -39,22 +53,45 @@ public class AsyncRunner {
 	protected NotifyService notifyService;
 	@Autowired
 	protected ExamResultService examResultService;
+	@Autowired
+	private MSubjectDao msubjectDao;
+	@Autowired 
+	protected SchoolService schoolService;
+	
+	@Autowired 
+	protected ClassService classService;
+	
+	@Autowired 
+	protected ActionLogVIPService actionLogVIPService;
+	
+	@Autowired 
+	protected SchoolExamService schoolExamService;
+	
+	@Autowired 
+	protected EmailMsgDao emailMsgDao;
+	
+	@Autowired 
+	protected MasterTblService masterTblService;
+	
 	static int cron_id=0;
-	 @Async
-	 public void doIt(){
+	
+	@Async
+	public void execCommands(){
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
 		 // task execution logic
 			try {
 				cron_id++;
 				//logger.info("++++++ AsyncRunner START,ID="+cron_id);
 				ArrayList<Command> list = (ArrayList<Command>) commandDao.findUnProcessed();
 				if (list.size() > 0){
-					logger.info("AsyncRunner[ID="+cron_id+ "] found :"+list.size()+" tasks");
+					logger.info("execCommands[ID="+cron_id+ "] found :"+list.size()+" tasks");
 				}
 				for (Command command:list){
 					try{
 						command.setProcessed(1);
 						command.setProcessed_dt(Utils.now());
-						logger.info("command[cron_id]="+cron_id+"///"+command.toString());
+						logger.info("execCommands[cron_id]="+cron_id+"///"+command.toString());
 						// Forgot Password
 						if (Constant.CMD_FOROT_PASS.equals(command.getCommand())){
 							proc_gorgot_pass(command);
@@ -80,7 +117,7 @@ public class AsyncRunner {
 						command.setMessage(e.getMessage()+"///cause:"+(e.getCause()==null?"---":e.getCause().toString()));
 					}finally{
 						commandDao.updateCommand(command);
-						logger.info("++++++ AsyncRunner END,ID="+cron_id);
+						logger.info("++++++ execCommands END,ID="+cron_id);
 					}
 				}
 			} catch (Exception e) {
@@ -308,5 +345,424 @@ public class AsyncRunner {
 			logger.info("proc_message() END, command:"+command.toString());
 			
 		}
+		
+		
+		@Async
+		public void execReport(){
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			 // task execution logic
+				try {
+					cron_id++;
+					ArrayList<School> schools = schoolService.findActive();
+					if (schools != null && schools.size() > 0 ){
+						for (School school : schools){
+							// Get inactive presidents
+							 ArrayList<EClass> pending_classes = get_lacking_checker_classes(school);
+
+							// Get inactive presidents
+							 ArrayList<EClass> inactive_classes = get_inactive_attendance_classes(school);
+							 // Get finish exam
+							 ArrayList<FinishExamInfo> finish_classes = get_finish_input_exam_results(school);
+							 /***
+							  * LaoSchool - [Ten Truong] [Thoi gian gui]
+								[Ten lop]
+								Noi dung:
+								[Khong diem danh] (Truong hop lop truong ko diem danh
+								
+								[Cham diem thang:....
+								Mon:.....] (truong hop admin hoac giao vien cham diem)
+								
+								vi du
+								LaoSchool - truong tieu hoc thanh xuan
+								
+								[Khong assign giao vien - lop truong]
+								Lop 1A
+								Lopt 1B
+								Lopt 1C
+								Lopt 2A
+								Lopt 2B
+								
+								[Khong diem danh]
+								Lop 1A
+								Lopt 1B
+								Lopt 1C
+								Lopt 2A
+								Lopt 2B
+								
+								[Finish cham diem:]
+								Thang: 1, mon toan
+								Lop 1A
+								Lop 1C
+								Lop 2C
+								Lop 3C
+								Lop 4C
+								
+								Thang 2, mon Ly
+								Lop 1A
+								Lop 2B
+								
+
+							  */
+							 String lacking_msg = "";
+							 String attendance_msg = "";
+							 String exam_msg = "";
+							 String msg = "";
+							 // No assigned president or teacher
+							 if ( pending_classes!= null && pending_classes.size() > 0){
+								 for (EClass eclass: pending_classes){
+									 // lacking_msg += "  " + eclass.getTitle() + "\n";
+									 lacking_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
+								 }
+							 }
+							 
+							 // No Attendance
+							 if (inactive_classes != null && inactive_classes.size() > 0){
+								 for (EClass eclass: inactive_classes){
+									 // attendance_msg += "  " + eclass.getTitle() + "\n";
+									 attendance_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
+								 }
+							 }
+								 
+							// Report finish exam info by Month - Subject 
+							 
+							 if (finish_classes != null && finish_classes.size() > 0){
+								 // Group by MAP (Month - Subject)								 
+								 HashMap<String, ArrayList<FinishExamInfo>> hashMap = new HashMap<String, ArrayList<FinishExamInfo>>();
+								 for (FinishExamInfo finishExamInfo : finish_classes){
+									 String map_key = finishExamInfo.getEx_key()+"-"+finishExamInfo.getSubject_id();
+									  ArrayList<FinishExamInfo> map_value = hashMap.get(map_key);
+									  if (map_value == null){
+										  map_value = new ArrayList<FinishExamInfo>();
+									  }
+									  map_value.add(finishExamInfo);
+									  hashMap.put(map_key, map_value);
+								 }
+
+								 // Check and make ExamMessage
+								 if (hashMap != null  && hashMap.size() > 0){
+									 for (String key : hashMap.keySet()) {
+										 ArrayList<FinishExamInfo> grp_finish = hashMap.get(key);
+										 if (grp_finish != null && grp_finish.size() > 0){
+											 // Thang 2, mon Ly
+												//Lop 1A
+												// Lop 2B
+											 exam_msg +=grp_finish.get(0).getEx_name()+", " + grp_finish.get(0).getSubject_name() + "\n";
+											 for (FinishExamInfo finishExamInfo : grp_finish){
+												 exam_msg+="  "+ finishExamInfo.getClass_title()+"\n";
+											 }
+											 exam_msg +="\n";
+										 }
+									 }
+								 }
+							 } 
+							 // Format Email Content
+							 msg = "LaoSchool - " + school.getTitle() + "\n\n";
+							 // Lacking teachers
+							 if (lacking_msg.trim().length() > 0){
+								 msg += "[No teacher & president]\n";							 
+								 msg +=lacking_msg.trim().length()==0?"  Not found\n":lacking_msg;
+								 msg += "-----------------------\n";
+							 }
+							 
+							 // Lacking attendance
+							 msg += "[No rollup]\n";
+							 msg +=attendance_msg.trim().length()==0?"  Not found\n":attendance_msg;
+							 msg += "-----------------------\n";
+							 
+							 // Finish input diem
+							 
+							 msg += "[Finish input score]\n";								 
+							 msg +=exam_msg.trim().length()==0?"  Not found\n":exam_msg;
+							 msg += "-----------------------\n";
+							 
+							 
+							 // Send email
+							 if (msg.trim().length() > 0){
+								 logger.info(" -  msg:"+msg);
+								 
+								 String receivers = "";
+								 // Get receivers from DB 
+								 ArrayList<MTemplate> m_emails = masterTblService.findBySchool(MasterTblName.TBLNAME_M_EMAIL.getTblName(), school.getId(),0,999);
+								 if (m_emails != null && m_emails.size() > 0){
+									 for (MTemplate temp: m_emails){
+										 receivers+= temp.getSval();
+									 }
+								 }
+								 
+								 logger.info(" -  receivers:"+receivers);
+								 logger.info(" -  msg:"+msg);
+								
+								 if (receivers.trim().length() == 0){
+									 logger.warn(" -  receivers is blank, ignored"); 
+								 }
+								// Saving Email to DB any way
+								 EmailMsg emailMsg = new EmailMsg();
+								 emailMsg.setReceivers(receivers);
+								 emailMsg.setContent(msg);
+								 emailMsgDao.saveMsg(emailMsg);
+								 
+							 }
+							 // TODO: REmove break for production
+							 break;//TODO: test only 1 school
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					logger.error(e.getMessage());
+				}finally{
+					cron_id--;
+				}
+				logger.info(" *** " + method_name + "() END");
+					
+		}
+
+		private ArrayList<EClass> get_lacking_checker_classes(School school) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());
+			
+			ArrayList<EClass> lacking = new ArrayList<EClass>();
+			// Lay danh sach class
+			ArrayList<EClass> actives =  classService.findActiveBySchool(school.getId());
+			
+			if (actives == null || actives.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "], no active class found");
+				return null;
+			}
+			for (EClass eclass : actives){
+				ArrayList<User> checkers = new ArrayList<User>();
+				logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], title:"+eclass.getTitle());
+				// Lay account lop truong
+				ArrayList<User> presidents = userService.findUserExt(school.getId(), 0, 999999, eclass.getId(), E_ROLE.CLS_PRESIDENT.getRole_short(), E_STATE.ACTIVE.value(),null);
+				if (presidents == null || presidents.size() <= 0){
+					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], no president found");
+					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"],  find head teacher instead");
+					// continue;
+					// Lay account giao vien
+					Integer tea_id =  eclass.getHead_teacher_id();
+					if (tea_id != null && tea_id.intValue() > 0){
+						User h_teacher = userService.findById(tea_id);
+						if (h_teacher != null && 
+								h_teacher.getSchool_id().intValue() == school.getId().intValue() &&
+								h_teacher.getState().intValue() == E_STATE.ACTIVE.value()){
+							checkers.add(h_teacher);
+						}
+					}
+				}else{
+					checkers.addAll(presidents);
+				}
+				
+			
+				if (checkers == null || checkers.size() <= 0){
+					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], lacking CLS_PRESIDENT and HEAD TEACHER");
+					lacking.add(eclass);
+				}
+			}
+				
+			return lacking;
+		}
+
+
+
+		/***
+		 * * Lop truong khong thuc hien diem danh 
+		 *   Khong co request nao den server trong muc diem danh cua lop truong
+		 *                
+		 */
+		private ArrayList<EClass> get_inactive_attendance_classes(School school) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());
+			
+			ArrayList<EClass> inactives = new ArrayList<EClass>();
+			// Lay danh sach class
+			ArrayList<EClass> classes =  classService.findActiveBySchool(school.getId());
+			
+			if (classes == null || classes.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "], no class found");
+				return null;
+			}
+			for (EClass eclass : classes){
+				ArrayList<User> checkers = new ArrayList<User>();
+				logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], title:"+eclass.getTitle());
+				// Lay account lop truong
+				ArrayList<User> presidents = userService.findUserExt(school.getId(), 0, 999999, eclass.getId(), E_ROLE.CLS_PRESIDENT.getRole_short(), E_STATE.ACTIVE.value(),null);
+				if (presidents == null || presidents.size() <= 0){
+					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], no president found");
+					// continue;
+				}else{
+					checkers.addAll(presidents);
+				}
+				
+				// Lay account giao vien
+				Integer head_teacher_id =  eclass.getHead_teacher_id();
+				if (head_teacher_id != null && head_teacher_id.intValue() > 0){
+					User h_teacher = userService.findById(head_teacher_id);
+					if (h_teacher != null && 
+							h_teacher.getSchool_id().intValue() == school.getId().intValue() &&
+							h_teacher.getState().intValue() == E_STATE.ACTIVE.value()){
+						checkers.add(h_teacher);
+					}
+				}
+				if (checkers == null || checkers.size() <= 0){
+					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], no president or head_teacher found, rollup checkers is NULL");
+					continue;
+				}
+				
+				int cnt = 0;
+				
+				for (User checker: checkers){
+					cnt += actionLogVIPService.countActionLogExt(school.getId(), checker.getSso_id(), Utils.currenDate(), null, Constant.ACTION_TYPE_ROLLUP);
+					if (cnt <= 0){
+						// Lop truong chi co the gui message trong chuc nang diem danh
+						// Cho nen neu thay message tu lop truong, tuc la co diem danh roi
+						if (checker.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short())){
+							cnt += actionLogVIPService.countActionLogExt(school.getId(), checker.getSso_id(), Utils.currenDate(), null, Constant.ACTION_TYPE_MESSAGE);
+						}
+					}
+					
+					if (cnt > 0){
+						break;
+					}
+				}
+				
+				
+				// kiem tra diem danh class
+				if (cnt <= 0){
+					inactives.add(eclass);
+				}
+			}
+				
+			return inactives;
+				
+		}
+
+		/***
+		 *  Chi gui email khi cham diem hoan thien cho 
+		 *  tat ca cac hoc sinh trong lop theo thang - mon hoc 
+		 */
+		private ArrayList<FinishExamInfo> get_finish_input_exam_results(School school) {
+			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+			logger.info(" *** " + method_name + "() START");
+			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());
+			/***
+			 * 1. Lay danh sach cham diem hom na
+			 * 2. Filter rieng class_id
+			 * 3. Filter rieng subject list
+			 * 4. Filter rieng ex_key list
+			 * 5. Loop school_id, class_id,subject, ex_key
+			 *     5.1 checkInputComplated(school_id, class_id, subject_id, ex_key)
+			 *     input to finishedList(FinishExamInfo)
+			 */
+			
+			ArrayList<FinishExamInfo> finish_list = new ArrayList<FinishExamInfo>();
+			
+			// Lay danh sach cham diem hom nay
+			ArrayList<ActionLogVIP> logs = actionLogVIPService.findActionLogExt(school.getId(), 0, 99999, null, Utils.currenDate(), null, Constant.ACTION_TYPE_MARK);
+			if (logs == null || logs.size() <= 0){
+				return null;
+			}
+			
+			// Lay danh sach ExamResults
+			ArrayList<ExamResult> examResults = new ArrayList<ExamResult>();
+			for (ActionLogVIP actionLogVIP : logs){
+				String json = actionLogVIP.getStr_json();
+				if (json == null || json.trim().length() <= 0){
+					continue;
+				}
+				examResults.add(ExamResult.jsonToObject(json));
+			}
+			if (examResults == null || examResults.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "], examResults is BLANK, ignored");
+				return null;
+			}
+			// Filter danh sach class, subject, ex_key
+			HashSet<Integer> class_ids  = new HashSet<Integer>();
+			HashSet<Integer> subject_ids  = new HashSet<Integer>();
+			HashSet<String> ex_keys  = new HashSet<String>();
+			for (ExamResult examResult: examResults){
+				if (examResult.getClass_id() != null && examResult.getClass_id().intValue() > 0){
+					class_ids.add(examResult.getClass_id());
+				}
+				if (examResult.getSubject_id() != null && examResult.getSubject_id().intValue() > 0){
+					subject_ids.add(examResult.getSubject_id());
+				}
+				 // List exam : m1 .. m20
+				 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school.getId());
+				 for (SchoolExam schoolExam :schoolExams){
+					 String ex_key = schoolExam.getEx_key();
+					 if (ex_key == null || ex_key.equals("")){
+						 continue;
+					 }
+					 if (ex_keys.contains(ex_key)){
+						 continue;
+					 }
+					 
+					 ex_key = ex_key.toLowerCase();
+					 if (examResultService.is_inputted(examResult, ex_key)){
+						 ex_keys.add(ex_key);
+					 }
+				 }
+			}
+			
+			
+			 // * 5. Loop school_id, class_id,subject, ex_key
+			if (class_ids == null || class_ids.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "], class_ids =  BLANK, ignored");
+				return null;
+			} 
+		
+			if (subject_ids == null || subject_ids.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "], subject_ids =  BLANK, ignored");
+				return null;
+			}
+			
+			if (ex_keys == null || ex_keys.size() <= 0){
+				logger.info(" - school_id[" + school.getId() + "],  ex_keys = BLANK, ignored");
+				return null;
+			}
+			for (Integer class_id : class_ids){
+				for (Integer subject_id : subject_ids){
+					for (String ex_key: ex_keys){
+						if (examResultService.is_completed(school.getId(), class_id, subject_id, ex_key)){
+							// Create info
+							EClass eclass = classService.findById(class_id);
+							MSubject subject = msubjectDao.findById(subject_id);
+							SchoolExam  schoolExam = schoolExamService.findBySchoolAndKey(school.getId(), ex_key);
+							
+							if (eclass != null &&
+								eclass.getSchool_id().intValue() == school.getId().intValue() && 
+								subject != null &&
+								subject.getSchool_id().intValue() == school.getId().intValue() && 
+								schoolExam != null &&
+								schoolExam.getSchool_id().intValue() == school.getId().intValue() ){
+										FinishExamInfo finishExamInfo = new FinishExamInfo();
+										finishExamInfo.setSchool_id(school.getId());
+										
+										finishExamInfo.setClass_id(class_id);
+										finishExamInfo.setClass_title(eclass.getTitle());
+										
+										
+										finishExamInfo.setSubject_id(subject_id);
+										finishExamInfo.setSubject_name(subject.getSval());
+										
+										finishExamInfo.setEx_id(schoolExam.getId());
+										finishExamInfo.setEx_key(ex_key);
+										finishExamInfo.setEx_name(schoolExam.getEx_displayname());
+										
+										finish_list.add(finishExamInfo);
+							}
+						}
+					}
+				}
+			}
+			return finish_list;
+			
+		}
+
+
+
+					
 		
 }

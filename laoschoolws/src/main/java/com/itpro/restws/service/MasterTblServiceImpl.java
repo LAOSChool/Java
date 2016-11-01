@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itpro.restws.dao.MClsLevelDao;
+import com.itpro.restws.dao.MEmailDao;
 import com.itpro.restws.dao.MFeeDao;
 import com.itpro.restws.dao.MGradeDao;
 import com.itpro.restws.dao.MSessionDao;
 import com.itpro.restws.dao.MSubjectDao;
 import com.itpro.restws.helper.ESchoolException;
 import com.itpro.restws.model.MClsLevel;
+import com.itpro.restws.model.MEmail;
 import com.itpro.restws.model.MFee;
 import com.itpro.restws.model.MGrade;
 import com.itpro.restws.model.MSession;
@@ -41,6 +43,8 @@ public class MasterTblServiceImpl implements MasterTblService{
 	@Autowired
 	private MClsLevelDao mclslevelDao;
 	
+	@Autowired
+	private MEmailDao memailDao;
 	
 
 	@Override
@@ -74,6 +78,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			//return mclslevelDao.findById(id).convertToTemplate();
 			MClsLevel ret = mclslevelDao.findById(id);
 			return ret==null?null:ret.convertToTemplate();
+		}
+		
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			//return mclslevelDao.findById(id).convertToTemplate();
+			MEmail ret = memailDao.findById(id);
+			return ret==null?null:ret.convertToTemplate();
 		} 
 		 
 		 
@@ -101,6 +111,9 @@ public class MasterTblServiceImpl implements MasterTblService{
 		} 
 		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
 			return mclslevelDao.countBySchool(school_id);
+		}
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			return memailDao.countBySchool(school_id);
 		}
 		 
 		return 0;
@@ -156,6 +169,15 @@ public class MasterTblServiceImpl implements MasterTblService{
 				list_ret.add(e.convertToTemplate());
 			}
 			return list_ret;
+		}
+		
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			ArrayList<MEmail> list = (ArrayList<MEmail>) memailDao.findBySchool(school_id, from_num, max_result);
+			for (int i = 0;i<list.size(); i++){
+				MEmail e = list.get(i);
+				list_ret.add(e.convertToTemplate());
+			}
+			return list_ret;
 		} 
 	
 		return null;
@@ -199,6 +221,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			mclslevel.saveFromTemplate(temp);
 			mclslevelDao.saveLevel(me,mclslevel);
 			return mclslevel.convertToTemplate();
+		}
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			MEmail memail = new MEmail();
+			memail.saveFromTemplate(temp);
+			memailDao.saveEmail(me,memail);
+			return memail.convertToTemplate();
 		} 
 		return null;
 	}
@@ -275,6 +303,18 @@ public class MasterTblServiceImpl implements MasterTblService{
 			mclslevel.saveFromTemplate(temp);
 			mclslevelDao.updateLevel(me,mclslevel);
 			return mclslevel.convertToTemplate();
+		}
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			MEmail memail = memailDao.findById(temp.getId());
+			if (memail == null ){
+				throw new ESchoolException("table:"+tbl_name+"/id:"+temp.getId().intValue()+" is not existing", HttpStatus.BAD_REQUEST);
+			}
+			if (memail.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("tableDB:"+tbl_name+"/id:"+temp.getId().intValue()+" is not in same school with user", HttpStatus.BAD_REQUEST);
+			}				
+			memail.saveFromTemplate(temp);
+			memailDao.updateEmail(me,memail);
+			return memail.convertToTemplate();
 		} 
 		return null;
 	}
@@ -325,6 +365,12 @@ public class MasterTblServiceImpl implements MasterTblService{
 			//mclslevelDao.updateLevel(mclslevel);
 			mclslevel.setActflg("D");
 			mclslevelDao.updateLevel(me,mclslevel);
+		}
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
+			MEmail memail = memailDao.findById(id);
+			//mclslevelDao.updateLevel(mclslevel);
+			memail.setActflg("D");
+			memailDao.updateEmail(me,memail);
 		} 
 	}
 
@@ -379,6 +425,9 @@ public class MasterTblServiceImpl implements MasterTblService{
 			
 		} 
 		else if (MasterTblName.TBLNAME_M_CLSLEVEL.equalsName(tbl_name) ){
+			
+		} 
+		else if (MasterTblName.TBLNAME_M_EMAIL.equalsName(tbl_name) ){
 			
 		} 
 		

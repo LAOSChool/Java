@@ -1,6 +1,5 @@
 package com.itpro.restws.model;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
@@ -10,9 +9,7 @@ import javax.persistence.MappedSuperclass;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itpro.restws.helper.ESchoolException;
 //MappedSuperClass must be used to inherit properties, associations, and methods.
@@ -242,22 +239,5 @@ public class AbstractModel {
 		}
 		return jsonInString;
 	}
-	public AbstractModel jsonToObject(String jsonInString){
-		ObjectMapper mapper = new ObjectMapper();
-		//JSON from String to Object
-		AbstractModel obj;
-		try {
-			obj = mapper.readValue(jsonInString, this.getClass());
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		return obj;
-	}
+	
 }

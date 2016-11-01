@@ -185,4 +185,13 @@ public class SchoolExamServiceImpl implements SchoolExamService{
 		return true;
 	}
 
+	@Override
+	public SchoolExam findBySchoolAndKey(Integer school_id, String ex_key) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		
+		
+		return schoolExamDao.findByExKey(school_id, ex_key);
+	}
+
 }

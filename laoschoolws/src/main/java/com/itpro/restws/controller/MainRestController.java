@@ -23,6 +23,7 @@ import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.User;
 import com.itpro.restws.securityimpl.UserContext;
 import com.itpro.restws.service.ActionLogService;
+import com.itpro.restws.service.AsyncRunner;
 import com.itpro.restws.service.UserService;
 /**
  * Controller with REST API. Access to login is generally permitted, stuff in
@@ -59,7 +60,8 @@ public class MainRestController {
 //	@Autowired
 //	private PermitService permitService;
 
-	
+	@Autowired
+	protected AsyncRunner asyncRunner;
 	@PostConstruct
 	public void init() {
 		logger.info(" *** MainRestController.init with: " + applicationContext);
@@ -303,6 +305,21 @@ public class MainRestController {
 		logger.info(content);
 		logger.info("====== API LOG ==== END\n");
 		}
+		return "DONE";
+	}
+	@Secured({"ROLE_ADMIN" })
+	@RequestMapping(value = "/api/test", method = RequestMethod.POST)
+	public String main_test(String content,
+			@Context final HttpServletResponse response,
+			@Context final HttpServletRequest request
+			) {
+		
+		if (content != null && content.length() > 0){
+			logger.info("\n====== API LOG ==== START");
+			logger.info(content);
+			logger.info("====== API LOG ==== END\n");
+		}
+		asyncRunner.execReport();		
 		return "DONE";
 	}	
 			

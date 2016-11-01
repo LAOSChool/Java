@@ -134,22 +134,6 @@ public class User2ClassServiceImpl implements User2ClassService{
 			throw new ESchoolException("User already assigned to class_id:"+tmp.getId().intValue(), HttpStatus.BAD_REQUEST);
 		}
 		
-//		// find existing user 2 class
-//		List<User2Class> list = user2ClassDao.findByUserAndClass(class_id, user_id,false);		
-//		if (list != null && list.size() > 0){
-//			//start_user_profile(user,eclass,schoolYear,notice);
-//			throw new ESchoolException("User already assigned to class", HttpStatus.BAD_REQUEST);
-//		}
-//				
-//				
-//		// Disable one user student assigned to many classes
-//		if (user.hasRole(E_ROLE.STUDENT.getRole_short())){
-//			ArrayList<User2Class> existing_relations = (ArrayList<User2Class>) user2ClassDao.findByUserId(user.getId(),true);
-//			if (existing_relations != null && existing_relations.size() > 0){
-//				throw new ESchoolException("Cannot assigne one studen to many classes: student_id="+user.getId().intValue()+"///class_id="+class_id.intValue(), HttpStatus.BAD_REQUEST);
-//			}
-//		}
-//		
 		User2Class user2Class = null;
 		// Find active connections
 		List<User2Class> list = user2ClassDao.findByUserAndClass(user_id, class_id, 0);
@@ -166,6 +150,10 @@ public class User2ClassServiceImpl implements User2ClassService{
 		user2Class.setClass_id(class_id);
 		user2Class.setCls_title(eclass.getTitle());
 		user2Class.setUser_id(user.getId());
+		// 2016-11-01 s
+		user2Class.setUser_name(user.getFullname());
+		user2Class.setUser_role(user.getRoles());
+		// 2016-11-01 e		
 		user2Class.setSso_id(user.getSso_id());
 		user2Class.setSchool_year_id(schoolYear.getId());
 		

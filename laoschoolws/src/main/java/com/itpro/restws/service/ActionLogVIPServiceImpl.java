@@ -156,7 +156,7 @@ public class ActionLogVIPServiceImpl implements ActionLogVIPService{
 	
 
 	@Override
-	public int countActionLogExt(User me,
+	public int countActionLogExt(Integer school_id,
 			String filter_sso_id, String filter_from_dt, String filter_to_dt,String filter_type) {
 		
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -167,11 +167,11 @@ public class ActionLogVIPServiceImpl implements ActionLogVIPService{
 		logger.info("filter_type:"+(filter_type==null?"null":filter_type));
 		
 		
-		return actionLogVIPDao.countActionLogExt(me.getSchool_id(), filter_sso_id, filter_from_dt, filter_to_dt,filter_type);
+		return actionLogVIPDao.countActionLogExt(school_id, filter_sso_id, filter_from_dt, filter_to_dt,filter_type);
 	}
 
 	@Override
-	public ArrayList<ActionLogVIP> findActionLogExt(User me, Integer filter_from_row, Integer filter_max_result,
+	public ArrayList<ActionLogVIP> findActionLogExt(Integer school_id, Integer filter_from_row, Integer filter_max_result,
 			String filter_sso_id, String filter_from_dt,String filter_to_dt, String filter_type) {
 		
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
@@ -190,11 +190,11 @@ public class ActionLogVIPServiceImpl implements ActionLogVIPService{
 			if (user == null ){
 				throw new ESchoolException("filter_user_id is not existing", HttpStatus.BAD_REQUEST);
 			}
-			if (user.getSchool_id().intValue() != me.getSchool_id().intValue() ){
+			if (user.getSchool_id().intValue() != school_id.intValue() ){
 				throw new ESchoolException("user.school_id != me.school_id", HttpStatus.BAD_REQUEST);
 			}
 		}
-		return (ArrayList<ActionLogVIP>) actionLogVIPDao.findActionLogExt(me.getSchool_id(), filter_from_row, filter_max_result, filter_sso_id, filter_from_dt, filter_to_dt,filter_type);
+		return (ArrayList<ActionLogVIP>) actionLogVIPDao.findActionLogExt(school_id, filter_from_row, filter_max_result, filter_sso_id, filter_from_dt, filter_to_dt,filter_type);
 	}
 
 	@Override

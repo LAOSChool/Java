@@ -45,6 +45,19 @@ public class ClassDaoImpl extends AbstractDao<Integer, EClass> implements ClassD
 	     
 		return  classes;
 	}
+	
+	@Override
+	public List<EClass> findActiveBySchool(Integer school_id) {
+		Criteria crit_list = createEntityCriteria();
+		crit_list.add(Restrictions.eq("school_id", school_id));
+        
+        crit_list.addOrder(Order.asc("id"));
+        crit_list.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+	     @SuppressWarnings("unchecked")
+		List<EClass> classes = crit_list.list();
+	     
+		return  classes;
+	}
 
 	@Override
 	public List<EClass> findByUser(Integer user_id, int from_row, int max_result) {

@@ -13,6 +13,8 @@ public interface ClassService {
 	EClass findById(Integer id);
 	int countBySchoolID(Integer school_id);
 	ArrayList<EClass> findBySchool(Integer school_id,int from_num, int max_result);
+	ArrayList<EClass> findActiveBySchool(Integer school_id);
+	
 	ArrayList<EClass> findByUser(Integer user_id,int from_num, int max_result);
 	
 	ArrayList<SchoolExam> findExamOfClass(User current_user,Integer class_id, SchoolTerm term);

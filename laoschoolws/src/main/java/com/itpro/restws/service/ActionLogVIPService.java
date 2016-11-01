@@ -26,10 +26,10 @@ public interface ActionLogVIPService {
 	
 	ActionLogVIP createTmpActionLogVIP(User me,String url,AbstractModel model);
 	
-	int countActionLogExt(User me,
+	int countActionLogExt(Integer school_id,
 			String filter_sso_id, String filter_from_dt, String filter_to_dt,String filter_type);
 	
-	ArrayList<ActionLogVIP> findActionLogExt(User me, Integer filter_from_row, Integer filter_max_result,
+	ArrayList<ActionLogVIP> findActionLogExt(Integer school_id, Integer filter_from_row, Integer filter_max_result,
 			String filter_sso_id, String filter_from_dt,String filter_to_dt,String filter_type);
 	
 	

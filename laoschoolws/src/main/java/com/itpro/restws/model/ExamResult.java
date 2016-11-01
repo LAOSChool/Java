@@ -1,5 +1,7 @@
 package com.itpro.restws.model;
 
+import java.io.IOException;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,6 +14,9 @@ import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itpro.restws.helper.ESchoolException;
 
 
@@ -606,5 +611,23 @@ public class ExamResult extends AbstractModel{
 		} 
 		
 		return ret.toString();
+	}
+	public static ExamResult jsonToObject(String jsonInString){
+		ObjectMapper mapper = new ObjectMapper();
+		//JSON from String to Object
+		ExamResult obj;
+		try {
+			obj = mapper.readValue(jsonInString, ExamResult.class);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ESchoolException("Exception when jsonToObject(), exception message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return obj;
 	}
 }

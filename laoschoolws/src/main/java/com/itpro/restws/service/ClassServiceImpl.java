@@ -373,5 +373,16 @@ public class ClassServiceImpl implements ClassService{
 
 	}
 
+	@Override
+	public ArrayList<EClass> findActiveBySchool(Integer school_id) {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(" *** " + method_name + "() START");
+		logger.info("school_id"+(school_id==null?"null":school_id.intValue()));
+		
+		ArrayList<EClass> list= (ArrayList<EClass>) classDao.findActiveBySchool(school_id);
+		updateTermVals(list);
+		return list;
+	}
+
 
 }

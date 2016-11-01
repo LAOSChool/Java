@@ -2,7 +2,6 @@ package com.itpro.restws.service;
 
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +34,7 @@ import com.itpro.restws.model.SysWeekday;
 @Transactional
 public class SysTblServiceImpl implements SysTblService{
 
-	private static final Logger logger = Logger.getLogger(SysTblServiceImpl.class);
+	// private static final Logger logger = Logger.getLogger(SysTblServiceImpl.class);
 	@Autowired
 	private SysDegreeDao sysDegreeDao;
 	@Autowired
@@ -288,7 +287,7 @@ public class SysTblServiceImpl implements SysTblService{
 	}
 
 	@Override
-	public SysTemplate findBySval(String tbl_name, String sval) {
+	public SysTemplate findBySvalOne(String tbl_name, String sval) {
 		
 //		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 //		logger.info(" *** " + method_name + "() START");
@@ -422,6 +421,143 @@ public class SysTblServiceImpl implements SysTblService{
 			
 		}
 		return null;
+	}
+	
+	@Override
+	public ArrayList<SysTemplate> findBySvalAll(String tbl_name, String sval) {
+		
+//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+//		logger.info(" *** " + method_name + "() START");
+//		logger.info("tbl_name:"+tbl_name);
+//		logger.info("sval:"+(sval==null?"null":sval));
+		
+		ArrayList<SysTemplate> list = new ArrayList<SysTemplate>();
+		
+		if (SysTblName.TBLNAME_SYS_DEGREE.equalsName(tbl_name) ){
+			ArrayList<SysDegree> elist = (ArrayList<SysDegree>) sysDegreeDao.findAll();
+			for (SysDegree e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+		}
+		else if (SysTblName.TBLNAME_SYS_PROVINCE.equalsName(tbl_name) ){
+			
+			ArrayList<SysProvince> elist = (ArrayList<SysProvince>) sysProvinceDao.findAll();
+			for (SysProvince e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+			
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_ROLE.equalsName(tbl_name) ){
+			
+			ArrayList<SysRole> elist = (ArrayList<SysRole>) sysRoleDao.findAll();
+			for (SysRole e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+
+			
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_WEEKDAY.equalsName(tbl_name) ){
+			ArrayList<SysWeekday> elist = (ArrayList<SysWeekday>) sysWeekdayDao.findAll();
+			for (SysWeekday e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+
+			
+			
+		}
+		
+		else if (SysTblName.TBLNAME_SYS_LATE_REASON.equalsName(tbl_name) ){
+			ArrayList<SysLateReason> elist = (ArrayList<SysLateReason>) sysLateReasonDao.findAll();
+			for (SysLateReason e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+
+		}
+		else if (SysTblName.TBLNAME_SYS_ATT_MSG.equalsName(tbl_name) ){
+			ArrayList<SysAttMsg> elist = (ArrayList<SysAttMsg>) sysAttMsgDao.findAll();
+			for (SysAttMsg e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+			
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_DIST.equalsName(tbl_name) ){
+			
+			
+			ArrayList<SysDist> elist = (ArrayList<SysDist>) sysDistDao.findAll();
+			for (SysDist e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+			
+
+			
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_STS.equalsName(tbl_name) ){
+			
+			ArrayList<SysSts> elist = (ArrayList<SysSts>) sysStsDao.findAll();
+			for (SysSts e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+						
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_STD_MSG.equalsName(tbl_name) ){
+			
+			ArrayList<SysStdMsg> elist = (ArrayList<SysStdMsg>) sysAbsentMsgDao.findAll();
+			for (SysStdMsg e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+
+		
+		
+			
+		}
+		else if (SysTblName.TBLNAME_SYS_MSG_SAMP.equalsName(tbl_name) ){
+			
+			
+			ArrayList<SysMsgSamp> elist = (ArrayList<SysMsgSamp>) sysMsgSampDao.findAll();
+			for (SysMsgSamp e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+
+			
+			
+		
+		}
+		else if (SysTblName.TBLNAME_SYS_SETTINGS.equalsName(tbl_name) ){
+			
+			ArrayList<SysSettings> elist = (ArrayList<SysSettings>) sysSettingsDao.findAll();
+			for (SysSettings e:elist){
+				if (e.getSval() != null && e.getSval().equalsIgnoreCase(sval)){
+					list.add(e.convertToTemplate());
+				}
+			}
+			
+		}
+		return list;
 	}
 	
 
