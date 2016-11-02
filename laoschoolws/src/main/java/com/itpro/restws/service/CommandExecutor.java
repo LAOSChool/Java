@@ -51,7 +51,7 @@ public class CommandExecutor {
 
      }
 	
-	// @Scheduled(cron="0 */1 * * * * ") // Run every minute
+	 @Scheduled(cron="0 */1 * * * * ") // Run every minute
      public void work_report() {
 		// Check any change in sys_settings
 			ArrayList<SysTemplate> list = sysTblService.findBySvalAll("sys_settings", "DAILY_REPORT");
@@ -85,7 +85,7 @@ public class CommandExecutor {
 							logger.info("[DAILY_REPORT]cal_hour:"+cal_hour +"\n");
 							logger.info("[DAILY_REPORT]cal_minute:"+cal_minute +"\n");
 							// Execute command in separate threads ( may be overlap)
-							asyncRunner.execReport();
+							asyncRunner.execDailyReport();
 						}
 					}
 					

@@ -8,15 +8,15 @@ public class FinishExamInfo {
 	Integer ex_id;
 	String ex_key;
 	String ex_name;
-	
+	Integer subject_id;
+	String subject_name;
 	public String getEx_name() {
 		return ex_name;
 	}
 	public void setEx_name(String ex_name) {
 		this.ex_name = ex_name;
 	}
-	Integer subject_id;
-	String subject_name;
+	
 	
 	public Integer getSchool_id() {
 		return school_id;

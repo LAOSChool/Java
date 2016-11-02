@@ -308,7 +308,7 @@ public class MainRestController {
 		return "DONE";
 	}
 	@Secured({"ROLE_ADMIN" })
-	@RequestMapping(value = "/api/test", method = RequestMethod.POST)
+	@RequestMapping(value = "/api/daily_report/test", method = RequestMethod.POST)
 	public String main_test(String content,
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
@@ -319,7 +319,7 @@ public class MainRestController {
 			logger.info(content);
 			logger.info("====== API LOG ==== END\n");
 		}
-		asyncRunner.execReport();		
+		asyncRunner.execDailyReport();		
 		return "DONE";
 	}	
 			

@@ -348,7 +348,7 @@ public class AsyncRunner {
 		
 		
 		@Async
-		public void execReport(){
+		public void execDailyReport(){
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			 // task execution logic
@@ -363,7 +363,7 @@ public class AsyncRunner {
 							// Get inactive presidents
 							 ArrayList<EClass> inactive_classes = get_inactive_attendance_classes(school);
 							 // Get finish exam
-							 ArrayList<FinishExamInfo> finish_classes = get_finish_input_exam_results(school);
+							 ArrayList<FinishExamInfo> finish_exams = get_finish_input_exam_results(school);
 							 /***
 							  * LaoSchool - [Ten Truong] [Thoi gian gui]
 								[Ten lop]
@@ -391,17 +391,11 @@ public class AsyncRunner {
 								Lopt 2B
 								
 								[Finish cham diem:]
-								Thang: 1, mon toan
-								Lop 1A
-								Lop 1C
-								Lop 2C
-								Lop 3C
-								Lop 4C
-								
-								Thang 2, mon Ly
-								Lop 1A
-								Lop 2B
-								
+								Thang: 1
+								Toan: Lop 1A,Lop 1C,Lop 2C
+															
+								Thang: 2
+								Toan: Lop 1A,Lop 1C,Lop 2C																
 
 							  */
 							 String lacking_msg = "";
@@ -424,34 +418,72 @@ public class AsyncRunner {
 								 }
 							 }
 								 
-							// Report finish exam info by Month - Subject 
-							 
-							 if (finish_classes != null && finish_classes.size() > 0){
-								 // Group by MAP (Month - Subject)								 
-								 HashMap<String, ArrayList<FinishExamInfo>> hashMap = new HashMap<String, ArrayList<FinishExamInfo>>();
-								 for (FinishExamInfo finishExamInfo : finish_classes){
-									 String map_key = finishExamInfo.getEx_key()+"-"+finishExamInfo.getSubject_id();
-									  ArrayList<FinishExamInfo> map_value = hashMap.get(map_key);
-									  if (map_value == null){
-										  map_value = new ArrayList<FinishExamInfo>();
+							// Report finish exam info by Month - Subject
+							// Key: Month-Subject
+							 // Value: Class1, Class 2
+							 /***
+							  *[Fnish cham diem:]
+										Thang: 1
+										Toan: Lop 1A,Lop 1C,Lop 2C
+																	
+										Thang: 2
+										Toan: Lop 1A,Lop 1C,Lop 2C
+							  */								 
+							 if (finish_exams != null && finish_exams.size() > 0){
+								 // Group By Month
+								 //    Group by Subject
+								 //        value: ArrayList<FinishExamInfo>  
+								 HashMap<String, HashMap<String, ArrayList<FinishExamInfo>>> month_grp = new HashMap<String, HashMap<String, ArrayList<FinishExamInfo>>>();
+								
+								 for (FinishExamInfo examInfo : finish_exams){
+									 String month = examInfo.getEx_key(); // Sep, Oct, Nov
+									 String subject = ""+examInfo.getSubject_id().intValue();// Toan, Ly, Toa
+									 // Group by Month
+									 HashMap<String, ArrayList<FinishExamInfo>> subject_grp = month_grp.get(month);
+									  if (subject_grp == null){
+										  subject_grp = new HashMap<String, ArrayList<FinishExamInfo>>();
+										  month_grp.put(month, subject_grp);
 									  }
-									  map_value.add(finishExamInfo);
-									  hashMap.put(map_key, map_value);
+									  // Group by Subject
+									  ArrayList<FinishExamInfo> infos = subject_grp.get(subject);
+									  if (infos == null ){
+										  infos = new ArrayList<FinishExamInfo>();
+										  subject_grp.put(subject, infos);
+									  }
+									  infos.add(examInfo);
+									  
 								 }
-
-								 // Check and make ExamMessage
-								 if (hashMap != null  && hashMap.size() > 0){
-									 for (String key : hashMap.keySet()) {
-										 ArrayList<FinishExamInfo> grp_finish = hashMap.get(key);
-										 if (grp_finish != null && grp_finish.size() > 0){
-											 // Thang 2, mon Ly
-												//Lop 1A
-												// Lop 2B
-											 exam_msg +=grp_finish.get(0).getEx_name()+", " + grp_finish.get(0).getSubject_name() + "\n";
-											 for (FinishExamInfo finishExamInfo : grp_finish){
-												 exam_msg+="  "+ finishExamInfo.getClass_title()+"\n";
+								 /***
+								  * Thang: 2
+									   Toan: Lop 1A,Lop 1C,Lop 2C
+								  */
+								 
+								 if (month_grp != null  && month_grp.size() > 0){
+									 for (String month : month_grp.keySet()) {
+										 HashMap<String, ArrayList<FinishExamInfo>> subject_grp =  month_grp.get(month);
+										 
+										 if (subject_grp != null && subject_grp.size() > 0){
+											 int cnt_sub = 0;
+											 for (String subject : subject_grp.keySet()) {
+												 cnt_sub ++;
+												 ArrayList<FinishExamInfo> finishExamInfos = subject_grp.get(subject);
+												 if (cnt_sub == 1){
+													 exam_msg +="  "+finishExamInfos.get(0).getEx_name()+"\n"; 						       // Sep
+												 }												 
+												 
+												 if (finishExamInfos != null && finishExamInfos.size() > 0){
+													 int cnt_exam=0;
+													 for (FinishExamInfo finishExamInfo : finishExamInfos){
+														 cnt_exam ++;
+														 if (cnt_exam == 1){
+															 exam_msg +="    "+finishExamInfo.getSubject_name()+": "; // Toan : 
+														 }
+														 exam_msg+= finishExamInfo.getClass_title()+",";  //  Lop 1A,Lop 1C,Lop 2C
+													 }
+												 }
+												 exam_msg = Utils.removeTxtLastComma(exam_msg);
+												 exam_msg +="\n";
 											 }
-											 exam_msg +="\n";
 										 }
 									 }
 								 }
@@ -471,7 +503,6 @@ public class AsyncRunner {
 							 msg += "-----------------------\n";
 							 
 							 // Finish input diem
-							 
 							 msg += "[Finish input score]\n";								 
 							 msg +=exam_msg.trim().length()==0?"  Not found\n":exam_msg;
 							 msg += "-----------------------\n";
@@ -677,85 +708,145 @@ public class AsyncRunner {
 				logger.info(" - school_id[" + school.getId() + "], examResults is BLANK, ignored");
 				return null;
 			}
+			
+			
+			ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school.getId());
+			if (schoolExams == null || schoolExams.size() <= 0){
+				logger.error(" - school_id[" + school.getId() + "], schoolExams is BLANK, ignored");
+				return null;
+			}
+			
 			// Filter danh sach class, subject, ex_key
-			HashSet<Integer> class_ids  = new HashSet<Integer>();
-			HashSet<Integer> subject_ids  = new HashSet<Integer>();
-			HashSet<String> ex_keys  = new HashSet<String>();
+//			HashSet<Integer> class_ids  = new HashSet<Integer>();
+//			HashSet<Integer> subject_ids  = new HashSet<Integer>();
+//			HashSet<String> ex_keys  = new HashSet<String>();
+//			for (ExamResult examResult: examResults){
+//				if (examResult.getClass_id() != null && examResult.getClass_id().intValue() > 0){
+//					class_ids.add(examResult.getClass_id());
+//				}
+//				if (examResult.getSubject_id() != null && examResult.getSubject_id().intValue() > 0){
+//					subject_ids.add(examResult.getSubject_id());
+//				}
+//				 // List exam : m1 .. m20
+//				 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school.getId());
+//				 for (SchoolExam schoolExam :schoolExams){
+//					 String ex_key = schoolExam.getEx_key();
+//					 if (ex_key == null || ex_key.equals("")){
+//						 continue;
+//					 }
+//					 if (ex_keys.contains(ex_key)){
+//						 continue;
+//					 }
+//					 
+//					 ex_key = ex_key.toLowerCase();
+//					 if (examResultService.is_inputted(examResult, ex_key)){
+//						 ex_keys.add(ex_key);
+//					 }
+//				 }
+//			}
+//			
+//			
+//			 // * 5. Loop school_id, class_id,subject, ex_key
+//			if (class_ids == null || class_ids.size() <= 0){
+//				logger.info(" - school_id[" + school.getId() + "], class_ids =  BLANK, ignored");
+//				return null;
+//			} 
+//		
+//			if (subject_ids == null || subject_ids.size() <= 0){
+//				logger.info(" - school_id[" + school.getId() + "], subject_ids =  BLANK, ignored");
+//				return null;
+//			}
+//			
+//			if (ex_keys == null || ex_keys.size() <= 0){
+//				logger.info(" - school_id[" + school.getId() + "],  ex_keys = BLANK, ignored");
+//				return null;
+//			}
+//			for (Integer class_id : class_ids){
+//				for (Integer subject_id : subject_ids){
+//					for (String ex_key: ex_keys){
+//						if (examResultService.is_completed(school.getId(), class_id, subject_id, ex_key)){
+//							// Create info
+//							EClass eclass = classService.findById(class_id);
+//							MSubject subject = msubjectDao.findById(subject_id);
+//							SchoolExam  schoolExam = schoolExamService.findBySchoolAndKey(school.getId(), ex_key);
+//							
+//							if (eclass != null &&
+//								eclass.getSchool_id().intValue() == school.getId().intValue() && 
+//								subject != null &&
+//								subject.getSchool_id().intValue() == school.getId().intValue() && 
+//								schoolExam != null &&
+//								schoolExam.getSchool_id().intValue() == school.getId().intValue() ){
+//										FinishExamInfo finishExamInfo = new FinishExamInfo();
+//										finishExamInfo.setSchool_id(school.getId());
+//										
+//										finishExamInfo.setClass_id(class_id);
+//										finishExamInfo.setClass_title(eclass.getTitle());
+//										
+//										
+//										finishExamInfo.setSubject_id(subject_id);
+//										finishExamInfo.setSubject_name(subject.getSval());
+//										
+//										finishExamInfo.setEx_id(schoolExam.getId());
+//										finishExamInfo.setEx_key(ex_key);
+//										finishExamInfo.setEx_name(schoolExam.getEx_displayname());
+//										
+//										finish_list.add(finishExamInfo);
+//							}
+//						}
+//					}
+//				}
+//			}
+			HashSet<String> done_keys  = new HashSet<String>(); // class_id,subject_id,ex_key
 			for (ExamResult examResult: examResults){
-				if (examResult.getClass_id() != null && examResult.getClass_id().intValue() > 0){
-					class_ids.add(examResult.getClass_id());
+				if (examResult.getClass_id() == null ){
+					continue;
 				}
-				if (examResult.getSubject_id() != null && examResult.getSubject_id().intValue() > 0){
-					subject_ids.add(examResult.getSubject_id());
-				}
-				 // List exam : m1 .. m20
-				 ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school.getId());
+				String cls_id = ""+examResult.getClass_id().intValue();
+				String sub_id=""+examResult.getSubject_id().intValue();
+				
 				 for (SchoolExam schoolExam :schoolExams){
-					 String ex_key = schoolExam.getEx_key();
-					 if (ex_key == null || ex_key.equals("")){
-						 continue;
-					 }
-					 if (ex_keys.contains(ex_key)){
-						 continue;
-					 }
-					 
-					 ex_key = ex_key.toLowerCase();
+					 String ex_key = schoolExam.getEx_key().toLowerCase();
 					 if (examResultService.is_inputted(examResult, ex_key)){
-						 ex_keys.add(ex_key);
+						 done_keys.add(cls_id+","+sub_id+","+ex_key);  // class_id,subject_id,ex_key
 					 }
 				 }
+				
 			}
-			
-			
-			 // * 5. Loop school_id, class_id,subject, ex_key
-			if (class_ids == null || class_ids.size() <= 0){
-				logger.info(" - school_id[" + school.getId() + "], class_ids =  BLANK, ignored");
-				return null;
-			} 
-		
-			if (subject_ids == null || subject_ids.size() <= 0){
-				logger.info(" - school_id[" + school.getId() + "], subject_ids =  BLANK, ignored");
-				return null;
-			}
-			
-			if (ex_keys == null || ex_keys.size() <= 0){
-				logger.info(" - school_id[" + school.getId() + "],  ex_keys = BLANK, ignored");
-				return null;
-			}
-			for (Integer class_id : class_ids){
-				for (Integer subject_id : subject_ids){
-					for (String ex_key: ex_keys){
-						if (examResultService.is_completed(school.getId(), class_id, subject_id, ex_key)){
-							// Create info
-							EClass eclass = classService.findById(class_id);
-							MSubject subject = msubjectDao.findById(subject_id);
-							SchoolExam  schoolExam = schoolExamService.findBySchoolAndKey(school.getId(), ex_key);
-							
-							if (eclass != null &&
-								eclass.getSchool_id().intValue() == school.getId().intValue() && 
-								subject != null &&
-								subject.getSchool_id().intValue() == school.getId().intValue() && 
-								schoolExam != null &&
-								schoolExam.getSchool_id().intValue() == school.getId().intValue() ){
-										FinishExamInfo finishExamInfo = new FinishExamInfo();
-										finishExamInfo.setSchool_id(school.getId());
-										
-										finishExamInfo.setClass_id(class_id);
-										finishExamInfo.setClass_title(eclass.getTitle());
-										
-										
-										finishExamInfo.setSubject_id(subject_id);
-										finishExamInfo.setSubject_name(subject.getSval());
-										
-										finishExamInfo.setEx_id(schoolExam.getId());
-										finishExamInfo.setEx_key(ex_key);
-										finishExamInfo.setEx_name(schoolExam.getEx_displayname());
-										
-										finish_list.add(finishExamInfo);
-							}
-						}
-					}
+			for (String done_key:done_keys){ //// class_id,subject_id,ex_key
+				String[]tmp_list = done_key.split(",");
+				if (tmp_list == null || tmp_list.length< 3){
+					continue;
 				}
+				Integer class_id = Integer.valueOf(tmp_list[0]);
+				Integer subject_id = Integer.valueOf(tmp_list[1]);
+				String ex_key = tmp_list[2];
+				if (examResultService.is_completed(school.getId(), class_id, subject_id, ex_key)){
+					// Create info
+					EClass eclass = classService.findById(class_id);
+					MSubject subject = msubjectDao.findById(subject_id);
+					SchoolExam  schoolExam = schoolExamService.findBySchoolAndKey(school.getId(), ex_key);
+					
+					if (eclass != null && eclass.getSchool_id().intValue() == school.getId().intValue() && 
+						subject != null && subject.getSchool_id().intValue() == school.getId().intValue() && 
+						schoolExam != null && schoolExam.getSchool_id().intValue() == school.getId().intValue() )
+					{
+								FinishExamInfo finishExamInfo = new FinishExamInfo();
+								finishExamInfo.setSchool_id(school.getId());
+								
+								finishExamInfo.setClass_id(class_id);
+								finishExamInfo.setClass_title(eclass.getTitle());
+								
+								
+								finishExamInfo.setSubject_id(subject_id);
+								finishExamInfo.setSubject_name(subject.getSval());
+								
+								finishExamInfo.setEx_id(schoolExam.getId());
+								finishExamInfo.setEx_key(ex_key);
+								finishExamInfo.setEx_name(schoolExam.getEx_displayname());
+								
+								finish_list.add(finishExamInfo);
+					}
+				}				
 			}
 			return finish_list;
 			

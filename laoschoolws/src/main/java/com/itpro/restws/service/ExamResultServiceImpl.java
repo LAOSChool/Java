@@ -223,12 +223,22 @@ public class ExamResultServiceImpl implements ExamResultService{
 		if (!student.hasRole(E_ROLE.STUDENT.getRole_short())){
 			throw new ESchoolException("Exam Student is not Student role:"+examResult.getStudent_id().intValue(), HttpStatus.BAD_REQUEST);
 		}
+		
 		// Teacher only can input for Student belong to same class
 		if (me.hasRole(E_ROLE.TEACHER.getRole_short())){
 			if (!userService.isSameClass(me, student)){
 				throw new ESchoolException("TeacherID:"+me.getId().intValue()+" and StudentID:"+examResult.getStudent_id().intValue()+" is not in same Class", HttpStatus.BAD_REQUEST);
 			}
+			if (!me.is_belong2class(examResult.getClass_id())){
+				throw new ESchoolException("teacher_id:"+ me.getId().intValue()+" is not belong to class_id:"+examResult.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
+			}
+			
 		}
+		
+		if (!student.is_belong2class(examResult.getClass_id())){
+			throw new ESchoolException("exam.student_id:"+ student.getId().intValue()+" is not belong to class_id:"+examResult.getClass_id().intValue(), HttpStatus.BAD_REQUEST);
+		}
+		
 		ArrayList<SchoolExam> schoolExams = (ArrayList<SchoolExam>) schoolExamService.findBySchool(school_id);
 		if (schoolExams == null || schoolExams.size() == 0){
 			throw new ESchoolException("There isn't any SchoolExam defined for school_id:"+school_id.intValue(), HttpStatus.BAD_REQUEST);
