@@ -196,7 +196,8 @@ public class ClsMain {
 								// Sending firebase announcement
 								
 								try{
-									FirebaseResponse firebaseResponse = sendFirebase(ent.getTitle(),ent.getContent(),api_key_ent.getCld_token());
+									//FirebaseResponse firebaseResponse = sendFirebase(ent.getTitle(),ent.getContent(),api_key_ent.getCld_token());
+									FirebaseResponse firebaseResponse = sendFirebase("LAOSChool",ent.getContent(),api_key_ent.getCld_token());
 									Utils.log(String.format("ThreadSend[%d] firebaseResponse.success:%s;",index,firebaseResponse.getSuccess()),0);
 									
 									if (firebaseResponse.getSuccess().equals("1")){

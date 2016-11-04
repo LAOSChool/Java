@@ -104,13 +104,13 @@ public class ActionLogVIPDaoImpl extends AbstractDao<Integer, ActionLogVIP> impl
 		}
 		
 		
-		
 		if (filter_from_dt != null ){
-			str = str +" and act.request_dt >= '"+filter_from_dt+"'";
+			str = str +" and DATE(act.request_dt) >= DATE('"+filter_from_dt+"')";
 		}
 		if (filter_to_dt != null ){
-			str = str +" and act.request_dt <= '"+filter_to_dt+"'";
+			str = str +" and DATE(act.request_dt) <= DATE('"+filter_to_dt+"')";
 		}
+
 		
 		if (filter_type != null){
 			str = str +" and act.act_type = '"+filter_type+"'";
@@ -150,10 +150,10 @@ public class ActionLogVIPDaoImpl extends AbstractDao<Integer, ActionLogVIP> impl
 		
 		
 		if (filter_from_dt != null ){
-			query = query +" and act.request_dt >= '"+filter_from_dt+"'";
+			query = query +" and DATE(act.request_dt) >= DATE('"+filter_from_dt+"')";
 		}
 		if (filter_to_dt != null ){
-			query = query +" and act.request_dt <= '"+filter_to_dt+"'";
+			query = query +" and DATE(act.request_dt) <= DATE('"+filter_to_dt+"')";
 		}
 		
 		if (filter_type != null){

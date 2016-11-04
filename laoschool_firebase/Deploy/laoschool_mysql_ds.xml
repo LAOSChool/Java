@@ -3,11 +3,11 @@
 <datasources>
   <local-tx-datasource>
     <jndi-name>SqlDS669</jndi-name>
-    <connection-url>jdbc:mysql://ssss.ss.ss.ss:3306/laoschool?zeroDateTimeBehavior=convertToNull</connection-url> 
+    <connection-url>jdbc:mysql://222.255.29.25:3306/laoschool?zeroDateTimeBehavior=convertToNull</connection-url> 
 <!--    <connection-url>jdbc:mysql://192.168.0.201:3306/dev_eschool?zeroDateTimeBehavior=convertToNull</connection-url>  -->
     <driver-class>com.mysql.jdbc.Driver</driver-class>
-    <user-name>xxx</user-name>
-    <password>xxxx</password>
+    <user-name>root</user-name>
+    <password>khongbiet</password>
       <!-- The minimum connections in a pool/sub-pool. Pools are lazily constructed on first use -->
       <min-pool-size>10</min-pool-size>
 

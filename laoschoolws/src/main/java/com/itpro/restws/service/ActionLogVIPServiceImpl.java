@@ -113,7 +113,7 @@ public class ActionLogVIPServiceImpl implements ActionLogVIPService{
 		actionLogVIP.setUser_role(me.getRoles());
 		actionLogVIP.setFull_name(me.getFullname());
 		actionLogVIP.setContent(content);
-		actionLogVIP.setRequest_dt(Utils.currenDate());
+		actionLogVIP.setRequest_dt(Utils.now());
 		// Insert to DB
 		actionLogVIPDao.saveAction(actionLogVIP);
 	}
@@ -211,7 +211,7 @@ public class ActionLogVIPServiceImpl implements ActionLogVIPService{
 		actionLogVIP.setUser_role(me.getRoles());
 		actionLogVIP.setFull_name(me.getFullname());
 		actionLogVIP.setContent(content);
-		actionLogVIP.setRequest_dt(Utils.currenDate());
+		actionLogVIP.setRequest_dt(Utils.now());
 		actionLogVIP.setStr_json(json_str);
 		// Insert to DB
 		actionLogVIPDao.saveAction(actionLogVIP);

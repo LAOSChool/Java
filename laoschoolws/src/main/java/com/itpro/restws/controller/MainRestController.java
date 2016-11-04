@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.RespInfo;
@@ -309,17 +310,18 @@ public class MainRestController {
 	}
 	@Secured({"ROLE_ADMIN" })
 	@RequestMapping(value = "/api/daily_report/test", method = RequestMethod.POST)
-	public String main_test(String content,
+	public String main_test(
+			@RequestParam(value="from_id",required=false) Integer from_id,
+			@RequestParam(value="to_id",required=false) Integer to_id,
+			
 			@Context final HttpServletResponse response,
 			@Context final HttpServletRequest request
 			) {
 		
-		if (content != null && content.length() > 0){
-			logger.info("\n====== API LOG ==== START");
-			logger.info(content);
-			logger.info("====== API LOG ==== END\n");
-		}
-		asyncRunner.execDailyReport();		
+		
+		logger.info("\n====== API LOG ==== START");
+		
+		asyncRunner.execDailyReport(from_id,to_id);// From school_id1		
 		return "DONE";
 	}	
 			

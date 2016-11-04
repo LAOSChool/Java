@@ -54,7 +54,7 @@ public class TokenManagerSingle implements TokenManager {
 		logger.info("TokenManagerSingle.createNewToken() Start");
 		
 		//Delete all previous auth_key
-		if (hasRole(new String[]{"ROLE_ADMIN","ROLE_TEACHER"},userDetails)){
+		if (hasRole(new String[]{"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT"},userDetails)){
 			removeUserDetails(userDetails);
 		}else{
 			// Delete if over max session
@@ -65,8 +65,6 @@ public class TokenManagerSingle implements TokenManager {
 					authenKeyDao.deleteToken(authen);
 				}	
 			}
-			
-			
 		}
 		// Generate new auth_key
 		List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());

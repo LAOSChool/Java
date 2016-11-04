@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.imageio.ImageIO;
 
@@ -214,13 +215,26 @@ public class Utils {
 		return s;
 	}
 	
-	
-	public static String numberToDateTime(Long value){
-		String myDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                .format(new Date(value.longValue() * 1000L));
+	/***
+	 * Convet Unix Time to DateTime (String)
+	 * Tool test: http://www.onlineconversion.com/unix_time.htm
+	 * @param unixSeconds
+	 * @return
+	 */
+	public static String unixTimeToDate(Long unixSeconds){
+		
+		Date date = new Date(unixSeconds*1000L); // *1000 is to convert seconds to milliseconds
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // the format of your date
+	//	sdf.setTimeZone(TimeZone.getTimeZone("GMT+7")); // give a timezone reference for formating (see comment at the bottom
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // give a timezone reference for formating (see comment at the bottom
+		String formattedDate = sdf.format(date);
+		System.out.println(formattedDate);
+		return formattedDate;
 		
 		
-		return myDate;
+//		String myDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+//                .format(new Date(value.longValue() * 1000L));
+//		return myDate;
 	}
 	
 	public static Date fullTimeToDate(Date date){

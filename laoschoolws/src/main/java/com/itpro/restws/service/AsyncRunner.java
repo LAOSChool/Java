@@ -33,6 +33,7 @@ import com.itpro.restws.model.Message;
 import com.itpro.restws.model.Notify;
 import com.itpro.restws.model.School;
 import com.itpro.restws.model.SchoolExam;
+import com.itpro.restws.model.SysTemplate;
 import com.itpro.restws.model.User;
 
 @Service("asyncRunner")
@@ -69,7 +70,11 @@ public class AsyncRunner {
 	
 	@Autowired 
 	protected EmailMsgDao emailMsgDao;
+//	@Autowired 
+//	protected SendMailDao sendMailDao;
 	
+	@Autowired
+	protected SysTblService sysTblService;
 	@Autowired 
 	protected MasterTblService masterTblService;
 	
@@ -348,7 +353,7 @@ public class AsyncRunner {
 		
 		
 		@Async
-		public void execDailyReport(){
+		public void execDailyReport(Integer from_school_id, Integer to_school_id){
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			 // task execution logic
@@ -357,13 +362,25 @@ public class AsyncRunner {
 					ArrayList<School> schools = schoolService.findActive();
 					if (schools != null && schools.size() > 0 ){
 						for (School school : schools){
+							if (from_school_id != null && from_school_id.intValue() > 0){
+								if (school.getId().intValue() < from_school_id.intValue()){
+									continue;
+								}	
+							}
+							if (to_school_id != null && to_school_id.intValue() > 0){
+								if (school.getId().intValue() > to_school_id.intValue()){
+									continue;
+								}	
+							}
+							
+							
 							// Get inactive presidents
-							 ArrayList<EClass> pending_classes = get_lacking_checker_classes(school);
+							 ArrayList<EClass> no_president_classes = get_no_president_classes(school);
 
 							// Get inactive presidents
-							 ArrayList<EClass> inactive_classes = get_inactive_attendance_classes(school);
+							 ArrayList<EClass> no_rollup_classes = get_no_rollup_classes(school);
 							 // Get finish exam
-							 ArrayList<FinishExamInfo> finish_exams = get_finish_input_exam_results(school);
+							 ArrayList<FinishExamInfo> finish_scores = get_finish_input_score(school);
 							 /***
 							  * LaoSchool - [Ten Truong] [Thoi gian gui]
 								[Ten lop]
@@ -403,16 +420,16 @@ public class AsyncRunner {
 							 String exam_msg = "";
 							 String msg = "";
 							 // No assigned president or teacher
-							 if ( pending_classes!= null && pending_classes.size() > 0){
-								 for (EClass eclass: pending_classes){
+							 if ( no_president_classes!= null && no_president_classes.size() > 0){
+								 for (EClass eclass: no_president_classes){
 									 // lacking_msg += "  " + eclass.getTitle() + "\n";
 									 lacking_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
 								 }
 							 }
 							 
 							 // No Attendance
-							 if (inactive_classes != null && inactive_classes.size() > 0){
-								 for (EClass eclass: inactive_classes){
+							 if (no_rollup_classes != null && no_rollup_classes.size() > 0){
+								 for (EClass eclass: no_rollup_classes){
 									 // attendance_msg += "  " + eclass.getTitle() + "\n";
 									 attendance_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
 								 }
@@ -429,13 +446,13 @@ public class AsyncRunner {
 										Thang: 2
 										Toan: Lop 1A,Lop 1C,Lop 2C
 							  */								 
-							 if (finish_exams != null && finish_exams.size() > 0){
+							 if (finish_scores != null && finish_scores.size() > 0){
 								 // Group By Month
 								 //    Group by Subject
 								 //        value: ArrayList<FinishExamInfo>  
 								 HashMap<String, HashMap<String, ArrayList<FinishExamInfo>>> month_grp = new HashMap<String, HashMap<String, ArrayList<FinishExamInfo>>>();
 								
-								 for (FinishExamInfo examInfo : finish_exams){
+								 for (FinishExamInfo examInfo : finish_scores){
 									 String month = examInfo.getEx_key(); // Sep, Oct, Nov
 									 String subject = ""+examInfo.getSubject_id().intValue();// Toan, Ly, Toa
 									 // Group by Month
@@ -492,7 +509,7 @@ public class AsyncRunner {
 							 msg = "LaoSchool - " + school.getTitle() + "\n\n";
 							 // Lacking teachers
 							 if (lacking_msg.trim().length() > 0){
-								 msg += "[No teacher & president]\n";							 
+								 msg += "[No assigned class president]\n";							 
 								 msg +=lacking_msg.trim().length()==0?"  Not found\n":lacking_msg;
 								 msg += "-----------------------\n";
 							 }
@@ -520,22 +537,42 @@ public class AsyncRunner {
 										 receivers+= temp.getSval();
 									 }
 								 }
-								 
+								 ArrayList<SysTemplate> list = sysTblService.findBySvalAll("sys_settings", "SYS_RECEIVERS");
+								 for (SysTemplate symTemplate: list){
+									if (symTemplate != null  && 
+											symTemplate.getLval() != null )
+									{
+										receivers+= symTemplate.getLval();
+									}
+								}
 								 logger.info(" -  receivers:"+receivers);
 								 logger.info(" -  msg:"+msg);
 								
 								 if (receivers.trim().length() == 0){
 									 logger.warn(" -  receivers is blank, ignored"); 
+								 }else{
+									 if (
+											 no_rollup_classes.size() > 0 ||
+											 finish_scores.size() > 0 ||
+											 no_president_classes.size() > 0)
+									 {
+										 EmailMsg emailMsg = new EmailMsg();
+										 emailMsg.setSchool_id(school.getId());
+										 emailMsg.setContent(msg);
+										 emailMsg.setReceivers(receivers);
+										 emailMsgDao.saveMsg(emailMsg);
+									 }else{
+										 logger.warn(" -  not issue found, ignored");
+									 }
 								 }
 								// Saving Email to DB any way
-								 EmailMsg emailMsg = new EmailMsg();
-								 emailMsg.setReceivers(receivers);
-								 emailMsg.setContent(msg);
-								 emailMsgDao.saveMsg(emailMsg);
+//								 SendMail sendMail = new SendMail();
+//								 sendMail.setReceivers(receivers);
+//								 sendMail.setBody(msg);
+//								 sendMail.setSub("[LaoSchool] Daily Report");
+//								 sendMailDao.saveEmail(sendMail);
 								 
 							 }
-							 // TODO: REmove break for production
-							 break;//TODO: test only 1 school
 						}
 					}
 				} catch (Exception e) {
@@ -548,7 +585,7 @@ public class AsyncRunner {
 					
 		}
 
-		private ArrayList<EClass> get_lacking_checker_classes(School school) {
+		private ArrayList<EClass> get_no_president_classes(School school) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());
@@ -568,18 +605,18 @@ public class AsyncRunner {
 				ArrayList<User> presidents = userService.findUserExt(school.getId(), 0, 999999, eclass.getId(), E_ROLE.CLS_PRESIDENT.getRole_short(), E_STATE.ACTIVE.value(),null);
 				if (presidents == null || presidents.size() <= 0){
 					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"], no president found");
-					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"],  find head teacher instead");
-					// continue;
-					// Lay account giao vien
-					Integer tea_id =  eclass.getHead_teacher_id();
-					if (tea_id != null && tea_id.intValue() > 0){
-						User h_teacher = userService.findById(tea_id);
-						if (h_teacher != null && 
-								h_teacher.getSchool_id().intValue() == school.getId().intValue() &&
-								h_teacher.getState().intValue() == E_STATE.ACTIVE.value()){
-							checkers.add(h_teacher);
-						}
-					}
+//					logger.info(" - school_id[" + school.getId() + "], eclass["+eclass.getId()+"],  find head teacher instead");
+//					// continue;
+//					// Lay account giao vien
+//					Integer tea_id =  eclass.getHead_teacher_id();
+//					if (tea_id != null && tea_id.intValue() > 0){
+//						User h_teacher = userService.findById(tea_id);
+//						if (h_teacher != null && 
+//								h_teacher.getSchool_id().intValue() == school.getId().intValue() &&
+//								h_teacher.getState().intValue() == E_STATE.ACTIVE.value()){
+//							checkers.add(h_teacher);
+//						}
+//					}
 				}else{
 					checkers.addAll(presidents);
 				}
@@ -601,7 +638,7 @@ public class AsyncRunner {
 		 *   Khong co request nao den server trong muc diem danh cua lop truong
 		 *                
 		 */
-		private ArrayList<EClass> get_inactive_attendance_classes(School school) {
+		private ArrayList<EClass> get_no_rollup_classes(School school) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());
@@ -673,7 +710,7 @@ public class AsyncRunner {
 		 *  Chi gui email khi cham diem hoan thien cho 
 		 *  tat ca cac hoc sinh trong lop theo thang - mon hoc 
 		 */
-		private ArrayList<FinishExamInfo> get_finish_input_exam_results(School school) {
+		private ArrayList<FinishExamInfo> get_finish_input_score(School school) {
 			String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 			logger.info(" *** " + method_name + "() START");
 			logger.info(" - school_id[" + school.getId() + "], title:"+school.getTitle());

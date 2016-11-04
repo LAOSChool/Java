@@ -107,7 +107,7 @@ public class AttendanceController extends BaseController {
 			if (filter_from_dt != null ){
 				throw new ESchoolException("Cannot not input both filter_from_dt AND filter_from_time", HttpStatus.BAD_REQUEST);
 			}
-			filter_from_dt = Utils.numberToDateTime(filter_from_time);
+			filter_from_dt = Utils.unixTimeToDate(filter_from_time);
 		}else if (filter_from_dt != null ){
 			Date dt = Utils.parsetDateAll(filter_from_dt);// YYYY-MM-DD
 			if (dt == null){
@@ -123,7 +123,7 @@ public class AttendanceController extends BaseController {
 			if (filter_to_dt != null ){
 				throw new ESchoolException("Cannot not input both filter_to_dt AND filter_to_time", HttpStatus.BAD_REQUEST);
 			}
-			filter_to_dt = Utils.numberToDateTime(filter_to_time);
+			filter_to_dt = Utils.unixTimeToDate(filter_to_time);
 		}else if (filter_to_dt != null ){
 			Date dt = Utils.parsetDateAll(filter_to_dt);// YYYY-MM-DD
 			if (dt == null){

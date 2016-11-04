@@ -85,7 +85,7 @@ public class CommandExecutor {
 							logger.info("[DAILY_REPORT]cal_hour:"+cal_hour +"\n");
 							logger.info("[DAILY_REPORT]cal_minute:"+cal_minute +"\n");
 							// Execute command in separate threads ( may be overlap)
-							asyncRunner.execDailyReport();
+							asyncRunner.execDailyReport(Integer.valueOf(12),null);// From school_id 12
 						}
 					}
 					

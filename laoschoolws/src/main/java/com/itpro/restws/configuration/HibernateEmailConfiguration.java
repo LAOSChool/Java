@@ -16,31 +16,31 @@ import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@Configuration
-@EnableTransactionManagement
-@ComponentScan({ "com.itpro.restws.configuration" })
-@PropertySource(value = { "classpath:application.properties" })
-public class HibernateConfiguration {
+// @Configuration
+// @EnableTransactionManagement
+// @ComponentScan({ "com.itpro.restws.configuration" })
+// @PropertySource(value = { "classpath:application.properties" })
+public class HibernateEmailConfiguration {
 
     @Autowired
     private Environment environment;
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory() {
+    public LocalSessionFactoryBean email_sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setDataSource(dataSource());
-        sessionFactory.setPackagesToScan(new String[] { "com.itpro.restws.model" });
+        sessionFactory.setDataSource(email_dataSource());
+        sessionFactory.setPackagesToScan(new String[] { "com.itpro.restws.email.model" });
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
      }
 	
     @Bean
-    public DataSource dataSource() {
+    public DataSource email_dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(environment.getRequiredProperty("jdbc.driverClassName"));
-        dataSource.setUrl(environment.getRequiredProperty("jdbc.url"));
-        dataSource.setUsername(environment.getRequiredProperty("jdbc.username"));
-        dataSource.setPassword(environment.getRequiredProperty("jdbc.password"));
+        dataSource.setUrl(environment.getRequiredProperty("email.jdbc.url"));
+        dataSource.setUsername(environment.getRequiredProperty("email.jdbc.username"));
+        dataSource.setPassword(environment.getRequiredProperty("email.jdbc.password"));
         return dataSource;
     }
     
@@ -60,7 +60,7 @@ public class HibernateConfiguration {
     
 	@Bean
     @Autowired
-    public HibernateTransactionManager transactionManager(SessionFactory s) {
+    public HibernateTransactionManager email_transactionManager(SessionFactory s) {
        HibernateTransactionManager txManager = new HibernateTransactionManager();
        txManager.setSessionFactory(s);
        return txManager;
