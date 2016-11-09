@@ -457,7 +457,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		// If filter_yearid = null
 		// Using current year
 		// Create new ExamResult if not exist
-		if (filter_year_id== null || filter_year_id.intValue()<=0){
+		if (filter_year_id== null ){
 			if (curr_year == null ){
 				throw new ESchoolException("Cannot get Current SchoolYear of shcool_id: "+ student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 			}
@@ -490,12 +490,22 @@ public class ExamResultServiceImpl implements ExamResultService{
 					examResults.addAll(list);
 				}
 			}
+		}else if (filter_year_id.intValue()<=0){
+			throw new ESchoolException("filter_year_id must greater than zero", HttpStatus.BAD_REQUEST);
 		}else{
 			// If filter_yearid != null
 			// Just query from DB and return			
 			if (filter_year_id.intValue() > curr_year.getId().intValue()){
 				throw new ESchoolException("filter_year_id:"+filter_year_id.intValue() +" > current year id: "+curr_year.getId().intValue(), HttpStatus.BAD_REQUEST);
 			}
+			SchoolYear schYear = schoolYearService.findById(filter_year_id);
+			if (schYear == null ){
+				throw new ESchoolException("filter_year_id:"+filter_year_id.intValue() +" not existing", HttpStatus.BAD_REQUEST);
+			}
+			else if (schYear.getSchool_id().intValue() != me.getSchool_id().intValue() ){
+				throw new ESchoolException("filter_year_id:"+filter_year_id.intValue() +" not belong to same school with Me",HttpStatus.BAD_REQUEST);
+			}
+
 			examResults = examResultDao.findExamResultExt(student.getSchool_id(), null, student.getId(), null, filter_year_id);
 		}
 		// Process average before return
@@ -545,6 +555,31 @@ public class ExamResultServiceImpl implements ExamResultService{
 		User filter_student = null;
 		
 		ArrayList<User> filter_users = new ArrayList<User>();
+		
+		if (school_id != null  && school_id.intValue() <= 0){
+			throw new ESchoolException("school_id will not accept 0", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (filter_class_id != null  && filter_class_id.intValue() <= 0){
+			throw new ESchoolException("filter_class_id will not accept 0", HttpStatus.BAD_REQUEST);
+		}
+		if (filter_student_id != null  && filter_student_id.intValue() <= 0){
+			throw new ESchoolException("filter_student_id will not accept 0", HttpStatus.BAD_REQUEST);
+		}
+		if (subject_id != null  && subject_id.intValue() <= 0){
+			throw new ESchoolException("subject_id will not accept 0", HttpStatus.BAD_REQUEST);
+		}
+		if (year_id != null  && year_id.intValue() <= 0){
+			throw new ESchoolException("year_id will not accept 0", HttpStatus.BAD_REQUEST);
+		}
+		
+		if (filter_student_id != null  && filter_student_id.intValue() > 0){
+			 if (filter_class_id != null && filter_class_id.intValue() > 0){
+				 if (!userService.isBelongToClass(filter_student_id, filter_class_id)){
+					 throw new ESchoolException("filter_student_id:"+filter_student_id.intValue()+" is not belong to class_id: "+ filter_class_id.intValue(), HttpStatus.BAD_REQUEST);
+				 }
+			 }
+		}
 		// Check filter user
 		if (filter_student_id != null  && filter_student_id.intValue() > 0){
 			filter_student = userService.findById(filter_student_id);

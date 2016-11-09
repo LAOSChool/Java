@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.util.HashMap;
 import java.util.Map;
 
-//@Ignore
+@Ignore
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ClassTest extends FunctionalTest {
 	protected static final Logger logger = Logger.getLogger(ClassTest.class);

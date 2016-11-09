@@ -544,6 +544,12 @@ public class UserServiceImpl implements UserService{
 			return false;
 		}
 		User user = findById(user_id);
+		if (user == null ){
+			return false;
+		}
+		if (user.getClasses() == null ){
+			return false;
+		}
 		for (EClass e : user.getClasses()){
     		if (e.getId() == class_id.intValue()){
     			return true;

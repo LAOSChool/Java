@@ -422,16 +422,16 @@ public class AsyncRunner {
 							 // No assigned president or teacher
 							 if ( no_president_classes!= null && no_president_classes.size() > 0){
 								 for (EClass eclass: no_president_classes){
-									 // lacking_msg += "  " + eclass.getTitle() + "\n";
-									 lacking_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
+									    lacking_msg += "  " + eclass.getTitle() + "\n";
+									 // lacking_msg += "  " + eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
 								 }
 							 }
 							 
 							 // No Attendance
 							 if (no_rollup_classes != null && no_rollup_classes.size() > 0){
 								 for (EClass eclass: no_rollup_classes){
-									 // attendance_msg += "  " + eclass.getTitle() + "\n";
-									 attendance_msg += "  "+ eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
+									    attendance_msg += "  " + eclass.getTitle() + "\n";
+									 // attendance_msg += "  " + eclass.getTitle() + " / id = "+eclass.getId().intValue()+" \n";
 								 }
 							 }
 								 

@@ -175,7 +175,7 @@ public class ExamResultDaoImpl extends AbstractDao<Integer, ExamResult> implemen
 			crit_list.add(Restrictions.eq("subject_id", subject_id));
 		}
 
-		if (sch_year_id != null) {
+		if (sch_year_id != null  && sch_year_id > 0 ) {
 			crit_list.add(Restrictions.eq("sch_year_id", sch_year_id));
 		}
 		crit_list.addOrder(Order.desc("id"));
