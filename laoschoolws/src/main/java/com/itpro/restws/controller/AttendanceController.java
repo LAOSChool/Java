@@ -244,9 +244,13 @@ public class AttendanceController extends BaseController {
 			
     	if ((cur_user.hasRole(E_ROLE.TEACHER.getRole_short())) && 
     			!userService.isBelongToClass(cur_user.getId(), attendance.getClass_id())){
-    		throw new ESchoolException("AttendanceID:"+id+" is not belong to current Student, user_id:"+cur_user.getId().intValue(), HttpStatus.BAD_REQUEST);
+    		throw new ESchoolException("AttendanceID:"+id+" is not belong to current TEACHER, user_id:"+cur_user.getId().intValue(), HttpStatus.BAD_REQUEST);
     	}
     	
+    	if ((cur_user.hasRole(E_ROLE.CLS_PRESIDENT.getRole_short())) && 
+    			!userService.isBelongToClass(cur_user.getId(), attendance.getClass_id())){
+    		throw new ESchoolException("AttendanceID:"+id+" is not belong to current CLS_PRESIDENT, user_id:"+cur_user.getId().intValue(), HttpStatus.BAD_REQUEST);
+    	}
     	
     	
 	    return attendance;

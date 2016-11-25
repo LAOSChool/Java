@@ -277,7 +277,7 @@ public class ExamResultController extends BaseController {
 		String err_msg = examResultService.valid_rank_process(me,class_ids, ex_key);
 		if (err_msg != null && err_msg.length() > 0){
 			err_msg = Utils.removeTxtLastComma(err_msg);
-			RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"ERROR", request.getRequestURL().toString(),err_msg);
+			RespInfo rsp = new RespInfo(HttpStatus.BAD_REQUEST.value(),"ERROR", request.getRequestURL().toString(),err_msg);
 			rsp.setMessageObject("Cannot execute ranking due to error");
 			return rsp;
 		}
@@ -292,7 +292,7 @@ public class ExamResultController extends BaseController {
 	@Secured({ "ROLE_ADMIN", "ROLE_TEACHER","ROLE_STUDENT"})
 	@RequestMapping(value="/api/exam_results/ranks",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo rankGetExamRanks(
+	public RespInfo getRanks(
 			@RequestParam(value="filter_student_id",required =false) Integer filter_student_id,
 			@RequestParam(value="filter_class_id",required =false) Integer filter_class_id,
 			@RequestParam(value="filter_year_id", required =false) Integer filter_year_id,			

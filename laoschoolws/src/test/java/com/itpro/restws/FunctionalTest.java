@@ -18,7 +18,7 @@ public class FunctionalTest {
 	protected static String  ADM1_AUTH_KEY = "iwsAoFSU79WAsqosjGNG87tXLXB0K4KL6OIPIdBNK/Y=";
 	protected static String  TEA1_AUTH_KEY = "md5tGC3uIe1j2Xy+FRBhCy0QZ0CDBKM5bYQtKN6TMKE=";
 	protected static String  STD10_AUTH_KEY = "i/iKXrGVKU02hhuQ9hyicP9hFZRjA4XbzL3c1W7lOXM=";
-	protected static String  CLS_PRESIDENT1_KEY = "4eCMdMbdKdIlLm3xFpZnNCZ751EXnwwhAKdZ2nj18+8="; // lop truong 1a
+	protected static String  CLS_PRESIDENT1_KEY = "lNqD9tJw7Q2LYxFm6nstgzMQoIEnq+uFLvvt4/hhIW8="; // lop truong 1
 	
 	protected static String  INVALID_AUTH_KEY = "abc";
 	

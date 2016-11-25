@@ -272,7 +272,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		}else{
 			schooYear = schoolYearService.findById(examResult.getSch_year_id());
 			if (schooYear == null ){
-				throw new ESchoolException("ExamResult.getSch_year_id is not existing:"+examResult.getSubject_id().intValue(), HttpStatus.BAD_REQUEST);
+				throw new ESchoolException("ExamResult.getSch_year_id is not existing:"+examResult.getSch_year_id().intValue(), HttpStatus.BAD_REQUEST);
 			}			
 			if (schooYear.getSchool_id().intValue() != school_id.intValue()){
 				throw new ESchoolException("exam.sch_year_id is not belong to this school: "+examResult.getSchool_id().intValue(),HttpStatus.BAD_REQUEST);
@@ -344,7 +344,7 @@ public class ExamResultServiceImpl implements ExamResultService{
             				throw new ESchoolException(fname + ":"+sval+" > MAX value = "+school_exam.getMax().floatValue(), HttpStatus.BAD_REQUEST);
             			}
             			
-            			sval = String.format("%.1f", fval);
+            			sval = String.format(Constant.POINT_FORMAT, fval);
             			//valid_exam = true;
             			try {
             				examDetail.setSresult(sval);
@@ -749,7 +749,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 					cnt++;
 				}
 				float m5 = total/cnt;
-				// examResult.setM5(String.format("%.1f", m5));
 				ex_detail = new ExamDetail();
 				ex_detail.setExam_dt(Utils.now());
 				ex_detail.setNotice("AUTO");
@@ -772,7 +771,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 						cnt++;
 					}
 					float m7 = total/cnt;
-					// examResult.setM7(String.format("%.1f", m7));
 					ex_detail = new ExamDetail();
 					ex_detail.setExam_dt(Utils.now());
 					ex_detail.setNotice("AUTO");
@@ -810,7 +808,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 					cnt++;
 				}
 				float m12 = total/cnt;
-				// examResult.setM12(String.format("%.1f", m12));
 				ex_detail = new ExamDetail();
 				ex_detail.setExam_dt(Utils.now());
 				ex_detail.setNotice("AUTO");
@@ -833,7 +830,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 						cnt++;
 					}
 					float m14 = total/cnt;
-					// examResult.setM14(String.format("%.1f", m14));
 					ex_detail = new ExamDetail();
 					ex_detail.setExam_dt(Utils.now());
 					ex_detail.setNotice("AUTO");
@@ -872,7 +868,6 @@ public class ExamResultServiceImpl implements ExamResultService{
 					cnt++;
 				}
 				float m15 = total/cnt;
-				// examResult.setM15(String.format("%.1f", m15));
 				ex_detail = new ExamDetail();
 				ex_detail.setExam_dt(Utils.now());
 				ex_detail.setNotice("AUTO");
@@ -967,6 +962,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 		logger.info("year_id:"+(year_id==null?"null":year_id.intValue()));
 		
 		
+		// Check user role
 		if (me.hasRole(E_ROLE.STUDENT.getRole_short())){
 			if (me.getId().intValue() != student.getId().intValue()){
 				throw new ESchoolException("STUDENT cannot see rank of other STUDENT ", HttpStatus.BAD_REQUEST);
@@ -978,11 +974,24 @@ public class ExamResultServiceImpl implements ExamResultService{
 			}
 		}
 		
+		if (me.getSchool_id().intValue() != student.getSchool_id().intValue()){
+			throw new ESchoolException("TEACHER_ID:"+me.getId().intValue()+" and STUDENT_ID:"+student.getId().intValue()+" is not in same school ", HttpStatus.BAD_REQUEST);
+		}
 		
+		SchoolYear schoolYear = null;
 		if (year_id == null ){
-			SchoolYear schoolYear = schoolYearService.findLatestYearBySchool(student.getSchool_id());
+			schoolYear = schoolYearService.findLatestYearBySchool(student.getSchool_id());
 			if (schoolYear == null ){
 				throw new ESchoolException("Cannot get schoolYear of school_id:"+student.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
+			}
+			year_id = schoolYear.getId();
+		}else{
+			schoolYear = schoolYearService.findById(year_id);
+			if (schoolYear == null ){
+				throw new ESchoolException("year_id is not existing:"+year_id.intValue(), HttpStatus.BAD_REQUEST);
+			}
+			if (schoolYear.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				throw new ESchoolException("year_id is be long to me.school_id:"+me.getSchool_id().intValue(), HttpStatus.BAD_REQUEST);
 			}
 			year_id = schoolYear.getId();
 		}
