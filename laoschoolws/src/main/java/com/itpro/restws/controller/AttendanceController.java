@@ -268,7 +268,9 @@ public class AttendanceController extends BaseController {
 		logger.info(" *** createAttendance() START");
 		
 		User auditor = getCurrentUser();
-		
+		if (attendance.getSchool_id() == null ){
+			attendance.setSchool_id(auditor.getSchool_id());
+		}
 		if (auditor.getSchool_id().intValue() != attendance.getSchool_id().intValue()){
     		throw new ESchoolException("Current user and attendance_id are not in same School", HttpStatus.BAD_REQUEST);
     	}

@@ -1704,6 +1704,7 @@ public class ExamResultServiceImpl implements ExamResultService{
 				err_msg = "There are some students that were not filled score field. Please refill and continue:"+err_msg;
 				
 			}
+			throw new ESchoolException(err_msg, HttpStatus.BAD_REQUEST);
 		}
 		return err_msg;
 		

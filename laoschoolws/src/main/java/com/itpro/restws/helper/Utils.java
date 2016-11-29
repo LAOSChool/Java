@@ -295,6 +295,7 @@ public class Utils {
 //		    {
 //		        return null;
 //		    }
+		
 		Date date  = null;
 		SimpleDateFormat formater = null;
 		for (int i=0;i< com.itpro.restws.helper.Constant.datetime_formats.length;i++){
