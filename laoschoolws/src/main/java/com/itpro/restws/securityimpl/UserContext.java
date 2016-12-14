@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.model.User;
 
 public class UserContext  implements UserDetails {
@@ -66,7 +67,10 @@ public class UserContext  implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		if (E_STATE.ACTIVE.value() == user.getState().intValue()){
+			return true;
+		}
+		return false;
 	}
 
 	@Override

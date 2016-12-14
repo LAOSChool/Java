@@ -17,6 +17,7 @@ import org.springframework.security.crypto.codec.Base64;
 import com.itpro.restws.dao.AuthenKeyDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.AuthenKey;
 import com.itpro.restws.model.User;
 import com.itpro.restws.security.TokenInfo;
@@ -50,20 +51,43 @@ public class TokenManagerSingle implements TokenManager {
 	//private Map<UserDetails, TokenInfo> tokens = new HashMap<>();
 
 	@Override
-	public TokenInfo createNewToken(UserDetails userDetails) {
+	public TokenInfo createNewToken(UserDetails userDetails,String api_key) {
 		logger.info("TokenManagerSingle.createNewToken() Start");
 		
 		//Delete all previous auth_key
 		if (hasRole(new String[]{"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT"},userDetails)){
 			removeUserDetails(userDetails);
 		}else{
-			// Delete if over max session
-			List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());
-			if (list != null && list.size() >= Constant.MAX_STUDENT_SESSION){
-				while (list.size() >= Constant.MAX_STUDENT_SESSION){
-					AuthenKey authen =list.remove(list.size()-1);
-					authenKeyDao.deleteToken(authen);
-				}	
+			// Check previous existing api_key & auth_key
+			ArrayList<ApiKey> prev_api_keys = null;
+			if (api_key != null && api_key.trim().length()> 0 && (!isIgnoredKey(api_key))){
+				prev_api_keys = apiKeyService.findByApiKey(api_key);
+			}
+			// Clear all auth_key of existing api_key
+			if (prev_api_keys != null && prev_api_keys.size() > 0){
+				for (ApiKey prev_api:prev_api_keys){
+					String str_api_key = prev_api.getApi_key();
+					String str_auth_key = prev_api.getAuth_key();
+					// Delete token
+					AuthenKey auth = authenKeyDao.findByToken(str_auth_key);
+					if (auth != null ){
+						authenKeyDao.deleteToken(auth);
+					}
+					// Clear api_key
+					apiKeyService.clearByApiKey(str_api_key);
+				}
+			}
+			else{
+				// Delete if over max session
+				List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());
+				if (list != null && list.size() >= Constant.MAX_STUDENT_SESSION){
+					for (int i = Constant.MAX_STUDENT_SESSION-1;i< list.size();i++){
+						AuthenKey authen =list.get(i);
+						authenKeyDao.deleteToken(authen);
+						// del api_key
+						apiKeyService.clearByByAuthKey(authen.getAuth_key());
+					}
+				}
 			}
 		}
 		// Generate new auth_key
@@ -101,14 +125,10 @@ public class TokenManagerSingle implements TokenManager {
 	@Override
 	public void removeUserDetails(UserDetails userDetails) {
 		logger.info("TokenManagerSingle.removeUserDetails() Start");
-//		TokenInfo token = tokens.remove(userDetails);
-//		if (token != null) {
-//			validUsers.remove(token.getToken());
-//		}
 		
 		int ret = authenKeyDao.deleteBySso(userDetails.getUsername());
-		
-		apiKeyService.logoutBySSoID(userDetails.getUsername());
+		// del api_key
+		apiKeyService.clearBySSoID(userDetails.getUsername());
 		
 		logger.info("delete: "+ret+" tokens for user:"+userDetails.getUsername());
 	}
@@ -117,17 +137,11 @@ public class TokenManagerSingle implements TokenManager {
 	public UserDetails removeToken(String token) {
 		logger.info("TokenManagerSingle.removeToken() Start");
 		
-//		UserDetails userDetails = validUsers.remove(token);
-//		if (userDetails != null) {
-//			tokens.remove(userDetails);
-//		}
-//		return userDetails;
-		
 		AuthenKey authkey = authenKeyDao.findByToken(token);
 		User user = userDao.findBySSO(authkey.getSso_id());
 		authenKeyDao.deleteToken(authkey);
-		
-		apiKeyService.logoutByAuthKey(token);
+		// del api_key
+		apiKeyService.clearByByAuthKey(token);
 		
 		return new UserContext(user);
 	}
@@ -196,5 +210,14 @@ public class TokenManagerSingle implements TokenManager {
 		    }
 		  return result;
 	}
-
+	private boolean isIgnoredKey(String api_key){
+		
+		String[] ignores_devices = Constant.NON_DEVICE_API_KEY;
+		for (int i = 0;i< ignores_devices.length;i++){
+			if (api_key.equalsIgnoreCase(ignores_devices[i])){
+				return true;
+			}
+		}
+		return false;
+	}
 }

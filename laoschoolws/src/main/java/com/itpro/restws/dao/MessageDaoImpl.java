@@ -50,7 +50,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		crit_list.add(Restrictions.eq("from_user_id", from_user_id));
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
-		crit_list.addOrder(Order.asc("id"));
+		crit_list.addOrder(Order.desc("id"));
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
@@ -70,7 +70,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
-		crit_list.addOrder(Order.asc("id"));
+		crit_list.addOrder(Order.desc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -103,7 +103,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
-		crit_list.addOrder(Order.asc("id"));
+		crit_list.addOrder(Order.desc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -122,7 +122,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		crit_list.setMaxResults(max_result);
 		crit_list.setFirstResult(from_row);
 		
-		crit_list.addOrder(Order.asc("id"));
+		crit_list.addOrder(Order.desc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();
@@ -272,7 +272,7 @@ public class MessageDaoImpl extends AbstractDao<Integer, Message> implements Mes
 		// Ignore base message
 		crit_list.add(Restrictions.ne("is_sent", 99));
 		
-		crit_list.addOrder(Order.asc("id"));
+		crit_list.addOrder(Order.desc("id"));
 		
 		@SuppressWarnings("unchecked")
 		List<Message> messages = crit_list.list();

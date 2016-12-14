@@ -65,7 +65,7 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 
 			if (authentication.getPrincipal() != null) {
 				UserDetails userContext = (UserDetails) authentication.getPrincipal();
-				TokenInfo newToken = tokenManager.createNewToken(userContext);
+				TokenInfo newToken = tokenManager.createNewToken(userContext,null);
 				if (newToken == null) {
 					return null;
 				}
@@ -78,11 +78,43 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 	}
 
 	@Override
+	public TokenInfo authenticate(String login, String password, String api_key) {
+		logger.info(" *** AuthenticationServiceImpl.authenticate");
+		// Here principal=username, credentials=password
+		Authentication authentication = new UsernamePasswordAuthenticationToken(login, password);
+		try {
+			authentication = authenticationManager.authenticate(authentication);
+			// Here principal=UserDetails (UserContext in our case), credentials=null (security reasons)
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+
+			if (authentication.getPrincipal() != null) {
+				UserDetails userContext = (UserDetails) authentication.getPrincipal();
+				TokenInfo newToken = tokenManager.createNewToken(userContext,api_key);
+				if (newToken == null) {
+					return null;
+				}
+				// Save ApiKey & new Token to DB
+				apiKeyService.loginApiKeySuccess(login, api_key,newToken.getToken());
+				// Return token
+				return newToken;
+			}
+		} catch (AuthenticationException e) {
+			logger.info(" *** AuthenticationServiceImpl.authenticate - FAILED: " + e.toString());
+		}
+		return null;
+	}
+
+	
+	@Override
 	public boolean checkToken(String token) {
 		logger.info(" *** AuthenticationServiceImpl.checkToken");
 
 		UserDetails userDetails = tokenManager.getUserDetails(token);
 		if (userDetails == null) {
+			return false;
+		}
+		// Check user state = ACTIVE
+		if (!userDetails.isEnabled() ){
 			return false;
 		}
 
@@ -114,7 +146,21 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 //	    }
 	    
 	}
-
+//	@Override
+//	public void logout(String token, String api_key) {
+//		logger.info(" *** AuthenticationServiceImpl.logout-token-apikey");
+//		logger.info(" *** AuthenticationServiceImpl.token:"+token);
+//		logger.info(" *** AuthenticationServiceImpl.api_key:"+api_key);
+//		// Remove token
+//		//UserDetails logoutUser = tokenManager.removeToken(token);
+//		tokenManager.removeToken(token);
+//		// Remove api_key
+//		if (api_key != null && !api_key.trim().equals("")) {
+//			logoutApiKey(api_key, token);
+//		}
+//		SecurityContextHolder.clearContext();
+//		
+//	}
 	@Override
 	public UserDetails currentUser() {
 		logger.info(" *** AuthenticationServiceImpl.currentUser");
@@ -132,21 +178,21 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 		}
 	}
 
-	@Override
-	public void loginApiKeySuccess(String sso_id, String api_key,String auth_key) {
-		logger.info(" *** AuthenticationServiceImpl.loginApiKeySuccess");
-		
-		apiKeyService.loginApiKeySuccess(sso_id, api_key,auth_key);
-		
-	}
+//	@Override
+//	public void loginApiKeySuccess(String sso_id, String api_key,String auth_key) {
+//		logger.info(" *** AuthenticationServiceImpl.loginApiKeySuccess");
+//		
+//		apiKeyService.loginApiKeySuccess(sso_id, api_key,auth_key);
+//		
+//	}
 
 
-	@Override
-	public void logoutAuthKeySuccess( String api_key, String auth_key){
-		logger.info(" *** AuthenticationServiceImpl.logoutAuthKeySuccess");
-		apiKeyService.logoutApiKey(api_key);
-		
-	}
+//@Override
+//	public void logoutApiKey( String api_key, String auth_key){
+//		logger.info(" *** AuthenticationServiceImpl.logoutApiKey");
+//		apiKeyService.logoutApiKey(api_key);
+//		
+//	}
 
 	
 	@Override
@@ -191,6 +237,5 @@ public class AuthenticationServiceDefault implements AuthenticationService {
 		}
 
 	}
-	
 	
 }

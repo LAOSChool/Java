@@ -15,7 +15,7 @@ public interface TokenManager {
 	 * Creates a new token for the user and returns its {@link TokenInfo}.
 	 * It may add it to the token list or replace the previous one for the user. Never returns {@code null}.
 	 */
-	TokenInfo createNewToken(UserDetails userDetails);
+	TokenInfo createNewToken(UserDetails userDetails,String api_key);
 
 	/** Removes all tokens for user. */
 	void removeUserDetails(UserDetails userDetails);

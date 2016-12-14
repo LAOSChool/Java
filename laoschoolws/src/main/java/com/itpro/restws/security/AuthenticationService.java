@@ -20,6 +20,7 @@ public interface AuthenticationService {
 	 * Prepares {@link org.springframework.security.core.context.SecurityContext} if authentication succeeded.
 	 */
 	TokenInfo authenticate(String login, String password);
+	TokenInfo authenticate(String login, String password, String api_key);
 
 	/**
 	 * Checks the authentication token and if it is valid prepares
@@ -29,12 +30,13 @@ public interface AuthenticationService {
 
 	/** Logouts the user - token is invalidated/forgotten. */
 	void logout(String token);
+	//void logout(String token, String api_key);
 
 	/** Returns current user or {@code null} if there is no authentication or user is anonymous. */
 	UserDetails currentUser();
 	
-	void loginApiKeySuccess(String sso_id, String api_key,String auth_key);
-	void logoutAuthKeySuccess( String api_key, String auth_key);
+	// void loginApiKeySuccess(String sso_id, String api_key,String auth_key);
+	//void logoutAuthKeySuccess( String api_key, String auth_key);
 	
 	boolean checkActivedApiKey(String api_key,String auth_key);
 	

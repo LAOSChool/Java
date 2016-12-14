@@ -154,6 +154,20 @@ public class User extends AbstractModel {
 	@JsonIgnore
 	private ApiKey api_key;
 	
+//	/***
+//	 * 20161213 - update to support join
+//	 */
+//	@OneToMany(fetch=FetchType.LAZY)
+//	@JoinTable(name="api_key", 
+//	    JoinColumns={@JoinColumn(name="sso_id")},
+//	    inverseJoinColumns={@JoinColumn(name="sso_id")}
+//	)
+//	@Cascade(org.hibernate.annotations.CascadeType.ALL)
+//	public Set<B> getBs() {
+//	    return bs;
+//	}
+	
+	
 	@Transient
 	private String default_pass;
 	

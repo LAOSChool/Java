@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.itpro.restws.dao.AuthenKeyDao;
 import com.itpro.restws.dao.UserDao;
 import com.itpro.restws.helper.CSVUtils;
 import com.itpro.restws.helper.Constant;
@@ -41,7 +40,6 @@ import com.itpro.restws.helper.E_ROLE;
 import com.itpro.restws.helper.E_STATE;
 import com.itpro.restws.helper.Password;
 import com.itpro.restws.helper.Utils;
-import com.itpro.restws.model.AuthenKey;
 import com.itpro.restws.model.EClass;
 import com.itpro.restws.model.Message;
 import com.itpro.restws.model.SchoolYear;
@@ -67,8 +65,8 @@ public class UserServiceImpl implements UserService{
 	@Autowired
 	protected ClassService classService;
 	
-	@Autowired
-	private AuthenKeyDao authenKeyDao;
+//	@Autowired
+//	private AuthenKeyDao authenKeyDao;
 	@Autowired
 	protected ApiKeyService apiKeyService;
 	@Autowired
@@ -198,19 +196,17 @@ public class UserServiceImpl implements UserService{
 		   finally {
 			   userDao.setFlushMode(FlushMode.AUTO);
 	        }
-		  
-		
 		  userDao.updateUser(me,userDB);
-		  // Logout user if not active
-		  if (userDB.getState().intValue() != E_STATE.ACTIVE.value()){
-			  List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDB.getSso_id());
-				if (list != null && list.size() > 0){
-					for (AuthenKey authKey: list){
-						authenKeyDao.deleteToken(authKey);
-						apiKeyService.logoutByAuthKey(authKey.getAuth_key());	
-					}
-				}
-		  }
+//		  // Logout user if not active
+//		  if (userDB.getState().intValue() != E_STATE.ACTIVE.value()){
+//			  List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDB.getSso_id());
+//				if (list != null && list.size() > 0){
+//					for (AuthenKey authKey: list){
+//						authenKeyDao.deleteToken(authKey);
+//						apiKeyService.logoutByAuthKey(authKey.getAuth_key());	
+//					}
+//				}
+//		  }
 		return userDB;
 		
 		

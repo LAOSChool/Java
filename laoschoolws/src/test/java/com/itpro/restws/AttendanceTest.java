@@ -731,6 +731,25 @@ public class AttendanceTest extends FunctionalTest {
 		logger.info("Similar:"+devMsg.indexOf("Similar attendance already existing"));
 		assert((response.statusCode() == HttpStatus.OK.value())|(response.statusCode() == HttpStatus.BAD_REQUEST.value()));
 		assert(devMsg!= null && (devMsg.indexOf("Similar attendance already existing")>=0) || (devMsg.indexOf("Success") >= 0));
+		/////////////////=========================== CLS PRESIDENT
+		response = given().
+				header("api_key",WEB_API_KEY).
+				header("auth_key",CLS_PRESIDENT1_KEY).
+				contentType("application/json;charset=UTF-8").
+			body(att).			
+			
+			when().post(path).then().
+	        	log().ifValidationFails().
+	        	extract().response();
+			
+			
+			jsonPath = response.getBody().jsonPath();
+			devMsg  = jsonPath.get("developerMessage");
+			logger.info("devMsg:"+devMsg);
+			logger.info("Success:"+devMsg.indexOf("Success"));
+			logger.info("Similar:"+devMsg.indexOf("Similar attendance already existing"));
+			assert((response.statusCode() == HttpStatus.OK.value())|(response.statusCode() == HttpStatus.BAD_REQUEST.value()));
+			assert(devMsg!= null && (devMsg.indexOf("Similar attendance already existing")>=0) || (devMsg.indexOf("Success") >= 0));
     }
 	@Test 
     public void getAttendance_create_admin_other_school_false() {
@@ -765,144 +784,267 @@ public class AttendanceTest extends FunctionalTest {
     public void getAttendance_create_teacher_other_class_false() {
 		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 		logger.info(method_name + " START");
+
 		String path = "/api/attendances/create";
 		
+		Map<String,String> att = new HashMap<>();
+		att.put("school_id", "1");
+		att.put("class_id", "2");		
+		att.put("att_dt", "2016-12-01");
+		att.put("session_id", "1");
+		att.put("excused", "1");
+		att.put("term_val", "2");
+		att.put("year_id", "1");
+		att.put("auditor", "3");//teacher 1 id
+		att.put("student_id", "10");
+        
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",TEA1_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		body(att).			
 		
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.BAD_REQUEST.value())
+		.body("developerMessage", containsString("Invalid Class_ID"));
 		
     }
-//	@Test 
-//    public void getAttendance_create_cls_president_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/create";
-//    }
-//	@Test 
-//    public void getAttendance_create_cls_president_other_school_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/create";
-//    }
-//	@Test 
-//    public void getAttendance_create_cls_president_other_class_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/create";
-//    }
-//	@Test 
-//    public void getAttendance_create_student_not_authorize_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/create";
-//    }
-//	
-//	@Test 
-//    public void getAttendance_update_admin_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_update_admin_other_school_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_update_teacher_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	
-//	@Test 
-//    public void getAttendance_update_teacher_other_class_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_update_cls_president_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_update_cls_president_other_class_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_update_student_false_not_authrize() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/update";
-//    }
-//	@Test 
-//    public void getAttendance_delete_admin_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_delete_admin_other_school_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_delete_teacher_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_delete_teacher_other_class_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_delete_president_true() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_delete_president_other_class_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/delete/1";
-//    }
-//	@Test 
-//    public void getAttendance_request_admin_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/request";
-//    }
-//	@Test 
-//    public void getAttendance_request_teacher_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/request";
-//    }
-//	@Test 
-//    public void getAttendance_request_president_false() {
-//		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
-//		logger.info(method_name + " START");
-//		String path = "/api/attendances/request";
-//    }
+	@Test 
+    public void getAttendance_create_student_not_authorize_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+		String path = "/api/attendances/create";
+		
+		Map<String,String> att = new HashMap<>();
+		att.put("school_id", "1");
+		att.put("class_id", "1");		
+		att.put("att_dt", "2016-08-12");
+		att.put("session_id", "1");
+		att.put("excused", "1");
+		att.put("term_val", "2");
+		att.put("year_id", "1");
+		att.put("auditor", "3");//teacher 1 id
+		att.put("student_id", "10");
+        
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",STD10_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		body(att).			
+		
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.FORBIDDEN.value())
+		.body("developerMessage", containsString("Access is denied"));
+    }
+	@Test 
+    public void getAttendance_update_teacher_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+		String path = "/api/attendances/update";
+		
+		Map<String,String> att = new HashMap<>();
+		att.put("id", "1");
+		att.put("school_id", "1");
+		att.put("class_id", "1");		
+		att.put("att_dt", "2016-08-12");
+		att.put("session_id", "1");
+		att.put("excused", "1");
+		att.put("term_val", "2");
+		att.put("year_id", "1");
+		att.put("student_id", "10");
+        
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",TEA1_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		body(att).			
+		
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.OK.value());
+	}
+	@Test 
+    public void getAttendance_update_admin_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+		String path = "/api/attendances/update";
+		
+		Map<String,String> att = new HashMap<>();
+		att.put("id", "78");// school 2
+		att.put("school_id", "1");
+		att.put("class_id", "1");		
+		att.put("att_dt", "2016-08-12");
+		att.put("session_id", "1");
+		att.put("excused", "1");
+		att.put("term_val", "2");
+		att.put("year_id", "1");
+		att.put("student_id", "10");
+        
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",TEA1_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		body(att).			
+		
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.BAD_REQUEST.value()).body("developerMessage", containsString("attendace.id is not belong to same school with me"));
+		
+    }
+	@Test 
+    public void getAttendance_update_student_false_not_authrize() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+
+		String path = "/api/attendances/update";
+		
+		Map<String,String> att = new HashMap<>();
+		att.put("id", "78");// school 2
+		att.put("school_id", "1");
+		att.put("class_id", "1");		
+		att.put("att_dt", "2016-08-12");
+		att.put("session_id", "1");
+		att.put("excused", "1");
+		att.put("term_val", "2");
+		att.put("year_id", "1");
+		att.put("student_id", "10");
+        
+		given().
+			header("api_key",WEB_API_KEY).
+			header("auth_key",STD10_AUTH_KEY).
+			contentType("application/json;charset=UTF-8").
+		body(att).			
+		
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.FORBIDDEN.value());
+		
+    }
+	@Ignore
+	@Test 
+    public void getAttendance_delete_admin_true() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/attendances/delete/1";
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",ADM1_AUTH_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.OK.value());
+    }
+	@Test 
+    public void getAttendance_delete_admin_other_school_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/attendances/delete/78";// 78 is shchool 2
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",ADM1_AUTH_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.BAD_REQUEST.value())
+		.body("developerMessage", containsString("Current user and attendance_id are not in same School"));
+    }
+	@Test 
+    public void getAttendance_delete_teacher_other_class_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/attendances/delete/2";// 2 is class 2
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",TEA1_AUTH_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.BAD_REQUEST.value())
+		.body("developerMessage", containsString("Invalid Class_ID"));
+    }
+	@Test 
+    public void getAttendance_delete_president_other_class_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/attendances/delete/2";// 2 is class 2
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",CLS_PRESIDENT1_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.BAD_REQUEST.value())
+		.body("developerMessage", containsString("Invalid Class_ID"));
+    }
+	@Test 
+    public void getAttendance_request_admin_false() {
+		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
+		logger.info(method_name + " START");
+		String path = "/api/attendances/request";
+		
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",ADM1_AUTH_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.FORBIDDEN.value());
+		
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",TEA1_AUTH_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.FORBIDDEN.value());
+		
+		given().
+		header("api_key",WEB_API_KEY).
+		header("auth_key",CLS_PRESIDENT1_KEY).
+		when().post(path).then().
+		log().ifValidationFails().assertThat()
+		.statusCode(HttpStatus.FORBIDDEN.value());
+    }
+//	@Ignore
 //	@Test 
 //    public void getAttendance_request_student_true() {
 //		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 //		logger.info(method_name + " START");
+//
 //		String path = "/api/attendances/request";
+//		/***
+//		 * {"student_name":"Student 2",
+//		 * "notice":"Nghi hai ngay 1,2/12/2016",
+//		 * "school_id":10,
+//		 * "excused":0,
+//		 * "state":1,
+//		 * "student_id":130,
+//		 * "class_id":28,
+//		 * "chk_user_id":0,
+//		 * "subject_id":0,
+//		 * "absent":0}
+//		 */
+//		Map<String,String> att = new HashMap<>();
+//		att.put("school_id", "1");
+//		att.put("class_id", "1");		
+//		att.put("att_dt", "2016-12-02");
+//        
+//		given().
+//			header("api_key",WEB_API_KEY).
+//			header("auth_key",STD10_AUTH_KEY).
+//			contentType("application/json;charset=UTF-8").
+//		body(att).			
+//		
+//		when().post(path).then().
+//		log().ifValidationFails().assertThat()
+//		.statusCode(HttpStatus.FORBIDDEN.value());
 //    }
 //	@Test 
 //    public void getAttendance_request_student_from_to_true() {
 //		String method_name = Thread.currentThread().getStackTrace()[1].getMethodName();
 //		logger.info(method_name + " START");
 //		String path = "/api/attendances/request";
+//		
+//		
 //    }
 //	@Test 
 //    public void getAttendance_request_student_already_request_false() {

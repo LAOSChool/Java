@@ -53,7 +53,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
         
-        crit_list.addOrder(Order.asc("id"));
+        crit_list.addOrder(Order.desc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -67,7 +67,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
         
-        crit_list.addOrder(Order.asc("id"));
+        crit_list.addOrder(Order.desc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -100,7 +100,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
         
-        crit_list.addOrder(Order.asc("id"));
+        crit_list.addOrder(Order.desc("id"));
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
 	     return notifies;
@@ -114,7 +114,7 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		crit_list.add(Restrictions.eq("class_id", class_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
-        crit_list.addOrder(Order.asc("id"));
+        crit_list.addOrder(Order.desc("id"));
         
 	     @SuppressWarnings("unchecked")
 		List<Notify> notifies = crit_list.list();
@@ -364,12 +364,12 @@ public class NotifyDaoImpl extends AbstractDao<Integer, Notify> implements Notif
 		//projList.add(Projections.property("id"));
         projList.add(Projections.groupProperty("task_id"));
         crit_list.setProjection(projList);     
-	//	crit_list.addOrder( Order.asc("task_id") );
+	//	crit_list.addOrder( Order.desc("task_id") );
         
         // Task_ID >0
         crit_list.add(Restrictions.gt("task_id", 0));
 		      
-        crit_list.addOrder(Order.asc("id"));
+        crit_list.addOrder(Order.desc("id"));
         
 		@SuppressWarnings("unchecked")
 		List<Object> results = crit_list.list();

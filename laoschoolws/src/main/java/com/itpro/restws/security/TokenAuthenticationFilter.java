@@ -78,6 +78,7 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 		// Check token
 		boolean authenticated = false;
 		if (canRequestProcessingContinue(httpRequest)) {
+			// Check for token != null AND token is Valid AND user.state = ACTIVE
 			authenticated = checkToken(httpRequest, httpResponse);
 		}
 
@@ -87,8 +88,8 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			// Logout does not work in the same request with login - this does not make sense,
 			// because logout works with token and login returns it.
 			if (authenticated ) {
-				checkLogout(httpRequest,httpResponse); // Logout and del auth_key
-				// Check API_KEY is active
+				checkLogout(httpRequest,httpResponse); // Logout and clear auth_key
+				// Check API_KEY is valid
 				if (canRequestProcessingContinue(httpRequest)) {
 					checkActivedApiKey(httpRequest,httpResponse);
 				}
@@ -234,16 +235,14 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	}
 
 	private void checkUsernameAndPassword(String username, String password,HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
-		TokenInfo tokenInfo = authenticationService.authenticate(username, password);
+		String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
+		
+		//TokenInfo tokenInfo = authenticationService.authenticate(username, password);
+		TokenInfo tokenInfo = authenticationService.authenticate(username, password,api_key);
 		if (tokenInfo != null) {
 			httpResponse.setHeader(Constant.HEADER_AUTH_KEY, tokenInfo.getToken());
 			httpResponse.getOutputStream().println("OK");
 			httpResponse.getOutputStream().flush();
-			
-			// Sau khi Login thanh cong, save API_KEY/SSO_ID
-			String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
-			authenticationService.loginApiKeySuccess(username, api_key,tokenInfo.getToken());
-			//authenticationService.addAuthKey_to_ApiKey(api_key, tokenInfo.getToken());
 		} else {
 			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		}
@@ -251,7 +250,13 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 
 	
 
-	/** Returns true, if request contains valid authentication token. */
+	/**
+	 * Returns true, if request contains valid authentication token.
+	 * Token is null => false
+	 * Invalid => False
+	 * User.state != Active => Flase
+	 *  
+	 * */
 	private boolean checkToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 		String token = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
 		if (token == null) {
@@ -296,15 +301,6 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 			// we go here only authenticated, token must not be null
 			authenticationService.logout(token);
 			
-			// Clear auth_key from api_key
-			String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
-			
-			if (api_key != null && !api_key.trim().equals("")) {
-				authenticationService.logoutAuthKeySuccess(api_key, token);
-			}
-			
-			
-			
 			httpResponse.getOutputStream().println("Request was successfully");
 			httpResponse.getOutputStream().flush();
 			httpResponse.flushBuffer();
@@ -336,7 +332,10 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
 	}
 	
 	
-//	/** Returns true, if request contains valid apk_key. */
+	/*** 
+		Returns true, if request contains valid api_key.
+		If found api_key & auth_key => update last_update_datetime
+	*/
 	private void checkActivedApiKey(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 		String api_key = httpRequest.getHeader(Constant.HEADER_API_KEY);
 		String auth_key = httpRequest.getHeader(Constant.HEADER_AUTH_KEY);
@@ -491,6 +490,15 @@ public final class TokenAuthenticationFilter extends GenericFilterBean {
         return false;
     }
 	 private boolean isMultipartForm(HttpServletRequest aRequest){
+		 if (aRequest == null ){
+			 return false;
+		 }
+		 if (aRequest.getMethod() == null ){
+			 return false;
+		 }
+		 if (aRequest.getContentType() == null ){
+			 return false;
+		 }
 		    return     
 		      aRequest.getMethod().equalsIgnoreCase("POST") && 
 		      aRequest.getContentType().startsWith("multipart/form-data")

@@ -8,6 +8,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SelectBeforeUpdate;
 
 @Entity
@@ -48,6 +49,31 @@ public class ApiKey extends AbstractModel{
 	@Column(name="active")
 	private Integer active;
 	
+	@Column(name="school_id")
+	private Integer school_id;
+	
+	@Column(name="class_id")
+	private Integer class_id;
+	
+	@Column(name="role")
+	private String role;
+	
+	
+	@Formula("(SELECT t.title FROM school t WHERE t.id = school_id)") 
+	private String SchoolName;
+	
+	@Formula("(SELECT t.title FROM class t WHERE t.id = class_id)")
+	private String className;
+	
+	
+	public void clearInfo(){
+		this.sso_id = null;
+		this.auth_key = null;
+		this.active = 0;
+		this.school_id = null;
+		this.class_id = null;
+		this.role = null;
+	}
 	public Integer getActive() {
 		return active;
 	}
@@ -125,7 +151,40 @@ public class ApiKey extends AbstractModel{
 		this.notice = notice;
 	}
 
-	
-	
+	public Integer getSchool_id() {
+		return school_id;
+	}
+
+	public void setSchool_id(Integer school_id) {
+		this.school_id = school_id;
+	}
+
+	public Integer getClass_id() {
+		return class_id;
+	}
+
+	public void setClass_id(Integer class_id) {
+		this.class_id = class_id;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+	public String getSchoolName() {
+		return SchoolName;
+	}
+	public void setSchoolName(String schoolName) {
+		SchoolName = schoolName;
+	}
+	public String getClassName() {
+		return className;
+	}
+	public void setClassName(String className) {
+		this.className = className;
+	}
 
 }

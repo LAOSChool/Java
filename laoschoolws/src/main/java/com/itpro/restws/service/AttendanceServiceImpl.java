@@ -178,6 +178,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 		if (curr_db != null ){
 
 		  try {
+			  // check school
+			  if (curr_db.getSchool_id().intValue() != me.getSchool_id().intValue()){
+				  throw new ESchoolException("attendace.id is not belong to same school with me", HttpStatus.BAD_REQUEST);  
+			  }
+			  
 			  attendanceDao.setFlushMode(FlushMode.MANUAL);
 			  curr_db = Attendance.updateChanges(curr_db, attendance);
 				
