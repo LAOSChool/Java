@@ -53,32 +53,38 @@ public class TokenManagerSingle implements TokenManager {
 	@Override
 	public TokenInfo createNewToken(UserDetails userDetails,String api_key) {
 		logger.info("TokenManagerSingle.createNewToken() Start");
-		
-		//Delete all previous auth_key
+
+		// Check previous existing api_key
+		ArrayList<ApiKey> prev_api_keys = null;
+		if (api_key != null && api_key.trim().length()> 0 && (!isIgnoredKey(api_key))){
+			prev_api_keys = apiKeyService.findByApiKey(api_key);
+		}
+		/***
+		 * Delete all login session of current device
+		 */
+		if (prev_api_keys != null && prev_api_keys.size() > 0){
+			for (ApiKey prev_api:prev_api_keys){
+				String str_api_key = prev_api.getApi_key();
+				String str_auth_key = prev_api.getAuth_key();
+				// Delete token
+				AuthenKey auth = authenKeyDao.findByToken(str_auth_key);
+				if (auth != null ){
+					authenKeyDao.deleteToken(auth);
+				}
+				// Clear api_key
+				apiKeyService.clearByApiKey(str_api_key);
+			}
+		}
+		/***
+		 * If not STUDENT, Delete all  login session ( Device API KEY & AuthKey) by sso_id
+		 */
 		if (hasRole(new String[]{"ROLE_ADMIN","ROLE_TEACHER","ROLE_CLS_PRESIDENT"},userDetails)){
 			removeUserDetails(userDetails);
 		}else{
-			// Check previous existing api_key & auth_key
-			ArrayList<ApiKey> prev_api_keys = null;
-			if (api_key != null && api_key.trim().length()> 0 && (!isIgnoredKey(api_key))){
-				prev_api_keys = apiKeyService.findByApiKey(api_key);
-			}
-			// Clear all auth_key of existing api_key
-			if (prev_api_keys != null && prev_api_keys.size() > 0){
-				for (ApiKey prev_api:prev_api_keys){
-					String str_api_key = prev_api.getApi_key();
-					String str_auth_key = prev_api.getAuth_key();
-					// Delete token
-					AuthenKey auth = authenKeyDao.findByToken(str_auth_key);
-					if (auth != null ){
-						authenKeyDao.deleteToken(auth);
-					}
-					// Clear api_key
-					apiKeyService.clearByApiKey(str_api_key);
-				}
-			}
-			
-			// Delete if over max session
+			/***
+			 * If STUDENT, only keep two login session ( Device API KEY & AuthKey)
+			 */
+
 			List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());// order ASC by ID
 			if (list != null && list.size() >= Constant.MAX_STUDENT_SESSION){
 				for (int i = 0; i< list.size() - Constant.MAX_STUDENT_SESSION+1;i++){
