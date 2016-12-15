@@ -22,7 +22,7 @@ public class AuthenKeyDaoImpl extends AbstractDao<Integer, AuthenKey> implements
 	public List<AuthenKey> findBySsoID(String sso_id) {
 		Criteria crit_list = createEntityCriteria();
 		crit_list.add(Restrictions.eq("sso_id", sso_id));
-		crit_list.addOrder(Order.desc("id") );// Last item is the small list => khi remove se di tu cuoi len
+		crit_list.addOrder(Order.asc("id") );// Last item is the small list => khi remove se di tu cuoi len
 		
 //		crit_list.add(Restrictions.or(
 //		        Restrictions.isNull("expired_dt"),

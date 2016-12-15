@@ -67,6 +67,7 @@ public class ApiKey extends AbstractModel{
 	
 	
 	public void clearInfo(){
+		this.cld_token = null;
 		this.sso_id = null;
 		this.auth_key = null;
 		this.active = 0;

@@ -77,18 +77,18 @@ public class TokenManagerSingle implements TokenManager {
 					apiKeyService.clearByApiKey(str_api_key);
 				}
 			}
-			else{
-				// Delete if over max session
-				List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());
-				if (list != null && list.size() >= Constant.MAX_STUDENT_SESSION){
-					for (int i = Constant.MAX_STUDENT_SESSION-1;i< list.size();i++){
-						AuthenKey authen =list.get(i);
-						authenKeyDao.deleteToken(authen);
-						// del api_key
-						apiKeyService.clearByByAuthKey(authen.getAuth_key());
-					}
+			
+			// Delete if over max session
+			List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());// order ASC by ID
+			if (list != null && list.size() >= Constant.MAX_STUDENT_SESSION){
+				for (int i = 0; i< list.size() - Constant.MAX_STUDENT_SESSION+1;i++){
+					AuthenKey authen =list.get(i);
+					authenKeyDao.deleteToken(authen);
+					// del api_key
+					apiKeyService.clearByByAuthKey(authen.getAuth_key());
 				}
 			}
+			
 		}
 		// Generate new auth_key
 		List<AuthenKey> list  =  authenKeyDao.findBySsoID(userDetails.getUsername());

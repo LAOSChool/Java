@@ -77,8 +77,8 @@ public class Constant {
 	public static final String[] NON_DEVICE_API_KEY ={
 			  "WEB",
 			  "SMS",
-			 // "TEST", 
-			  // "TEST_API_KEY"
+			  "TEST", 
+			  "TEST_API_KEY"
 			};
 	
 	public static final String[] datetime_formats ={
