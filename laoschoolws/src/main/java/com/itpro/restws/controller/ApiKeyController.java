@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itpro.restws.helper.Constant;
+import com.itpro.restws.helper.ListEnt;
 import com.itpro.restws.helper.RespInfo;
 import com.itpro.restws.model.ApiKey;
 import com.itpro.restws.model.User;
@@ -85,7 +86,7 @@ public class ApiKeyController  extends BaseController {
 	@Secured({ "ROLE_ADMIN" })
 	@RequestMapping(value="/api/api_keys",method = RequestMethod.GET)
 	@ResponseStatus(value=HttpStatus.OK)	
-	public RespInfo getUserInfo(
+	public ListEnt getUserInfo(
 			@RequestParam(value="filter_role",required =false) String filter_role,
 			@RequestParam(value="filter_sso_id",required =false) String filter_sso_id,
 			@RequestParam(value="filter_class_id", required =false) Integer filter_class_id,
@@ -106,11 +107,14 @@ public class ApiKeyController  extends BaseController {
 		int from_row = filter_from_row == null?0:Integer.valueOf(filter_from_row);
 		int max_result = filter_max_result == null?Constant.MAX_RESP_ROW:Integer.valueOf(filter_max_result);
     	Integer total_row = apiKeyService.countByExt(me, filter_class_id, filter_sso_id, filter_role, 1, null,null);
+    	ListEnt rspEnt = new ListEnt();
     	
     	if( (total_row <=  0) || (from_row > total_row) ||  max_result<=0) {
-    		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-    		rsp.setMessageObject(null);
-    	    return rsp;
+    		rspEnt.setList(null);
+    		rspEnt.setFrom_row(0);
+    		rspEnt.setTo_row(0);
+    		rspEnt.setTotal_count(0);
+    		return rspEnt;
     	}
     	
     	if ((from_row + max_result > total_row)){
@@ -121,11 +125,16 @@ public class ApiKeyController  extends BaseController {
     	logger.info("max_result : "+max_result);
 		
 	  
+    	
+    	
     	ArrayList<ApiKey> list = apiKeyService.findByExt(me, filter_class_id, filter_sso_id, filter_role, 1, null, null, from_row, max_result);
-		RespInfo rsp = new RespInfo(HttpStatus.OK.value(),"No error", request.getRequestURL().toString(), "Successful");
-		rsp.setMessageObject(list);
-		
-	    return rsp;	
+    	rspEnt.setList(list);
+  	    rspEnt.setFrom_row(from_row);
+  	    rspEnt.setTo_row(from_row + max_result);
+  	    rspEnt.setTotal_count(total_row);
+  		    
+  	  
+  	    return rspEnt;
 
 	}
 	

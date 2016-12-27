@@ -36,6 +36,9 @@ public class ActionLogDaoImpl extends AbstractDao<Integer, ActionLog> implements
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        //crit_list.addOrder(Order.desc("request_dt"));
+        
 	     @SuppressWarnings("unchecked")
 		List<ActionLog> list = crit_list.list();
 	     return list;
@@ -48,6 +51,9 @@ public class ActionLogDaoImpl extends AbstractDao<Integer, ActionLog> implements
 		crit_list.add(Restrictions.eq("user_id", user_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        //crit_list.addOrder(Order.desc("request_dt"));
+        
 	     @SuppressWarnings("unchecked")
 		List<ActionLog> list = crit_list.list();
 	     return list;
@@ -126,6 +132,10 @@ public class ActionLogDaoImpl extends AbstractDao<Integer, ActionLog> implements
 		if (to_dt != null ){
 			str = str +" and act.request_dt <= '"+to_dt+"'";
 		}
+		
+		//str = str +" order by act.request_dt desc ";
+		
+		
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_num);

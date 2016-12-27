@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,9 @@ public class ActionLogVIPDaoImpl extends AbstractDao<Integer, ActionLogVIP> impl
 		crit_list.add(Restrictions.eq("school_id", school_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.desc("request_dt"));
+        
 	     @SuppressWarnings("unchecked")
 		List<ActionLogVIP> list = crit_list.list();
 	     return list;
@@ -48,6 +52,9 @@ public class ActionLogVIPDaoImpl extends AbstractDao<Integer, ActionLogVIP> impl
 		crit_list.add(Restrictions.eq("sso_id", sso_id));
 		crit_list.setMaxResults(max_result);
         crit_list.setFirstResult(from_row);
+        
+        crit_list.addOrder(Order.desc("request_dt"));
+        
 	     @SuppressWarnings("unchecked")
 		List<ActionLogVIP> list = crit_list.list();
 	     return list;
@@ -116,7 +123,8 @@ public class ActionLogVIPDaoImpl extends AbstractDao<Integer, ActionLogVIP> impl
 			str = str +" and act.act_type = '"+filter_type+"'";
 		}
 		
-		str = str +" order by act.id ";
+//		str = str +" order by act.id ";
+		str = str +" order by act.request_dt desc ";
 		
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);

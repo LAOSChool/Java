@@ -203,7 +203,8 @@ public class ApiKeyDaoImpl extends AbstractDao<Integer, ApiKey> implements ApiKe
 	
 		
 		
-		str = str +" order by att.id asc ";
+		// str = str +" order by att.id desc ";
+		str = str +" order by att.last_request_dt desc ";
 		Query query =  getSession().createQuery(str);
 		query.setMaxResults(max_result);
 		query.setFirstResult(from_num);
